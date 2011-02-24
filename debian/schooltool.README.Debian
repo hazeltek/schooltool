@@ -1,0 +1,30 @@
+SchoolTool for Ubuntu
+---------------------
+
+The simplest way to start playing with SchoolTool is as follows:
+
+  1. `apt-get install schooltool`
+  2. Open http://localhost:7080/ in a web browser and play with the web
+     frontend.
+
+By default a user 'manager' with password 'schooltool' is created with full
+access and modification privileges.
+
+The configuration file is /etc/schooltool/standard/schooltool.conf.
+
+PDF support
+-----------
+
+To enable PDF support you will need the 'Arial' and 'Times New Roman'
+TrueType fonts.  Usually 'apt-get install msttcorefonts' should suffice.
+You can tell that PDF support has been enabled if there is a printer icon
+at the top right of the web calendar screens.
+
+Present and Past Maintainers
+----------------------------
+
+Past Maintainers:
+        Marius Gedminas <marius@pov.lt>
+        Brian Sutherland <jinty@web.de>
+Current maintainer:
+        Gediminas Paulauskas <menesis@pov.lt>

@@ -1,0 +1,2 @@
+version=3
+http://ftp.schooltool.org/schooltool/trunk/schooltool-(\d.*)\.tar\.gz

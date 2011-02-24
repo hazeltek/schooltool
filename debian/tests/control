@@ -1,0 +1,3 @@
+Tests: all
+Features: no-build-needed
+Depends: @, python-zope.testing, python-lxml, python-zope.app.testing, python-zope.copypastemove, python-zope.exceptions, python-zope.principalregistry, python-zope.testbrowser

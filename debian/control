@@ -1,0 +1,35 @@
+Source: schooltool
+Section: python
+Priority: extra
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+XSBC-Original-Maintainer: Gediminas Paulauskas <menesis@pov.lt>
+Build-Depends: debhelper (>= 7.0.50~), python-all (>= 2.3.5-11), python-central (>= 0.6.8), python-setuptools (>= 0.6b3), python-van.pydeb (>= 1.3.0-4)
+Standards-Version: 3.9.1
+XS-Python-Version: >= 2.5
+Homepage: http://www.schooltool.org/
+
+Package: python-schooltool
+Architecture: all
+Depends: ${pydeb:Depends}, ${python:Depends}, ${misc:Depends}, libjs-jquery
+Provides: ${pydeb:Provides}
+Recommends: ttf-liberation
+Suggests: ${pydeb:Suggests}
+XB-Python-Version: ${python:Versions}
+Description: Python libraries used by SchoolTool
+ This package contains the core of SchoolTool.
+
+Package: schooltool
+Architecture: all
+Depends: ${misc:Depends}, adduser, lsb-base,
+         python-schooltool (>= 1:1.6.0~),
+         python-schooltool.gradebook,
+         python-schooltool.lyceum.journal,
+         python-schooltool.intervention
+Provides: schooltool-server
+Conflicts: schooltool-2009
+XB-Python-Version: ${python:Versions}
+Description: A suite of free administrative software for schools
+ This is the standard distribution of SchoolTool, providing a running
+ web-based student information system for a single school, including
+ calendaring, student enrollment and demographics, gradebooks, attendance,
+ intervention tracking and reporting.

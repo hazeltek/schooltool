@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -e
+
+PYVERS=$(pyversions -vr debian/control)
+TMPFILE=$(mktemp)
+
+cat > $TMPFILE << EOF
+from zope.testing import testrunner
+from distutils import sysconfig
+
+test_path = sysconfig.get_python_lib()
+
+exitcode = testrunner.run([
+                '-k',
+                '--tests-pattern', '^f?tests$',
+                '-s', 'schooltool',
+                '--test-path', test_path
+                ])
+sys.exit(exitcode)
+EOF
+
+for version in ${PYVERS}; do
+    python${version} ${TMPFILE}
+done
+
+rm $TMPFILE

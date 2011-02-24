@@ -1,0 +1,159 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:security="http://schooltool.org/securitypolicy"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:apidoc="http://namespaces.zope.org/apidoc">
+
+  <!-- Register the skin for devmode -->
+  <interface
+      interface=".skin.ISchoolToolDevModeSkin"
+      type="zope.publisher.interfaces.browser.IBrowserSkinType"
+      name="SchoolToolDevMode"
+      />
+
+  <!-- Setup schooltool as a top-level package in API doc -->
+  <apidoc:rootModule module="schooltool" />
+
+  <!-- Generic DevMode setup -->
+
+  <interface
+      interface="schooltool.devmode.skin.ISchoolToolDevModeSkin"
+      type="zope.publisher.interfaces.browser.IBrowserSkinType"
+      name="SchoolToolDevMode"
+      />
+
+  <configure package="schooltool.skin">
+
+    <browser:navigationViewlet
+      name="inspect"
+      for="*"
+      manager="schooltool.skin.IActionMenuManager"
+      template="templates/actionsViewlet.pt"
+      permission="schooltool.edit"
+      link="@@introspector.html"
+      title="Introspect"
+      order="200"
+      />
+
+    <browser:navigationViewlet
+      name="api-docs"
+      for="*"
+      manager="schooltool.app.browser.interfaces.IManageMenuViewletManager"
+      template="templates/navigationViewlet.pt"
+      class="schooltool.skin.skin.NavigationViewlet"
+      permission="schooltool.view"
+      link="++apidoc++/@@index.html"
+      title="API Docs"
+      order="220"
+      />
+
+    <browser:navigationViewlet
+      name="sample-data"
+      for="*"
+      manager="schooltool.app.browser.interfaces.IManageMenuViewletManager"
+      template="templates/navigationViewlet.pt"
+      class="schooltool.skin.skin.NavigationViewlet"
+      permission="schooltool.view"
+      link="@@sampledata.html"
+      title="Sample data"
+      order="230"
+      />
+
+    <browser:navigationViewlet
+      name="setup-data"
+      for="*"
+      manager="schooltool.app.browser.interfaces.IManageMenuViewletManager"
+      template="templates/navigationViewlet.pt"
+      class="schooltool.skin.skin.NavigationViewlet"
+      permission="schooltool.view"
+      link="@@setupdata.html"
+      title="Setup data"
+      order="240"
+      />
+
+  </configure>
+
+  <browser:viewlet
+      name="devmode_css"
+      for="*"
+      manager="schooltool.skin.ICSSManager"
+      class=".devmode.DevmodeCSSViewlet"
+      permission="zope.View"
+      layer="schooltool.devmode.skin.IDevModeLayer"
+      />
+
+  <!-- DevTools Menu configuration -->
+
+  <browser:resource
+      name="devmode.css" file="devmode.css"
+      layer=".skin.IDevModeLayer"
+      />
+
+  <!-- Introspector -->
+  <browser:viewlet
+      name="introspector_css"
+      for="*"
+      manager="schooltool.skin.ICSSManager"
+      class=".devmode.IntrospectorCSSViewlet"
+      permission="zope.View"
+      layer="schooltool.devmode.skin.IDevModeLayer"
+      />
+
+  <browser:resource
+      name="introspector.css" file="introspector.css"
+      layer=".skin.IDevModeLayer"
+      />
+
+  <!-- apidoc customization -->
+  <browser:resource
+      name="apidoc.css" file="apidoc.css"
+      layer=".skin.IDevModeLayer"
+      />
+
+  <browser:pages
+      for="zope.app.apidoc.apidoc.APIDocumentation"
+      class="zope.app.apidoc.browser.apidoc.APIDocumentationView"
+      permission="zope.app.apidoc.UseAPIDoc"
+      layer="schooltool.devmode.skin.IDevModeLayer">
+
+    <browser:page
+        name="modulelist.html"
+        template="modules.pt" />
+
+  </browser:pages>
+
+  <configure package="zope.app.apidoc.ifacemodule">
+    <browser:page
+        for=".ifacemodule.InterfaceModule"
+        permission="zope.app.apidoc.UseAPIDoc"
+        class="schooltool.devmode.apidoc.InterfaceMenu"
+        name="menu.html"
+        template="menu.pt"
+        layer="schooltool.devmode.skin.IDevModeLayer"
+        />
+  </configure>
+
+  <browser:page
+      for="zope.app.apidoc.codemodule.codemodule.CodeModule"
+      permission="zope.app.apidoc.UseAPIDoc"
+      class="schooltool.devmode.apidoc.CodeMenu"
+      name="menu.html"
+      template="code_menu.pt"
+      layer="schooltool.devmode.skin.IDevModeLayer"
+      />
+
+  <configure package="zope.app.apidoc.bookmodule">
+    <browser:page
+        for="zope.app.onlinehelp.onlinehelptopic.RESTOnlineHelpTopic"
+        permission="zope.app.apidoc.UseAPIDoc"
+        class="schooltool.devmode.apidoc.BookMenu"
+        name="menu.html"
+        template="menu.pt"
+        />
+  </configure>
+
+  <security:allow
+      crowds="administration"
+      permission="zope.app.apidoc.UseAPIDoc" />
+
+</configure>

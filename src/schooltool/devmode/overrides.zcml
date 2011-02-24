@@ -1,0 +1,23 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser">
+
+  <subscriber
+      handler=".skin.schoolToolTraverseSubscriber"
+      for="zope.traversing.interfaces.IBeforeTraverseEvent"
+      />
+
+  <!-- apidoc overriding -->
+
+  <view
+      name="apidoc" type="*"
+      provides="zope.traversing.interfaces.ITraversable" for="*"
+      factory=".apidoc.schooltoolApidocNamespace"
+      />
+  <adapter
+      name="apidoc"
+      provides="zope.traversing.interfaces.ITraversable" for="*"
+      factory=".apidoc.schooltoolApidocNamespace"
+      />
+
+</configure>

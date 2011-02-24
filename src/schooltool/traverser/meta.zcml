@@ -1,0 +1,24 @@
+<configure xmlns="http://namespaces.zope.org/meta">
+
+  <directive
+      namespace="http://namespaces.zope.org/zope"
+      name="adapterTraverserPlugin"
+      schema=".metadirectives.IAdapterTraverserPlugin"
+      handler=".metaconfigure.adapterTraverserPlugin"
+      />
+
+  <directive
+      namespace="http://namespaces.zope.org/zope"
+      name="singleAttributeTraverserPlugin"
+      schema=".metadirectives.ISingleAttributeTraverserPlugin"
+      handler=".metaconfigure.singleAttributeTraverserPlugin"
+      />
+
+  <directive
+      namespace="http://namespaces.zope.org/zope"
+      name="nullTraverserPlugin"
+      schema=".metadirectives.INullTraverserPlugin"
+      handler=".metaconfigure.nullTraverserPlugin"
+      />
+
+</configure>

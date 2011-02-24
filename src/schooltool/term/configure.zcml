@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    i18n_domain="schooltool">
+
+  <include file="security.zcml" />
+
+  <!-- Application hook -->
+
+  <adapter
+      for=".interfaces.ITermContainer"
+      factory="schooltool.app.app.SimpleNameChooser"
+      provides="zope.container.interfaces.INameChooser" />
+
+  <interface
+      interface=".interfaces.ITermContainer"
+      type="zope.app.content.interfaces.IContentType"
+      />
+
+  <adapter
+      for="*"
+      factory="schooltool.term.term.getTermContainer" />
+
+  <adapter
+      factory=".term.getSchoolYearForTerm" />
+
+  <adapter
+      name="remove_terms_when_schoolyear_is_deleted"
+      factory=".term.RemoveTermsWhenSchoolYearIsDeleted" />
+  <adapter
+      name="term_overlap_validation"
+      factory=".term.TermOverlapValidationSubscriber" />
+  <adapter
+      name="term_overflow_validation"
+      factory=".term.TermOverflowValidationSubscriber" />
+
+  <interface
+      interface=".interfaces.ITerm"
+      type="zope.app.content.interfaces.IContentType"
+      />
+
+  <class class=".term.Term">
+    <allow interface=".interfaces.ITerm"
+           attributes="__cmp__"/>
+    <require permission="schooltool.edit"
+             interface=".interfaces.ITermWrite"
+             set_schema=".interfaces.ITerm" />
+  </class>
+
+  <subscriber
+      for=".interfaces.ITerm
+           zope.lifecycleevent.interfaces.IObjectRemovedEvent"
+      handler="schooltool.timetable.schema.clearTimetablesOnDeletion" />
+
+  <!-- sample data -->
+  <configure
+      xmlns:zcml="http://namespaces.zope.org/zcml"
+      zcml:condition="have devmode">
+
+    <utility
+        factory=".sampledata.SampleTerms"
+        provides="schooltool.sampledata.interfaces.ISampleDataPlugin"
+        name="terms"
+        />
+
+  </configure>
+
+  <include package=".browser" />
+  <include package=".help" />
+
+</configure>

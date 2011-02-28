@@ -1,3 +1,9 @@
+schooltool (1:1.6.0~a1-0ubuntu3) natty; urgency=low
+
+  * Use correct shell in postinst (LP: #726679)
+
+ -- Jonathan Carter <jonathan@ubuntu.com>  Mon, 28 Feb 2011 13:10:57 -0500
+
 schooltool (1:1.6.0~a1-0ubuntu2) natty; urgency=low
 
   * Upload to Ubuntu (LP: #707845).

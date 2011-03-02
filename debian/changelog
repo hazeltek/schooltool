@@ -1,3 +1,9 @@
+schooltool (1:1.6.0~a1-0ubuntu4) natty; urgency=low
+
+  * Unbreak postinst (LP: #726679) 
+
+ -- Jonathan Carter <jonathan@ubuntu.com>  Wed, 02 Mar 2011 12:32:38 -0500
+
 schooltool (1:1.6.0~a1-0ubuntu3) natty; urgency=low
 
   * Use correct shell in postinst (LP: #726679)

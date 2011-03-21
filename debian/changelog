@@ -1,3 +1,10 @@
+schooltool (1:1.6.0~a1-0ubuntu5) natty; urgency=low
+
+  * Pre-depends: python-pastescript to fix schooltool crash on start after
+    fresh install.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Mon, 07 Mar 2011 19:19:27 +0200
+
 schooltool (1:1.6.0~a1-0ubuntu4) natty; urgency=low
 
   * Unbreak postinst (LP: #726679) 

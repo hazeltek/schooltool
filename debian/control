@@ -20,6 +20,7 @@ Description: Python libraries used by SchoolTool
 
 Package: schooltool
 Architecture: all
+Pre-Depends: python-pastescript
 Depends: ${misc:Depends}, adduser, lsb-base,
          python-schooltool (>= 1:1.6.0~),
          python-schooltool.gradebook,

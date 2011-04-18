@@ -8,6 +8,7 @@ rwproperty
 setuptools
 xlrd
 xlwt
+z3c.autoinclude
 z3c.form>=2.0
 z3c.formui
 z3c.macro

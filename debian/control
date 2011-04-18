@@ -10,7 +10,8 @@ Homepage: http://www.schooltool.org/
 
 Package: python-schooltool
 Architecture: all
-Depends: ${pydeb:Depends}, ${python:Depends}, ${misc:Depends}, libjs-jquery
+Depends: ${pydeb:Depends}, ${python:Depends}, ${misc:Depends}, libjs-jquery,
+         python-z3c.autoinclude (>= 0.3.4)
 Provides: ${pydeb:Provides}
 Recommends: ttf-liberation
 Suggests: ${pydeb:Suggests}
@@ -29,7 +30,7 @@ Depends: ${misc:Depends}, adduser, lsb-base,
 Provides: schooltool-server
 Conflicts: schooltool-2009
 XB-Python-Version: ${python:Versions}
-Description: A suite of free administrative software for schools
+Description: Suite of free administrative software for schools
  This is the standard distribution of SchoolTool, providing a running
  web-based student information system for a single school, including
  calendaring, student enrollment and demographics, gradebooks, attendance,

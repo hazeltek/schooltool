@@ -1,3 +1,16 @@
+schooltool (1:1.6.0~b1-0ubuntu1) natty; urgency=low
+
+  * New upstream release
+    - Added report package (LP: #429588)
+    - Fixed crash when term title is "First" or "Last" (LP: #485639).
+    - Updated translations.
+  * debian/schooltool.postinst: Extract backup_database function to make
+    the script work using /bin/sh (LP: #726679)
+  * debian/patches/include-plugins.patch: Remove the patch. Instead, depend
+    on z3c.autoinclude 0.3.4 that fixes the problem.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Mon, 18 Apr 2011 22:12:41 +0300
+
 schooltool (1:1.6.0~a1-0ubuntu5) natty; urgency=low
 
   * Pre-depends: python-pastescript to fix schooltool crash on start after

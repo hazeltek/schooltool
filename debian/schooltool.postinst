@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
@@ -9,6 +9,24 @@ CONFIGFILE=/etc/schooltool/$INSTANCE/paste.ini
 SITEZCML=/usr/share/$SERVER/site.zcml
 DBFILE=/var/lib/schooltool/Data.fs
 PIDFILE=/var/run/schooltool/$SERVER.pid
+
+backup_database () {
+    # Gracefully exit if the package has been removed or is not configured.
+    test -f $CONFIGFILE || exit 0
+    test -f $SITEZCML || exit 0
+
+    if [ -f $PIDFILE ] ; then
+        /etc/init.d/$SERVER stop
+    fi
+
+    if [ -f $DBFILE ] ; then
+        # Backup the database
+        savelog $DBFILE && cp -a $DBFILE.0 $DBFILE
+    elif [ -f /var/lib/schooltool/schooltool-2009-Data.fs ] ; then
+        # If there is a schooltool-2009 database, copy it
+        cp -a /var/lib/schooltool/schooltool-2009-Data.fs $DBFILE
+    fi
+}
 
 case $1 in
     configure|reconfigure)
@@ -30,24 +48,12 @@ case $1 in
             install --group schooltool --owner schooltool -d /var/lib/schooltool --mode 0750
         [ -d /var/log/schooltool ] || \
             install --group schooltool --owner schooltool -d /var/log/schooltool
-    ;&
+
+        backup_database
+    ;;
 
     triggered)
-        # Gracefully exit if the package has been removed or is not configured.
-        test -f $CONFIGFILE || exit 0
-        test -f $SITEZCML || exit 0
-
-        if [ -f $PIDFILE ] ; then
-            /etc/init.d/$SERVER stop
-        fi
-
-        if [ -f $DBFILE ] ; then
-            # Backup the database
-            savelog $DBFILE && cp -a $DBFILE.0 $DBFILE
-        elif [ -f /var/lib/schooltool/schooltool-2009-Data.fs ] ; then
-            # If there is a schooltool-2009 database, copy it
-            cp -a /var/lib/schooltool/schooltool-2009-Data.fs $DBFILE
-        fi
+        backup_database
     ;;
 esac
 

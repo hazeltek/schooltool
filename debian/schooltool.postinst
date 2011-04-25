@@ -6,14 +6,12 @@ SERVER=schooltool
 INSTANCE=standard
 
 CONFIGFILE=/etc/schooltool/$INSTANCE/paste.ini
-SITEZCML=/usr/share/$SERVER/site.zcml
 DBFILE=/var/lib/schooltool/Data.fs
 PIDFILE=/var/run/schooltool/$SERVER.pid
 
 backup_database () {
     # Gracefully exit if the package has been removed or is not configured.
     test -f $CONFIGFILE || exit 0
-    test -f $SITEZCML || exit 0
 
     if [ -f $PIDFILE ] ; then
         /etc/init.d/$SERVER stop

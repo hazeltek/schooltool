@@ -19,7 +19,6 @@ PIDFILE=/var/run/schooltool/$SERVER.pid
 SCRIPTNAME=/etc/init.d/$SERVER
 CONFIGFILE=/etc/schooltool/$INSTANCE/paste.ini
 LOGFILE=/var/log/schooltool/paste.log
-SITEZCML=/usr/share/$SERVER/site.zcml
 
 PASTER=/usr/bin/paster
 PASTER_ARGS="--user=schooltool --group=schooltool --daemon --pid-file=$PIDFILE --log-file=$LOGFILE --quiet"
@@ -27,7 +26,6 @@ PASTER_ARGS="--user=schooltool --group=schooltool --daemon --pid-file=$PIDFILE -
 # Gracefully exit if the package has been removed or is not configured.
 test -x $PASTER || exit 0
 test -f $CONFIGFILE || exit 0
-test -f $SITEZCML || exit 0
 
 . /lib/lsb/init-functions
 

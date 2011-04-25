@@ -3,6 +3,6 @@
 
   <include package="schooltool.standard" />
 
-  <include files="/etc/schooltool/standard/plugins/*.zcml" />
+  <include files="plugins/*.zcml" />
 
 </configure>

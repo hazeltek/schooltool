@@ -11,8 +11,6 @@ override_dh_auto_build:
 	rm -f src/schooltool/skin/resources/jquery.min.js
 	rm -f src/schooltool/locales/*.po
 	rm -f src/schooltool/locales/*.pot
-	rm -f src/schooltool/commendation/locales/*.po
-	rm -f src/schooltool/commendation/locales/*.pot
 	dh_auto_build
 
 override_dh_install:

@@ -1,8 +1,17 @@
+schooltool (1:1.6.0-0ubuntu1) natty; urgency=low
+
+  * New upstream release.
+    - Remove schooltool.commendation example plugin.
+    - Make start-schooltool-instance work on Ubuntu instances.
+    - Fixed crashes when term title is "First" or "Last" (LP: #485639).
+  * Move site.zcml to /etc/schooltool/standard.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Mon, 25 Apr 2011 11:34:27 +0300
+
 schooltool (1:1.6.0~b1-0ubuntu1) natty; urgency=low
 
   * New upstream release
     - Added report package (LP: #429588)
-    - Fixed crash when term title is "First" or "Last" (LP: #485639).
     - Updated translations.
   * debian/schooltool.postinst: Extract backup_database function to make
     the script work using /bin/sh (LP: #726679)

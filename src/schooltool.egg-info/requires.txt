@@ -18,6 +18,7 @@ zc.catalog
 zc.datetimewidget
 zc.resourcelibrary
 zc.table
+ZODB3
 zope.annotation
 zope.authentication
 zope.app.apidoc

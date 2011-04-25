@@ -94,7 +94,6 @@ if __name__ == "__main__":
                 os.P_WAIT, 'python/bin/python',
                 ['python/bin/python'] + sys.argv, os.environ))
 
-    print 'hello'
     tmpeggs = tempfile.mkdtemp()
 
     ez = {}

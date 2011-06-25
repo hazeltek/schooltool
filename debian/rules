@@ -3,7 +3,7 @@
 export PYDEB_SUGGESTS_EXTRAS=test docs
 
 %:
-	dh --with pydeb --with python-central $@
+	dh $@ --with pydeb --with python2
 
 package=python-schooltool
 

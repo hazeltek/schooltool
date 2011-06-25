@@ -1,3 +1,18 @@
+schooltool (1:1.6.0-0ubuntu2) oneiric; urgency=low
+
+  * dh_python2 transition, python-central has been depreciated in debian.
+  * debian/rules
+    - changed "--with python-central" to "--with python2".
+  * debian/control
+    - increased python-all to (>= 2.6.6-3~).
+    - removed B-D on python-central.
+    - increased Standards Version to 3.9.2.
+    - changed XS-P-V to X-P-V.
+    - removed XB-P-V, no longer needed.
+  * added pydist-overrides to assist dhp2 in calculating Depends.
+
+ -- Charlie Smotherman <cjsmo@ubuntu.com>  Sat, 25 June 2011 15:46:27 -0500
+
 schooltool (1:1.6.0-0ubuntu1) natty; urgency=low
 
   * New upstream release.

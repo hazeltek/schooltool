@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: schooltool
-Version: 1.6.0
+Version: 1.7.0
 Summary: A common information systems platform for school administration.
 Home-page: http://www.schooltool.org
 Author: SchoolTool Developers
@@ -20,6 +20,9 @@ Classifier: Intended Audience :: End Users/Desktop
 Classifier: License :: OSI Approved :: GNU General Public License (GPL)
 Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.5
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
 Classifier: Programming Language :: Zope
 Classifier: Topic :: Education
 Classifier: Topic :: Office/Business :: Scheduling

@@ -1,8 +1,16 @@
-schooltool (1:1.6.0-0ubuntu3) oneiric; urgency=low
+schooltool (1:1.7.0-0ubuntu1) oneiric; urgency=low
 
+  * New upstream release
+    - Fixed XLS import crashes (LP: #801870, LP: #839031, LP: #382566)
+    - Other bugfixes (LP: #488376, LP: #785994)
+    - Removed help (LP: #789157) and setupdata (LP: #307237)
+    - Reduced dependencies
+    - Update translations
+  * debian/schooltool.README.Debian: add Virtual Hosting section, remove PDF
+    support, because it is now enabled by default.
   * debian/pydist-overrides: remove, we use van.pydeb.
 
- -- Gediminas Paulauskas <menesis@pov.lt>  Tue, 13 Sep 2011 11:57:20 +0300
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 15 Sep 2011 02:48:53 +0300
 
 schooltool (1:1.6.0-0ubuntu2) oneiric; urgency=low
 

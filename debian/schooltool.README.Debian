@@ -12,13 +12,32 @@ access and modification privileges.
 
 The configuration file is /etc/schooltool/standard/schooltool.conf.
 
-PDF support
------------
 
-To enable PDF support you will need the 'Arial' and 'Times New Roman'
-TrueType fonts.  Usually 'apt-get install msttcorefonts' should suffice.
-You can tell that PDF support has been enabled if there is a printer icon
-at the top right of the web calendar screens.
+Virtual hosting
+---------------
+
+SchoolTool provides support for virtual hosting with Apache's mod_rewrite.
+For example, let's say you have two SchoolTool instances running on ports
+7001 and 7002, and you want to make them available as school1.example.org
+and school2.example.org, both on port 80.  In order to do that, add the
+following to your Apache configuration file:
+
+  NameVirtualHost *:80
+
+  <VirtualHost *:80>
+    ServerName school1.example.org
+    RewriteEngine On
+    RewriteRule ^/(.*) http://localhost:7080/++vh++http:school1.example.org:80/++/$1 [P]
+  </VirtualHost>
+
+  <VirtualHost *:80>
+    ServerName school2.example.org
+    RewriteEngine On
+    RewriteRule ^/(.*) http://localhost:7081/++vh++http:school2.example.org:80/++/$1 [P]
+  </VirtualHost>
+
+Also, enable mod_proxy and mod_rewrite.
+
 
 Present and Past Maintainers
 ----------------------------

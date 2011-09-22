@@ -1,0 +1,496 @@
+<?xml version="1.0"?>
+<configure xmlns="http://namespaces.zope.org/browser"
+           xmlns:z3c="http://namespaces.zope.org/z3c"
+           xmlns:zope="http://namespaces.zope.org/zope"
+           xmlns:flourish="http://schooltool.org/flourish"
+           i18n_domain="schooltool">
+
+  <!-- content -->
+
+  <flourish:content
+      name="title"
+      for="schooltool.course.interfaces.ICourseContainer"
+      class="schooltool.course.browser.course.CourseContainerTitle"
+      permission="schooltool.view"
+      />
+
+  <!-- adapters -->
+
+  <zope:adapter
+      for="schooltool.course.interfaces.ICourseContainer
+           schooltool.skin.flourish.interfaces.IFlourishLayer"
+      factory=".course.FlourishCourseFilterWidget" />
+
+  <zope:adapter
+      for="schooltool.course.interfaces.ICourseContainer
+           schooltool.skin.flourish.interfaces.IFlourishLayer"
+      factory=".course.FlourishCourseTableFormatter " />
+
+  <!-- viewlet managers -->
+
+  <flourish:viewlet
+      name="courses-add-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class=".course.CoursesAddLinks"
+      title="Add"
+      permission="schooltool.edit"
+      view=".course.FlourishCoursesView"
+      />
+
+  <flourish:viewlet
+      name="course-add-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class=".course.CourseAddLinks"
+      title="Add"
+      permission="schooltool.edit"
+      view=".course.FlourishCourseView"
+      />
+
+  <flourish:viewlet
+      name="course-action-links"
+      after="course-add-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class=".course.CourseActionsLinks"
+      title="Actions"
+      permission="schooltool.edit"
+      view=".course.FlourishCourseView"
+      />
+
+  <flourish:viewlet
+      name="sections-add-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class=".section.SectionsAddLinks"
+      title="Add"
+      permission="schooltool.edit"
+      view=".section.FlourishSectionsView"
+      />
+
+  <flourish:viewlet
+      name="section-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class=".section.SectionLinks"
+      permission="schooltool.view"
+      view=".section.FlourishSectionView"
+      />
+
+  <flourish:viewlet
+      name="section-add-links"
+      after="section-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class=".section.SectionAddLinks"
+      title="Add"
+      permission="schooltool.edit"
+      view=".section.FlourishSectionView"
+      />
+
+  <flourish:viewlet
+      name="section-actions-links"
+      after="section-add-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class=".section.SectionActionsLinks"
+      title="Actions"
+      permission="schooltool.edit"
+      view=".section.FlourishSectionView"
+      />
+
+  <!-- viewlets -->
+
+  <flourish:viewlet
+      name="course-add"
+      title="Course"
+      view=".course.FlourishCoursesView"
+      class=".course.CourseAddLinkViewlet"
+      manager=".course.CoursesAddLinks"
+      permission="schooltool.edit"
+      />
+
+  <flourish:viewlet
+      name="course-add"
+      title="Course"
+      view=".course.FlourishCourseView"
+      class=".course.CourseAddLinkFromCourseViewlet"
+      manager=".course.CourseAddLinks"
+      permission="schooltool.edit"
+      />
+
+  <flourish:viewlet
+      name="delete.html"
+      view=".course.FlourishCourseView"
+      title="Delete"
+      class=".course.CourseDeleteLink"
+      manager=".course.CourseActionsLinks"
+      permission="schooltool.edit"
+      />
+
+  <flourish:viewlet
+      name="coursesinfo"
+      for="schooltool.basicperson.interfaces.IBasicPerson"
+      manager="schooltool.basicperson.browser.person.IFlourishPersonInfoManager"
+      class="schooltool.course.browser.course.FlourishCoursesViewlet"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewletManager
+      name="tertiary_navigation"
+      provides="schooltool.skin.flourish.page.ITertiaryNavigationManager"
+      class=".course.CoursesTertiaryNavigationManager"
+      view=".course.FlourishCoursesView"
+      permission="zope.Public"
+      />
+
+  <flourish:viewlet
+      name="section-add"
+      title="Section"
+      class=".section.SectionAddLinkViewlet"
+      manager=".section.SectionsAddLinks"
+      permission="schooltool.edit"
+      />
+
+   <flourish:viewlet
+       name="section-add"
+       title="Section"
+       class=".section.SectionAddLinkFromSectionViewlet"
+       manager=".section.SectionAddLinks"
+       permission="schooltool.edit"
+       />
+
+   <flourish:viewlet
+       name="delete.html"
+       title="Delete"
+       class=".section.SectionDeleteLink"
+       manager=".section.SectionActionsLinks"
+       permission="schooltool.edit"
+       />
+
+  <flourish:viewletManager
+      name="tertiary_navigation"
+      provides="schooltool.skin.flourish.page.ITertiaryNavigationManager"
+      class=".section.SectionsTertiaryNavigationManager"
+      view=".section.FlourishSectionsView"
+      permission="zope.Public"
+      />
+
+  <flourish:viewlet
+      name="what-is-this"
+      class="schooltool.skin.flourish.page.Related"
+      template="templates/f_courses_related.pt"
+      view=".course.FlourishCoursesView"
+      manager="schooltool.skin.flourish.page.IPageRelatedManager"
+      permission="schooltool.edit"
+      />
+
+  <flourish:viewlet
+      name="what-is-this"
+      class="schooltool.skin.flourish.page.Related"
+      template="templates/f_sections_related.pt"
+      view=".section.FlourishSectionsView"
+      manager="schooltool.skin.flourish.page.IPageRelatedManager"
+      permission="schooltool.edit"
+      />
+
+  <!-- pages -->
+
+  <flourish:page
+      name="courses"
+      for="schooltool.app.interfaces.ISchoolToolApplication"
+      class=".course.FlourishCoursesView"
+      permission="schooltool.view"
+      />
+
+  <flourish:page
+      name="addSchoolToolCourse.html"
+      for="schooltool.course.interfaces.ICourseContainer"
+      class="schooltool.course.browser.course.FlourishCourseAddView"
+      content_template="templates/f_course_add.pt"
+      permission="schooltool.edit"
+      subtitle="Add Course"
+      />
+
+  <flourish:page
+      name="index.html"
+      for="schooltool.course.interfaces.ICourse"
+      class=".course.FlourishCourseView"
+      permission="schooltool.view"
+      />
+
+  <flourish:page
+      name="delete.html"
+      for="schooltool.course.interfaces.ICourse"
+      class=".course.FlourishCourseDeleteView"
+      template="templates/f_confirm_delete_course.pt"
+      permission="schooltool.edit"
+      />
+
+  <configure package="schooltool.skin.flourish">
+
+    <flourish:page
+        name="edit.html"
+        for="schooltool.course.interfaces.ICourse"
+        class="schooltool.course.browser.course.FlourishCourseEditView"
+        content_template="templates/z3c-schooltool-form.pt"
+        permission="schooltool.edit"
+        subtitle="Edit"
+        />
+
+    <flourish:page
+        name="delete.html"
+        for="schooltool.course.interfaces.ICourseContainer"
+        class="schooltool.course.browser.course.FlourishCourseContainerDeleteView"
+        content_template="templates/container_delete.pt"
+        permission="schooltool.edit"
+        />
+
+    <flourish:page
+        name="edit.html"
+        for="schooltool.course.interfaces.ISection"
+        class="schooltool.course.browser.section.FlourishSectionEditView"
+        content_template="templates/z3c-schooltool-form.pt"
+        permission="schooltool.edit"
+        subtitle="Edit"
+        />
+
+    <flourish:page
+        name="delete.html"
+        for="schooltool.course.interfaces.ISectionContainer"
+        class="schooltool.course.browser.section.FlourishSectionContainerDeleteView"
+        content_template="templates/container_delete.pt"
+        permission="schooltool.edit"
+        />
+
+  </configure>
+
+  <flourish:page
+      name="sections"
+      for="schooltool.app.interfaces.ISchoolToolApplication"
+      class=".section.FlourishSectionsView"
+      permission="schooltool.view"
+      />
+
+  <flourish:page
+      name="addSection.html"
+      for="schooltool.schoolyear.interfaces.ISchoolYear"
+      class="schooltool.course.browser.section.FlourishSectionAddView"
+      content_template="templates/f_section_add.pt"
+      permission="schooltool.edit"
+      subtitle="Add Section"
+      />
+
+  <flourish:page
+      name="index.html"
+      for="schooltool.course.interfaces.ISection"
+      class=".section.FlourishSectionView"
+      permission="schooltool.view"
+      />
+
+  <flourish:page
+      name="delete.html"
+      for="schooltool.course.interfaces.ISection"
+      class=".section.FlourishSectionDeleteView"
+      template="templates/f_confirm_delete_section.pt"
+      permission="schooltool.edit"
+      />
+
+  <flourish:page
+      name="instructors.html"
+      for="schooltool.course.interfaces.ISection"
+      class=".section.FlourishSectionInstructorView"
+      permission="schooltool.edit"
+      subtitle="Instructors"
+      />
+
+  <flourish:page
+      name="learners.html"
+      for="schooltool.course.interfaces.ISection"
+      class=".section.FlourishSectionLearnerView"
+      permission="schooltool.edit"
+      subtitle="Students"
+      />
+
+  <flourish:page
+      name="section_linkage.html"
+      for="schooltool.course.interfaces.ISection"
+      class=".section.FlourishSectionLinkageView"
+      content_template="templates/f_section_linkage.pt"
+      permission="schooltool.edit"
+      subtitle="Terms"
+      />
+
+  <flourish:page
+      name="extend_term.html"
+      for="schooltool.course.interfaces.ISection"
+      class=".section.FlourishExtendTermView"
+      template="templates/f_extend_term.pt"
+      permission="schooltool.edit"
+      />
+
+  <flourish:page
+      name="unlink_section.html"
+      for="schooltool.course.interfaces.ISection"
+      class=".section.FlourishUnlinkSectionView"
+      template="templates/f_unlink_section.pt"
+      permission="schooltool.edit"
+      />
+
+  <flourish:page
+      name="link_existing.html"
+      for="schooltool.course.interfaces.ISection"
+      class=".section.FlourishLinkExistingView"
+      template="templates/f_link_existing.pt"
+      permission="schooltool.edit"
+      />
+
+  <flourish:viewlet
+      name="manage-courses-overview"
+      after="manage-people-overview"
+      view="schooltool.app.browser.app.ManageSchool"
+      permission="schooltool.edit"
+      manager="schooltool.skin.flourish.page.IPageContentManager"
+      class=".course.FlourishManageCoursesOverview"
+      />
+
+  <!-- breadcrumbs -->
+
+  <flourish:activeViewlet
+      name="manage_school"
+      manager="schooltool.skin.flourish.page.IHeaderNavigationManager"
+      for="schooltool.course.interfaces.ICourseContainer"
+      />
+
+  <flourish:activeViewlet
+      name="manage_school"
+      manager="schooltool.skin.flourish.page.IHeaderNavigationManager"
+      for="schooltool.app.interfaces.ISchoolToolApplication"
+      view=".course.FlourishCoursesView"
+      />
+
+  <flourish:breadcrumb
+      for="schooltool.course.interfaces.ICourseContainer"
+      title="Courses"
+      traversal_name="courses"
+      class="schooltool.schoolyear.browser.schoolyear.SchoolyearNavBreadcrumbs"
+      />
+
+  <flourish:breadcrumb
+      for="schooltool.course.interfaces.ICourse"
+      />
+
+  <flourish:page_breadcrumbs
+      show_page_title="false"
+      for="schooltool.course.interfaces.ICourse"
+      view=".course.FlourishCourseView"
+      />
+
+  <flourish:activeViewlet
+      name="manage_school"
+      manager="schooltool.skin.flourish.page.IHeaderNavigationManager"
+      for="schooltool.course.interfaces.ISectionContainer"
+      />
+
+  <flourish:activeViewlet
+      name="manage_school"
+      manager="schooltool.skin.flourish.page.IHeaderNavigationManager"
+      for="schooltool.app.interfaces.ISchoolToolApplication"
+      view=".section.FlourishSectionsView"
+      />
+
+  <flourish:breadcrumb
+      for="schooltool.course.interfaces.ISectionContainer"
+      title="Sections"
+      permission="schooltool.edit"
+      traversal_name="sections"
+      class="schooltool.schoolyear.browser.schoolyear.SchoolyearNavBreadcrumbs"
+      />
+
+  <flourish:breadcrumb
+      for="schooltool.course.interfaces.ISection"
+      />
+
+  <flourish:page_breadcrumbs
+      for="schooltool.schoolyear.interfaces.ISchoolYear"
+      view="schooltool.course.browser.section.FlourishSectionAddView"
+      crumb_parent="schooltool.schoolyear.interfaces.ISchoolYear"
+      follow_crumb=".section.SectionsYearNavBreadcrumbs"
+      />
+
+  <flourish:page_breadcrumbs
+      show_page_title="false"
+      for="schooltool.course.interfaces.ISection"
+      view=".section.FlourishSectionView"
+      />
+
+  <!-- Import -->
+
+  <flourish:viewlet
+      after="courses-add-links"
+      name="course-import-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class="schooltool.course.browser.course.CoursesImportLinks"
+      view=".course.FlourishCoursesView"
+      title="Import"
+      permission="schooltool.edit"
+      />
+
+  <flourish:viewlet
+      name="csvimport.html"
+      title="Import CSV"
+      manager="schooltool.course.browser.course.CoursesImportLinks"
+      class="schooltool.course.browser.csvimport.ImportCoursesLinkViewlet"
+      permission="schooltool.edit"
+      />
+
+  <flourish:page
+      name="csvimport.html"
+      subtitle="Import"
+      for="schooltool.course.interfaces.ICourseContainer"
+      class=".csvimport.FlourishCourseCSVImportView"
+      permission="schooltool.edit"
+     />
+
+  <flourish:content
+      name="import-description"
+      view=".csvimport.FlourishCourseCSVImportView"
+      template="templates/f_course_csvimport_description.pt"
+      permission="zope.Public"
+      />
+
+  <flourish:viewlet
+      after="section-add-links"
+      name="section-import-links"
+      for="schooltool.course.interfaces.ISection"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class="schooltool.course.browser.section.SectionImportLinks"
+      view=".section.FlourishSectionView"
+      title="Import"
+      permission="schooltool.edit"
+      />
+
+  <flourish:viewlet
+      name="csvimport.html"
+      title="Import Students CSV"
+      for="schooltool.course.interfaces.ISection"
+      manager="schooltool.course.browser.section.SectionImportLinks"
+      class="schooltool.skin.flourish.page.LinkViewlet"
+      permission="schooltool.edit"
+      />
+
+  <flourish:page
+      name="csvimport.html"
+      subtitle="Import Students"
+      for="schooltool.course.interfaces.ISection"
+      class=".csvimport.FlourishSectionMemberCSVImportView"
+      permission="schooltool.edit"
+     />
+
+  <flourish:content
+      name="import-description"
+      view=".csvimport.FlourishSectionMemberCSVImportView"
+      template="templates/f_section_member_csvimport_description.pt"
+      permission="zope.Public"
+      />
+
+  <include package="schooltool.app.browser"
+           file="timetable-integration-flourish.zcml" />
+
+  <zope:adapter factory=".section.SectionTermsValidator" />
+
+</configure>

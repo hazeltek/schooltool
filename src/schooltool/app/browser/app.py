@@ -21,10 +21,15 @@ SchoolTool application views.
 
 $Id$
 """
+import os
+import urllib
 
+from ZODB.FileStorage.FileStorage import FileStorageError
+from ZODB.interfaces import IDatabase
 from zope.location.location import LocationProxy
 from zope.interface import implementer
 from zope.interface import implements
+from zope.interface import Interface
 from zope.security.interfaces import IParticipation
 from zope.security.management import getSecurityPolicy
 from zope.security.proxy import removeSecurityProxy
@@ -33,29 +38,56 @@ from zope.app.form.browser.add import AddView
 from zope.app.form.browser.editview import EditView
 from zope.app.form.interfaces import IInputWidget
 from zope.app.form.interfaces import WidgetsError
+from zope.app.applicationcontrol.browser.runtimeinfo import RuntimeInfoView
+from zope.app.applicationcontrol.browser.zodbcontrol import ZODBControlView
+from zope.app.applicationcontrol.interfaces import IApplicationControl
+from zope.app.applicationcontrol.interfaces import IRuntimeInfo
+from zope.authentication.interfaces import IUnauthenticatedPrincipal
+from zope.error.interfaces import IErrorReportingUtility
+from zope.i18n import translate
 from zope.publisher.browser import BrowserView
-from zope.component import getMultiAdapter
+from zope.component import getMultiAdapter, queryMultiAdapter
 from zope.component import getUtility
-from zope.component import adapter
+from zope.component import adapter, adapts
+from zope.component import getAdapter
 from zope.authentication.interfaces import IAuthentication
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from zope.publisher.browser import BrowserPage
 from zope.traversing.browser.absoluteurl import absoluteURL
+from zope.traversing.api import traverse
+from zope.size import byteDisplay
+from zope.schema import Int, Bool, Tuple, Choice
+from z3c.form import form, field, button
+from z3c.form.browser.checkbox import CheckBoxFieldWidget
+from zc.table.column import Column
+from zc.table.table import FormFullFormatter
 
+import schooltool.skin.flourish.breadcrumbs
+import schooltool.skin.flourish.page
+import schooltool.skin.flourish.viewlet
 from schooltool.calendar.icalendar import convert_calendar_to_ical
-from schooltool.common import SchoolToolMessage as _
 from schooltool.app.browser.interfaces import IManageMenuViewletManager
 from schooltool.app.interfaces import ISchoolToolAuthenticationPlugin
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.app.interfaces import IApplicationPreferences
 from schooltool.app.interfaces import ISchoolToolCalendar
 from schooltool.app.interfaces import IAsset
+from schooltool.app.utils import vocabulary
+from schooltool.skin.flourish.content import ContentProvider
+from schooltool.common.inlinept import InlineViewPageTemplate
 from schooltool.person.interfaces import IPerson
 from schooltool.table.table import CheckboxColumn
 from schooltool.table.table import label_cell_formatter_factory
+from schooltool.table.table import stupid_form_key
+from schooltool.table.table import ImageInputColumn
 from schooltool.table.interfaces import ITableFormatter
 from schooltool.skin.skin import OrderedViewletManager
 from schooltool.skin.breadcrumbs import CustomNameBreadCrumbInfo
+from schooltool.skin import flourish
+from schooltool.skin.flourish.form import Form
+from schooltool.skin.flourish.form import Dialog
+
+from schooltool.common import SchoolToolMessage as _
 
 
 class ApplicationView(BrowserView):
@@ -186,6 +218,129 @@ class RelationshipViewBase(BrowserView):
         self.setUpTables()
 
 
+class CSSFormatter(FormFullFormatter):
+
+    def renderHeaders(self):
+        result = []
+        old_css_class = self.cssClasses.get('th')
+        for col in self.visible_columns:
+            self.cssClasses['th'] = col.name.replace('_', '-')
+            result.append(self.renderHeader(col))
+        self.cssClasses['th'] = old_css_class
+        return ''.join(result)
+
+
+class FlourishRelationshipViewBase(flourish.page.NoSidebarPage):
+
+    content_template = ViewPageTemplateFile('templates/f_edit_relationships.pt')
+
+    current_title = None
+    available_title = None
+
+    def add(self, item):
+        collection = removeSecurityProxy(self.getCollection())
+        collection.add(item)
+
+    def remove(self, item):
+        collection = removeSecurityProxy(self.getCollection())
+        collection.remove(item)
+
+    def getCollection(self):
+        """Return the backend storage for related objects."""
+        raise NotImplementedError("Subclasses should override this method.")
+
+    def getSelectedItems(self):
+        """Return a sequence of items that are already selected."""
+        return self.getCollection()
+
+    def getAvailableItems(self):
+        """Return a sequence of items that can be selected."""
+        container = self.getAvailableItemsContainer()
+        selected_items = set(self.getSelectedItems())
+        return [p for p in container.values()
+                if p not in selected_items]
+
+    def nextURL(self):
+        url = self.request.get('nexturl')
+        if url is None:
+            url = absoluteURL(self.context, self.request)
+        return url
+
+    def getAvailableItemsContainer(self):
+        """Returns the backend storage for available items."""
+        raise NotImplementedError("Subclasses should override this method.")
+
+    def getColumnsAfter(self, prefix):
+        actions = {
+            'add_item': {'label': _('Add'), 'icon': 'add-icon.png'},
+            'remove_item': {'label': _('Remove'), 'icon': 'remove-icon.png'},
+            }
+        label, icon = actions[prefix]['label'], actions[prefix]['icon']
+        action = ImageInputColumn(
+            prefix, name='action', title=label, alt=label,
+            library='schooltool.skin.flourish',
+            image=icon, id_getter=self.getKey)
+        return [action]
+
+    def createTableFormatter(self, **kwargs):
+        container = self.getAvailableItemsContainer()
+        formatter = getMultiAdapter((container, self.request),
+                                    ITableFormatter)
+        formatter.setUp(columns_after=self.getColumnsAfter(kwargs['prefix']),
+                        table_formatter=CSSFormatter,
+                        **kwargs)
+        return formatter
+
+    def getOmmitedItems(self):
+        return self.getSelectedItems()
+
+    def setUpTables(self):
+        self.available_table = self.createTableFormatter(
+            ommit=self.getOmmitedItems(),
+            prefix="add_item")
+
+        self.selected_table = self.createTableFormatter(
+            filter=lambda l: l,
+            items=self.getSelectedItems(),
+            prefix="remove_item",
+            batch_size=0)
+
+    def getKey(self, item):
+        return item.__name__
+
+    def applyFormChanges(self):
+        changed = False
+        add_item_prefix = 'add_item.'
+        remove_item_prefix = 'remove_item.'
+        add_item_submitted = False
+        remove_item_submitted = False
+        for param in self.request.form:
+            if param.startswith(add_item_prefix):
+                add_item_submitted = True
+            elif param.startswith(remove_item_prefix):
+                remove_item_submitted = True
+        if add_item_submitted:
+            for item in self.getAvailableItems():
+                if add_item_prefix + self.getKey(item) in self.request:
+                    self.add(removeSecurityProxy(item))
+                    changed = True
+        if remove_item_submitted:
+            for item in self.getSelectedItems():
+                if remove_item_prefix + self.getKey(item) in self.request:
+                    self.remove(removeSecurityProxy(item))
+                    changed = True
+        return changed
+
+    def update(self):
+        changes = self.applyFormChanges()
+        if changes:
+            this_url = '%s?nexturl=%s' % (str(self.request.URL),
+                                          urllib.quote(self.nextURL()))
+            self.request.response.redirect(this_url)
+            return
+        self.setUpTables()
+
+
 class ApplicationLoginView(BrowserView):
     """Backwards compatible login view that redirects to the actual login view."""
 
@@ -261,6 +416,64 @@ class LogoutView(BrowserView):
         self.request.response.redirect(url)
 
 
+class LoginNavigationViewlet(flourish.page.LinkViewlet):
+
+    @property
+    def authenticated_person(self):
+        principal = getattr(self.request, 'principal', None)
+        if principal is None:
+            return None
+        if IUnauthenticatedPrincipal.providedBy(principal):
+            return None
+        return IPerson(principal, None)
+
+    @property
+    def title(self):
+        person = self.authenticated_person
+        if person is None:
+            return _("Log in")
+        return _("Log out")
+
+    @property
+    def url(self):
+        person = self.authenticated_person
+        app = ISchoolToolApplication(None)
+        app_url = absoluteURL(app, self.request)
+        if person is None:
+            return '%s/%s' % (app_url, 'login.html')
+        return '%s/%s' % (app_url, 'logout.html')
+
+
+class LoggedInNameViewlet(LoginNavigationViewlet):
+
+    url = None
+
+    @property
+    def title(self):
+        person = self.authenticated_person
+        if not person:
+            return None
+        title_content = queryMultiAdapter(
+            (person, self.request, self.view),
+            flourish.interfaces.IContentProvider,
+            'title')
+        if title_content is None:
+            return ''
+        return title_content.title
+
+
+class BreadcrumbViewlet(flourish.viewlet.Viewlet):
+
+    def render(self, *args, **kw):
+        breadcrumbs = queryMultiAdapter(
+            (self.context, self.request, self.view),
+            flourish.interfaces.IContentProvider,
+            'breadcrumbs')
+        if breadcrumbs is None:
+            return ''
+        return breadcrumbs()
+
+
 class ApplicationPreferencesView(BrowserView):
     """View used for editing application preferences."""
 
@@ -298,6 +511,56 @@ class ApplicationPreferencesView(BrowserView):
                     setattr(prefs, field, data[field])
 
 
+class FlourishApplicationPreferencesView(Form, form.EditForm):
+
+    fields = field.Fields(IApplicationPreferences)
+    fields = fields.select('frontPageCalendar',
+                           'timezone',
+                           'timeformat',
+                           'dateformat',
+                           'weekstart',)
+    label = None
+    legend = _('Calendar settings')
+
+    def update(self):
+        form.EditForm.update(self)
+
+    @button.buttonAndHandler(_('Apply'))
+    def handle_edit_action(self, action):
+        super(FlourishApplicationPreferencesView, self).handleApply.func(self, action)
+        # XXX: hacky sucessful submit check
+        if (self.status == self.successMessage or
+            self.status == self.noChangesMessage):
+            self.request.response.redirect(self.nextURL())
+
+    @button.buttonAndHandler(_('Cancel'))
+    def handle_cancel_action(self, action):
+        self.request.response.redirect(self.nextURL())
+
+    def nextURL(self):
+        url = absoluteURL(self.context, self.request) + '/settings'
+        return url
+
+
+class FlourishSchoolNameEditView(FlourishApplicationPreferencesView):
+
+    fields = field.Fields(IApplicationPreferences).select('title')
+    legend = _('School Name')
+
+    def updateActions(self):
+        super(FlourishSchoolNameEditView, self).updateActions()
+        self.actions['apply'].addClass('button-ok')
+        self.actions['cancel'].addClass('button-cancel')
+
+    def updateWidgets(self):
+        super(FlourishSchoolNameEditView, self).updateWidgets()
+        self.widgets['title'].label = _('Name')
+
+    def nextURL(self):
+        url = absoluteURL(self.context, self.request) + '/manage'
+        return url
+
+
 class ProbeParticipation:
     """A stub participation for use in hasPermissions."""
     implements(IParticipation)
@@ -322,6 +585,18 @@ class LeaderView(RelationshipViewBase):
     title = _("Leaders")
     current_title = _("Current leaders")
     available_title = _("Available leaders")
+
+    def getCollection(self):
+        return self.context.leaders
+
+    def getAvailableItemsContainer(self):
+        return ISchoolToolApplication(None)['persons']
+
+
+class FlourishLeaderView(FlourishRelationshipViewBase):
+
+    current_title = _("Current responsible parties")
+    available_title = _("Available responsible parties")
 
     def getCollection(self):
         return self.context.leaders
@@ -426,3 +701,340 @@ class TitleView(BrowserView):
 
     def __call__(self):
         return self.context.title
+
+
+class ContentTitle(ContentProvider):
+    render = InlineViewPageTemplate('''
+        <span tal:content="view/title"></span>
+    '''.strip())
+
+    @property
+    def title(self):
+        __not_set = object()
+        title = getattr(self.context, 'title', __not_set)
+        if title is __not_set:
+            return getattr(self.context, '__name__', None)
+        return title
+
+
+class ContentLink(ContentTitle):
+    render = InlineViewPageTemplate('''
+        <a tal:attributes="href view/url" tal:content="view/title"></a>
+    '''.strip())
+
+    def url(self):
+        return absoluteURL(self.context, self.request)
+
+
+class ContentLabel(ContentLink):
+    def title(self):
+        __not_set = object()
+        label = getattr(self.context, 'label', __not_set)
+        if label is __not_set:
+            return super(ContentLabel, self).title
+        return label
+
+
+class ManageSiteBreadcrumb(flourish.breadcrumbs.Breadcrumbs):
+
+    follow_crumb = None
+    title = _('Server')
+
+    @property
+    def url(self):
+        app = ISchoolToolApplication(None)
+        app_url = absoluteURL(app, self.request)
+        return '%s/settings' % app_url
+
+
+class ManageSite(flourish.page.Page):
+    pass
+
+
+class DatabaseActionsLinks(flourish.page.RefineLinksViewlet):
+    """Database actions links viewlet."""
+
+
+class ManageSchool(flourish.page.Page):
+    pass
+
+
+class ManageSiteLinks(flourish.page.RefineLinksViewlet):
+    """Manage Site links viewlet."""
+
+
+class CustomizeSchoolLinks(flourish.page.RefineLinksViewlet):
+    """Customize School links viewlet."""
+
+
+class SchoolAddLinks(flourish.page.RefineLinksViewlet):
+    """School add links viewlet."""
+
+
+class SchoolActionsLinks(flourish.page.RefineLinksViewlet):
+    """School actions links viewlet."""
+
+
+class AboutLinks(flourish.page.RefineLinksViewlet):
+    """About links viewlet."""
+
+
+def getAppViewlet(context, request, view, manager, name):
+    app = ISchoolToolApplication(None)
+    viewlet = flourish.viewlet.lookupViewlet(
+        app, request, view, manager, name=name)
+    return viewlet
+
+
+class ApplicationControlLinks(flourish.page.RefineLinksViewlet):
+    """Application Control links viewlet."""
+
+
+class FlourishRuntimeInfoView(RuntimeInfoView, ZODBControlView):
+
+    def dbSettings(self):
+        result = {}
+        database_settings = self.databases[0]
+        result['dbSize'] = database_settings['size']
+        result['dbName'] = database_settings['dbName']
+        return result
+
+    def update(self):
+        pass
+
+
+class FlourishServerSettingsOverview(flourish.page.Content,
+                                     ZODBControlView,
+                                     RuntimeInfoView):
+
+    body_template = ViewPageTemplateFile(
+        'templates/f_server_settings_overview.pt')
+
+    @property
+    def settings(self):
+        result = {}
+        database_settings = self.databases[0]
+        result['dbSize'] = database_settings['size']
+        result['dbName'] = database_settings['dbName']
+        control_settings = (
+            'Uptime',
+            'SystemPlatform',
+            'PythonVersion',
+            'CommandLine',
+            )
+        runtimeInfo = self.runtimeInfo()
+        for setting in control_settings:
+            result[setting] = runtimeInfo.get(setting)
+        return result
+
+    def runtimeInfo(self):
+        application_control = IApplicationControl(self.context)
+        try:
+            ri = IRuntimeInfo(application_control)
+        except TypeError:
+            formatted = dict.fromkeys(self._fields, self._unavailable)
+            formatted["Uptime"] = self._unavailable
+        else:
+            formatted = self._getInfo(ri)
+        return formatted
+
+
+class FlourishCalendarSettingsOverview(flourish.page.Content):
+
+    body_template = ViewPageTemplateFile(
+        'templates/f_calendar_settings_overview.pt')
+
+    @property
+    def settings(self):
+        result = {}
+        preferences = IApplicationPreferences(self.context)
+        if preferences.frontPageCalendar:
+            result['frontPageCalendar'] = _('Yes')
+        else:
+            result['frontPageCalendar'] = _('No')
+        result['timezone'] = preferences.timezone
+        for setting in ('timeformat', 'dateformat', 'weekstart'):
+            preference = getattr(preferences, setting)
+            field = IApplicationPreferences[setting]
+            vocabulary = field.vocabulary
+            result[setting] = vocabulary.getTerm(preference).title
+        return result
+
+
+class PackDatabaseLink(flourish.page.ModalFormLinkViewlet):
+
+    @property
+    def dialog_title(self):
+        title = _(u'Pack Database')
+        return translate(title, context=self.request)
+
+
+class DatabaseView(flourish.page.Page, ZODBControlView):
+
+    def table(self):
+        database_settings = self.databases[0]
+        result = [{
+                'description': _('Live'),
+                'path': database_settings['dbName'],
+                'size': database_settings['size'],
+                }]
+        backup_path = database_settings['dbName'] + '.old'
+        if os.path.exists(backup_path):
+            try:
+                size = os.path.getsize(backup_path)
+                backup_size = byteDisplay(size)
+            except (os.error,):
+                backup_size = _('Unknown')
+            backup_info = {
+                'description': _('Backup'),
+                'path': backup_path,
+                'size': backup_size,
+                }
+            result.append(backup_info)
+        return result
+
+
+class PackDatabaseView(Dialog):
+
+    def update(self):
+        Dialog.update(self)
+        if 'DONE' in self.request:
+            url = absoluteURL(self.context, self.request) + '/database.html'
+            self.request.response.redirect(url)
+            return
+        days = 0
+        db = getUtility(IDatabase, name='')
+        try:
+            db.pack(days=days)
+            self.status = _('Database successfully packed.')
+        except FileStorageError, err:
+            self.status = _('There were errors while packing the database: ${error}',
+                            mapping={'error': err})
+
+
+class FlourishErrorsViewBase(flourish.page.Page):
+
+    @property
+    def error_utility(self):
+        default_site = self.context.getSiteManager().get('default')
+        return getUtility(IErrorReportingUtility, context=default_site)
+
+
+class FlourishErrorsView(FlourishErrorsViewBase):
+        
+    def formatEntryValue(self, value):
+        return len(value) < 70 and value or value[:70] + '...'
+
+    def getLogEntries(self):
+        return self.error_utility.getLogEntries()
+
+    def settings(self):
+        result = {}
+        properties = self.error_utility.getProperties()
+        for setting in ('keep_entries', 'ignored_exceptions'):
+            result[setting] = properties[setting]
+        if properties['copy_to_zlog']:
+            result['copy_to_zlog'] = _('Yes')
+        else:
+            result['copy_to_zlog'] = _('No')
+        return result
+
+
+class FlourishErrorEntryView(FlourishErrorsViewBase):
+
+    def update(self):
+        entryId = self.request.get('id')
+        if not entryId:
+            self.request.response.redirect(self.nextURL())
+            return
+        self.entry = self.error_utility.getLogEntryById(entryId)
+        if self.entry is not None:
+            error_type = self.entry['type']
+            self.subtitle = _('${type} Error', mapping={'type': error_type})
+
+    def nextURL(self):
+        return absoluteURL(self.context, self.request) + '/errors'
+
+
+class IErrorsSettings(Interface):
+
+    keep_entries = Int(
+        title=_('Number of exceptions to show'))
+
+    copy_to_zlog = Bool(
+        title=_('Copy exceptions to the event log'),
+        default=False)
+
+    ignored_exceptions = Tuple(
+        title=_('Ignored exception types'),
+        value_type=Choice(vocabulary=vocabulary([
+                    ('Unauthorized', 'Unauthorized'),
+                    ('NotFound', 'NotFound')])),
+        required=False)
+
+
+class ErrorsSettingsAdapter(object):
+
+    adapts(IErrorReportingUtility)
+    implements(IErrorsSettings)
+
+    def __init__(self, context):
+        self.__dict__['context'] = context
+
+    def __getattr__(self, name):
+        if name == 'ignored_exceptions':
+            return getattr(self.context, '_ignored_exceptions')
+        return getattr(self.context, name)
+
+    def __setattr__(self, name, value):
+        if name == 'ignored_exceptions':
+            self.context._ignored_exceptions = value
+            return
+        setattr(self.context, name, value)
+
+
+class FlourishErrorsConfigureView(Form, FlourishErrorsViewBase):
+
+    legend = _('Errors Settings')
+    fields = field.Fields(IErrorsSettings)
+    fields['ignored_exceptions'].widgetFactory = CheckBoxFieldWidget
+
+    def getContent(self):
+        return self.error_utility
+
+    @button.buttonAndHandler(_('Submit'))
+    def handle_submit_action(self, action):
+        data, errors = self.extractData()
+        if errors:
+            self.status = self.formErrorsMessage
+            return
+        form.applyChanges(self, self.getContent(), data)
+        self.request.response.redirect(self.nextURL())
+
+    @button.buttonAndHandler(_('Cancel'))
+    def handle_cancel_action(self, action):
+        self.request.response.redirect(self.nextURL())
+
+    def nextURL(self):
+        url = absoluteURL(self.context, self.request) + '/errors'
+        return url
+
+
+class ErrorsBreadcrumb(flourish.breadcrumbs.Breadcrumbs):
+
+    title = _('Errors')
+
+    @property
+    def url(self):
+        app = ISchoolToolApplication(None)
+        app_url = absoluteURL(app, self.request)
+        return '%s/errors' % app_url
+
+    @property
+    def follow_crumb(self):
+        return ManageSiteBreadcrumb(self.context, self.request, self.view)
+
+
+class FlourishAboutView(flourish.page.Page):
+
+    pass

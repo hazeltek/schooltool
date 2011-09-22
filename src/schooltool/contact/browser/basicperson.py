@@ -26,12 +26,14 @@ import urllib
 
 from zope.schema import getFieldsInOrder
 from zope.security.proxy import removeSecurityProxy
+from zope.security import checkPermission
 from zope.publisher.browser import BrowserView
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from zope.traversing.browser.absoluteurl import absoluteURL
 
 from z3c.form import field
 
+from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.contact.basicperson import IBoundContact
 from schooltool.contact.interfaces import IContactInformation
 from schooltool.contact.interfaces import IContact
@@ -39,7 +41,10 @@ from schooltool.contact.interfaces import IContactable
 from schooltool.contact.interfaces import IContactPerson
 from schooltool.contact.interfaces import IAddress, IEmails, IPhones, ILanguages
 from schooltool.contact.browser.contact import ContactEditView
+from schooltool.contact.browser.contact import FlourishContactEditView
+from schooltool.contact.browser.contact import FlourishContactView
 from schooltool.contact.browser.relationship import get_relationship_title
+from schooltool.common import SchoolToolMessage as _
 
 
 class ContactOverviewView(BrowserView):
@@ -94,6 +99,44 @@ class ContactOverviewView(BrowserView):
 class BoundContactEditView(ContactEditView):
     """Edit form for a bound contact."""
     fields = field.Fields(IContactInformation)
+
+
+class FlourishBoundContactView(FlourishContactView):
+
+    def canModify(self):
+        return checkPermission("schooltool.edit", self.context)
+
+
+class FlourishBoundContactEditView(FlourishContactEditView):
+
+    fields = field.Fields(IContactInformation)
+
+    def buildFieldsetGroups(self):
+        self.fieldset_groups = {
+            'address': (
+                _('Address'),
+                ['address_line_1', 'address_line_2', 'city', 'state',
+                 'country', 'postal_code']),
+            'contact_information': (
+                _('Contact Information'),
+                ['home_phone', 'work_phone', 'mobile_phone', 'email',
+                 'language']),
+            }
+        self.fieldset_order = (
+            'address', 'contact_information')
+
+    def nextURL(self):
+        if 'person_id' in self.request:
+            person_id = self.request['person_id']
+            app = ISchoolToolApplication(None)
+            persons = app['persons']
+            if person_id in persons:
+                return absoluteURL(persons[person_id], self.request)
+        base_url = absoluteURL(self.context.__parent__, self.request)
+        return "%s/@@manage_contacts.html?%s" % (
+            base_url,
+            urllib.urlencode([('SEARCH_TITLE',
+                               self.context.last_name.encode("utf-8"))]))
 
 
 class ManageContactsActionViewlet(object):

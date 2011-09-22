@@ -130,19 +130,20 @@ class IFieldDescription(Interface):
 
     title = TextLine(
         title = _(u"Title"),
-        description = _(u"The title of this Field Description"))
+        description = _(u"As it should appear on forms and reports."))
 
     name = PythonIdentifier(
         title = _(u"ID"),
-        description = _(u"Unique ID of this Field Description"))
+        description = _(u"A unique one word identifier."))
 
     required = Bool(
-        title = _(u"Required"),
-        description = _(u"Whether this Field is required or not"))
+        title = _(u"Required"))
 
     limit_keys = FilterKeyList(
-        title = _(u"Limit keys"),
-        description = _(u"An optional list of limit keys for this field"),
+        title = _(u"Limit to group(s)"),
+        description = _(u"If you select one or more groups below, this field "
+                         "will only be displayed in forms and reports for "
+                         "members of the selected groups."),
         value_type=Choice(
             source="schooltool.basicperson.limit_keys_vocabulary",
             required=True,
@@ -158,11 +159,26 @@ class IEnumFieldDescription(IFieldDescription):
     """Enumeration demographics field."""
 
     items = EnumValueList(
-        title = _('List of values'))
+        title = _('Selection list'),
+        description = _(u"Enter the valid values for the field below.  One "
+                         "value per line.  These values will be displayed "
+                         "as a menu in forms."))
 
 
 class IFieldFilterVocabulary(IVocabularyTokenized):
     """Marker interface for vocabularies that give keys that are used
     to filder demographics fields for the context.
     """
+
+
+class IAddEditViewTitle(Interface):
+    """Demographics field add/edit view title."""
+
+
+class ILimitKeysLabel(Interface):
+    """Demographics field add/edit view limit keys label text."""
+
+
+class ILimitKeysHint(Interface):
+    """Demographics field add/edit view limit keys hint text."""
 

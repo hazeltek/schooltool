@@ -1,0 +1,61 @@
+/*
+
+  Overrides for jQuery UI CSS:
+
+*/
+
+.ui-accordion {
+    margin-top: 16px;
+    width: 528px;
+}
+
+.ui-accordion-header {
+    font-weight: bold;
+    text-align: left;
+    padding: 4px 8px;
+    padding-left: 26px;
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.ui-accordion .ui-accordion-content {
+    padding-right: 8px;
+    padding-left: 8px;
+    padding-top: 4px;
+}
+
+.ui-dialog .ui-dialog-content {
+    padding: 8px;
+}
+
+.ui-dialog .ui-dialog-content form {
+    margin-top: 0px;
+    width: 544px;
+}
+
+.ui-dialog .ui-dialog-content form fieldset {
+    padding-top: 0px;
+    margin-bottom: 0px;
+}
+
+.ui-dialog .ui-dialog-content form .required-info {
+    display: none;
+}
+
+.ui-dialog .ui-dialog-content .buttons {
+    margin-bottom: 0px;
+    margin-top: 0px;
+}
+
+.ui-dialog .ui-dialog-titlebar {
+    padding-left: 8px;
+}
+
+.ui-dialog .ui-dialog-titlebar .ui-dialog-title {
+    line-height: 20px;
+    font-size: 16px;
+}
+
+.ui-icon-center {
+    margin: 0 auto;
+}

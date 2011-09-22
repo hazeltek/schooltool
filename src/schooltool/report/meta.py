@@ -24,34 +24,37 @@ ZCML directives for reports
 from zope.configuration.fields import MessageID
 from zope.interface import Interface
 from zope.publisher.interfaces.browser import IBrowserView
+from zope.publisher.interfaces.browser import IDefaultBrowserLayer
 from zope.schema import TextLine
 from zope.viewlet.metadirectives import IViewletDirective
 from zope.viewlet.metaconfigure import viewletDirective
 
-from schooltool.report.report import ReportLinkViewletManager, ReportLinkViewlet
+from schooltool.report.interfaces import IReportLinkViewletManager
+from schooltool.report.report import ReportLinkViewlet
 from schooltool.report.report import getReportRegistrationUtility
-from schooltool.skin.skin import ISchoolToolLayer
 
 
 class IReportLinkDirective(IViewletDirective):
     group = MessageID(title=u"Report group", required=True)
     title = MessageID(title=u"Report link text", required=True)
     description = MessageID(title=u"Report link description", required=True)
+    file_type = MessageID(title=u"Report file extension", required=True)
     link = TextLine(title=u"Link to the report", required=False)
 
 
 def reportLinkDirective(_context, name, permission, for_=Interface,
-    layer=ISchoolToolLayer, view=IBrowserView, manager=ReportLinkViewletManager,
+    layer=IDefaultBrowserLayer, view=IBrowserView,
+    manager=IReportLinkViewletManager,
     class_=ReportLinkViewlet, template=None, group=u'', title=u'',
-    description='', link='', **kwargs):
+    description='', link='', file_type='', **kwargs):
 
     # forward our defaults to the viewletDirective
     viewletDirective(_context, name, permission,
         for_=for_, layer=layer, view=view, manager=manager,
         class_=class_, template=template,
-        group=group, title=title, description=description, link=link, **kwargs)
+        group=group, title=title, description=description, link=link,
+        file_type=file_type, **kwargs)
 
     # and register the report for reference
     utility = getReportRegistrationUtility()
-    utility.registerReport(group, title, description)
-
+    utility.registerReport(group, title, description, file_type, name, layer)

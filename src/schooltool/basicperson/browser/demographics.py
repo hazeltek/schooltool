@@ -18,9 +18,9 @@
 #
 from zope.schema.interfaces import IList
 from zope.interface import Interface
-from zope.interface import implements
-from zope.component import adapts
-from zope.component import getMultiAdapter
+from zope.interface import implements, implementer
+from zope.component import adapts, adapter
+from zope.component import getAdapter, getMultiAdapter
 from zope.publisher.interfaces.browser import IBrowserRequest
 from zope.publisher.browser import BrowserView
 from zope.traversing.api import getName
@@ -33,8 +33,10 @@ from z3c.form.interfaces import ITextAreaWidget
 from z3c.form import form, field, button
 from z3c.form.converter import BaseDataConverter, FormatterValidationError
 
+import schooltool.skin.flourish.form
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.basicperson.demographics import TextFieldDescription
+from schooltool.basicperson.demographics import DescriptionFieldDescription
 from schooltool.basicperson.demographics import DateFieldDescription
 from schooltool.basicperson.demographics import BoolFieldDescription
 from schooltool.basicperson.demographics import EnumFieldDescription
@@ -42,6 +44,15 @@ from schooltool.basicperson.interfaces import IEnumFieldDescription
 from schooltool.basicperson.interfaces import IDemographicsFields
 from schooltool.basicperson.interfaces import IFieldDescription
 from schooltool.basicperson.interfaces import EnumValueList
+from schooltool.basicperson.interfaces import IAddEditViewTitle
+from schooltool.basicperson.interfaces import ILimitKeysLabel
+from schooltool.basicperson.interfaces import ILimitKeysHint
+from schooltool.common.inlinept import InheritTemplate
+from schooltool.skin import flourish
+from schooltool.skin.flourish import IFlourishLayer
+from schooltool.skin.flourish.interfaces import IViewletManager
+from schooltool.skin.flourish.viewlet import Viewlet, ViewletManager
+from schooltool.skin.flourish.content import ContentProvider
 
 from schooltool.common import format_message
 from schooltool.common import SchoolToolMessage as _
@@ -174,6 +185,17 @@ class TextFieldDescriptionAddView(FieldDescriptionAddView):
         return fd
 
 
+class DescriptionFieldDescriptionAddView(FieldDescriptionAddView):
+
+    def create(self, data):
+        fd = DescriptionFieldDescription(data['title'],
+                                         str(data['name']),
+                                         data['required'])
+        form.applyChanges(self, fd, data)
+        self._fd = fd
+        return fd
+
+
 class DateFieldDescriptionAddView(FieldDescriptionAddView):
 
     def create(self, data):
@@ -198,7 +220,8 @@ class BoolFieldDescriptionAddView(FieldDescriptionAddView):
 
 class EnumFieldDescriptionAddView(FieldDescriptionAddView):
 
-    fields = field.Fields(IEnumFieldDescription)
+    fields = field.Fields(IEnumFieldDescription).select('title', 'name',
+        'items', 'required', 'limit_keys')
 
     def create(self, data):
         fd = EnumFieldDescription(data['title'],
@@ -233,7 +256,8 @@ class FieldDescriptionEditView(form.EditForm):
 
 class EnumFieldDescriptionEditView(FieldDescriptionEditView):
 
-    fields = field.Fields(IEnumFieldDescription).omit('name')
+    fields = field.Fields(IEnumFieldDescription).select('title',
+        'items', 'required', 'limit_keys')
 
 
 class FieldDescriptionView(form.DisplayForm):
@@ -250,6 +274,10 @@ class TextFieldDescriptionView(FieldDescriptionView):
     """Display form for a text field description."""
 
 
+class DescriptionFieldDescriptionView(FieldDescriptionView):
+    """Display form for a description field description."""
+
+
 class DateFieldDescriptionView(FieldDescriptionView):
     """Display form for a date field description."""
 
@@ -262,4 +290,242 @@ class EnumFieldDescriptionView(FieldDescriptionView):
     """Display form for an enum field description."""
 
     fields = field.Fields(IEnumFieldDescription)
+
+
+class FlourishDemographicsFieldsLinks(flourish.page.RefineLinksViewlet):
+    """demographics fields add links viewlet."""
+
+
+class FlourishDemographicsFieldsActions(flourish.page.RefineLinksViewlet):
+    """demographics fields action links viewlet."""
+
+
+class FlourishDemographicsView(flourish.page.WideContainerPage):
+
+    keys = [('students', _("Stud.")),
+            ('teachers', _("Teach.")),
+            ('administrators', _("Admin."))]
+
+    types = {
+        'Enum': _('Selection'),
+        'Date': _('Date'),
+        'Text': _('Text'),
+        'Bool': _('Yes/No'),
+        'Description': _('Description'),
+        }
+
+    def table(self):
+        result = []
+        for demo in list(self.context.values()):
+            classname = demo.__class__.__name__
+            class_key = classname[:classname.find('FieldDescription')]
+            field_type = self.types.get(class_key, '')
+            result.append({
+               'title': demo.title,
+               'url': '%s/edit.html' % absoluteURL(demo, self.request),
+               'id': demo.name,
+               'type': field_type,
+               'required': demo.required,
+               'limited': bool(demo.limit_keys),
+               'groups': [(key[0] in demo.limit_keys)
+                          for key in self.keys],
+               })
+        return result
+
+    def groups(self):
+        return [key[1] for key in self.keys]
+
+
+class FlourishReorderDemographicsView(flourish.page.Page, DemographicsView):
+
+    def demographics(self):
+        pos = 0
+        result = []
+        for demo in self.context.values():
+            pos += 1
+            result.append({
+                    'name': demo.__name__,
+                   'title': demo.title,
+                   'pos': pos,
+                    })
+        return result
+
+    def update(self):
+        if 'DONE' in self.request:
+            url = absoluteURL(self.context, self.request)
+            self.request.response.redirect(url)
+        elif 'form-submitted' in self.request:
+            for demo in self.context.values():
+                name = 'delete.%s' % demo.__name__
+                if name in self.request:
+                    del self.context[demo.__name__]
+                    return
+            old_pos, new_pos, move_detected = 0, 0, False
+            for demo in self.context.values():
+                old_pos += 1
+                name = getName(demo)
+                if 'pos.'+name not in self.request:
+                    continue
+                new_pos = int(self.request['pos.'+name])
+                if new_pos != old_pos:
+                    move_detected = True
+                    break
+            old_pos, new_pos = old_pos-1, new_pos-1
+            keys = list(self.context.keys())
+            moving = keys[old_pos]
+            keys.remove(moving)
+            keys.insert(new_pos,moving)
+            self.context.updateOrder(keys)
+
+
+@adapter(IDemographicsFields)
+@implementer(IAddEditViewTitle)
+def getAddEditViewTitle(context):
+    return _('Demographics')
+
+
+@adapter(IDemographicsFields)
+@implementer(ILimitKeysLabel)
+def getLimitKeysLabel(context):
+    return _('Limit to group(s)')
+
+
+@adapter(IDemographicsFields)
+@implementer(ILimitKeysHint)
+def getLimitKeysHint(context):
+    return _(u"If you select one or more groups below, this field "
+              "will only be displayed in forms and reports for "
+              "members of the selected groups.")
+
+
+class FlourishFieldDescriptionAddView(flourish.form.AddForm,
+                                      FieldDescriptionAddView):
+
+    template = InheritTemplate(flourish.page.Page.template)
+    label = None
+    legend = _('Field Details')
+    formErrorsMessage = _('Please correct the marked fields below.')
+
+    @property
+    def title(self):
+        return getAdapter(self.context, IAddEditViewTitle)
+
+    @button.buttonAndHandler(_('Submit'), name='add')
+    def handleAdd(self, action):
+        super(FlourishFieldDescriptionAddView, self).handleAdd.func(self, action)
+
+    @button.buttonAndHandler(_("Cancel"))
+    def handle_cancel_action(self, action):
+        self.request.response.redirect(self.nextURL())
+
+    def updateWidgets(self):
+        super(FlourishFieldDescriptionAddView, self).updateWidgets()
+        self.widgets['limit_keys'].label = getAdapter(self.context,
+            ILimitKeysLabel)
+        self.widgets['limit_keys'].field.description = getAdapter(self.context,
+            ILimitKeysHint)
+
+    def nextURL(self):
+        return absoluteURL(self.context, self.request)
+
+
+class FlourishTextFieldDescriptionAddView(FlourishFieldDescriptionAddView,
+                                          TextFieldDescriptionAddView):
+    pass
+
+
+class FlourishDescriptionFieldDescriptionAddView(FlourishFieldDescriptionAddView,
+                                                 DescriptionFieldDescriptionAddView):
+    pass
+
+
+class FlourishDateFieldDescriptionAddView(FlourishFieldDescriptionAddView,
+                                          DateFieldDescriptionAddView):
+    pass
+
+
+class FlourishBoolFieldDescriptionAddView(FlourishFieldDescriptionAddView,
+                                          BoolFieldDescriptionAddView):
+    pass
+
+
+class FlourishEnumFieldDescriptionAddView(FlourishFieldDescriptionAddView,
+                                          EnumFieldDescriptionAddView):
+    pass
+
+
+class FlourishFieldDescriptionEditView(flourish.form.Form,
+                                       FieldDescriptionEditView):
+
+    template = InheritTemplate(flourish.page.Page.template)
+    label = None
+    legend = _('Field Details')
+
+    @property
+    def title(self):
+        return getAdapter(self.context.__parent__, IAddEditViewTitle)
+
+    @property
+    def subtitle(self):
+        return _(u'Change information for ${field_title}',
+                 mapping={'field_title': self.context.title})
+
+    @button.buttonAndHandler(_('Submit'), name='apply')
+    def handleApply(self, action):
+        super(FlourishFieldDescriptionEditView, self).handleApply.func(self, action)
+        # XXX: hacky sucessful submit check
+        if (self.status == self.successMessage or
+            self.status == self.noChangesMessage):
+            self.request.response.redirect(self.nextURL())
+
+    @button.buttonAndHandler(_("Cancel"))
+    def handle_cancel_action(self, action):
+        self.request.response.redirect(self.nextURL())
+
+    def updateWidgets(self):
+        super(FlourishFieldDescriptionEditView, self).updateWidgets()
+        self.widgets['limit_keys'].label = getAdapter(
+            self.context.__parent__, ILimitKeysLabel)
+        self.widgets['limit_keys'].field.description = getAdapter(
+            self.context.__parent__, ILimitKeysHint)
+
+    def nextURL(self):
+        return absoluteURL(self.context.__parent__, self.request)
+
+
+class FlourishEnumFieldDescriptionEditView(FlourishFieldDescriptionEditView, EnumFieldDescriptionEditView):
+
+    def update(self):
+        EnumFieldDescriptionEditView.update(self)
+
+
+class FlourishTextFieldDescriptionView(flourish.page.Page, TextFieldDescriptionView):
+
+    def update(self):
+        TextFieldDescriptionView.update(self)
+
+
+class FlourishDescriptionFieldDescriptionView(flourish.page.Page,
+                                              DescriptionFieldDescriptionView):
+
+    def update(self):
+        DescriptionFieldDescriptionView.update(self)
+
+
+class FlourishDateFieldDescriptionView(flourish.page.Page, DateFieldDescriptionView):
+
+    def update(self):
+        DateFieldDescriptionView.update(self)
+
+
+class FlourishBoolFieldDescriptionView(flourish.page.Page, BoolFieldDescriptionView):
+
+    def update(self):
+        BoolFieldDescriptionView.update(self)
+
+
+class FlourishEnumFieldDescriptionView(flourish.page.Page, EnumFieldDescriptionView):
+
+    def update(self):
+        EnumFieldDescriptionView.update(self)
 

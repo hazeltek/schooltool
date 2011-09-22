@@ -1,0 +1,21 @@
+<div class="manage-view" i18n:domain="schooltool">
+  <h3>
+    <a title="Edit email settings"
+       tal:attributes="href string:${context/@@absolute_url}/email"
+       i18n:attributes="title">
+      Outgoing Email
+    </a>
+  </h3>
+  <table class="form-fields">
+    <tbody>
+      <tr>
+        <td class="label" i18n:translate="">Status</td>
+        <td tal:content="view/email_status" />
+      </tr>
+      <tr>
+        <td class="label" i18n:translate="">Hostname</td>
+        <td tal:content="view/hostname" />
+      </tr>
+    </tbody>
+  </table>
+</div>

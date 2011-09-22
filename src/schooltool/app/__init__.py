@@ -35,22 +35,15 @@ def registerTestSetup():
 
     def haveTimetables():
         from schooltool.timetable.interfaces import IHaveTimetables
+        from schooltool.timetable.interfaces import IHaveSchedule
 
-        from schooltool.person.person import Person
-        if not IHaveTimetables.implementedBy(Person):
-            classImplements(Person, IHaveTimetables)
+        from schooltool.schoolyear.schoolyear import SchoolYear
+        if not IHaveTimetables.implementedBy(SchoolYear):
+            classImplements(SchoolYear, IHaveTimetables)
 
-        from schooltool.group.group import Group
-        if not IHaveTimetables.implementedBy(Group):
-            classImplements(Group, IHaveTimetables)
-
-        from schooltool.resource.resource import Resource
-        if not IHaveTimetables.implementedBy(Resource):
-            classImplements(Resource, IHaveTimetables)
-
-        from schooltool.app.app import SchoolToolApplication
-        if not IHaveTimetables.implementedBy(SchoolToolApplication):
-            classImplements(SchoolToolApplication, IHaveTimetables)
+        from schooltool.course.section import Section
+        if not IHaveTimetables.implementedBy(Section):
+            classImplements(Section, IHaveSchedule)
     registry.register('TimetablesComponents', haveTimetables)
 
 registerTestSetup()

@@ -20,8 +20,10 @@
 Resource Booking caledar and events
 """
 from zope.interface import implements
-from zope.session.interfaces import ISession
+from zope.component import queryAdapter
 from zope.location.location import Location, locate
+from zope.publisher.interfaces import NotFound
+from zope.session.interfaces import ISession
 
 from schooltool.calendar.simple import ImmutableCalendar
 from schooltool.resource.interfaces import IBookingCalendar
@@ -32,9 +34,7 @@ from schooltool.app.interfaces import ISchoolToolCalendar
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.person.interfaces import IPerson
 from schooltool.term.interfaces import ITermContainer
-from schooltool.timetable.interfaces import ITimetableSchemaContainer
-from schooltool.timetable import TimetableActivity
-from schooltool.traverser.traverser import NameTraverserPlugin
+from schooltool.traverser.traverser import TraverserPlugin
 
 
 class BookingCalendarEvent(SimpleCalendarEvent):
@@ -92,6 +92,10 @@ class ResourceBookingCalendar(ImmutableCalendar, Location):
         # the ids use the absolutePath.
         locate(timetable, self, 'booking-timetable')
 
+        # XXX: Temporary timetable integration for the refactoring.
+        #      Will be broken soon.
+        from schooltool.timetable import TimetableActivity
+
         for day_id, day in timetable.items():
             for period_id in day.keys():
                 act = TimetableActivity(title=period_id, owner=None)
@@ -102,6 +106,10 @@ class ResourceBookingCalendar(ImmutableCalendar, Location):
     def expand(self, start, end):
         app = ISchoolToolApplication(None)
         terms = ITermContainer(app, {})
+
+        # XXX: Temporary timetable integration for the refactoring
+        #      This one will be broken soon too.
+        from schooltool.timetable.interfaces import ITimetableSchemaContainer
         school_timetables = ITimetableSchemaContainer(app, None)
 
         if school_timetables is None or school_timetables.default_id is None:
@@ -134,19 +142,14 @@ class ResourceBookingCalendar(ImmutableCalendar, Location):
         return iter([])
 
 
-class ResourceBookingTraverserPlugin(NameTraverserPlugin):
+class ResourceBookingTraverserPlugin(TraverserPlugin):
     """Traverse to an adapter by name."""
 
-    traversalName = 'booking'
-
-    def _traverse(self, request, name):
-        from zope.component import queryAdapter
+    def traverse(self, name):
         bookingCalendar = queryAdapter(self.context, IBookingCalendar, name='')
         if bookingCalendar is None:
-            from zope.publisher.interfaces import NotFound
-            raise NotFound(self.context, name, request)
-
-        bookingCalendar.request = request
+            raise NotFound(self.context, name, self.request)
+        bookingCalendar.request = self.request
         return bookingCalendar
 
 

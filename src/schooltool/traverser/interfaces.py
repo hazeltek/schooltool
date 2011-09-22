@@ -25,7 +25,7 @@ must be written for every specific presentation type.
 $Id$
 """
 
-from zope.interface import Interface
+from zope.interface import Interface, Attribute
 from zope.publisher.interfaces import IPublishTraverse
 
 
@@ -37,19 +37,32 @@ class IPluggableTraverser(IPublishTraverse):
     """
 
 
-class ITraverserPlugin(Interface):
+class ISchoolToolTraverser(Interface):
     """A plugin for the pluggable traverser."""
 
-    def publishTraverse(request, name):
-        """Lookup a name
+    context = Attribute("The context object the plugin traverses")
+    request = Attribute("The request object driving the traversal")
 
-        The 'request' argument is the publisher request object.  The
-        'name' argument is the name that is to be looked up; it must
+    def traverse(name):
+        """The 'name' argument is the name that is to be looked up; it must
         be an ASCII string or Unicode object.
 
         If a lookup is not possible, raise a NotFound error.
 
         This method should return an object having the specified name and
-        `self` as parent. The method can use the request to determine the
-        correct object.
+        `self` as parent.
         """
+
+
+class ITraverser(IPublishTraverse,
+                 ISchoolToolTraverser):
+    """A simple traverser.
+
+    This traverser traverses a name by utilizing helper traversers that are
+    registered as ``ITraverserPlugin`` subscribers.
+    """
+
+
+class ITraverserPlugin(ISchoolToolTraverser):
+    """A plugin for the pluggable traverser."""
+

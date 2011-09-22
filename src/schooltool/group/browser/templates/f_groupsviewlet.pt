@@ -1,0 +1,44 @@
+<div i18n:domain="schooltool">
+  <h2 i18n:translate="">Groups</h2>
+  <div>
+    <h3>
+      <tal:block i18n:translate="">Group memberships</tal:block>
+      <a class="modify" href="" title="Manage this person's memberships"
+         tal:attributes="href string:${context/@@absolute_url}/@@groups.html"
+         i18n:attributes="title"
+         tal:condition="view/canModify">
+        <img tal:attributes="src context/++resource++schooltool.skin.flourish/edit-icon.png"
+             alt="Edit"
+             i18n:attributes="alt" />
+      </a>
+    </h3>
+    <table tal:condition="view/schoolyears">
+      <thead>
+        <tr>
+          <th i18n:translate="">Group</th>
+          <th i18n:translate="">School Year</th>
+        </tr>
+      </thead>
+      <tal:block repeat="schoolyear view/schoolyears">
+        <tal:block repeat="group schoolyear/groups">
+          <tr>
+            <td>
+              <a tal:attributes="href group/@@absolute_url;
+                                 title group/title"
+                 tal:content="group/title"></a>
+            </td>
+            <td>
+              <a tal:attributes="href schoolyear/obj/@@absolute_url;
+                                 title schoolyear/obj/title"
+                 tal:content="schoolyear/obj/title"></a>
+            </td>
+          </tr>
+        </tal:block>
+      </tal:block>
+    </table>
+    <h3 tal:condition="not: view/schoolyears"
+        i18n:translate="">
+      The person is not a member of any groups.
+    </h3>
+  </div>
+</div>

@@ -40,9 +40,6 @@ from zope.annotation.interfaces import IAttributeAnnotatable
 
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.common import parse_datetime
-from schooltool.timetable import SchooldayTemplate, SchooldaySlot
-from schooltool.timetable.interfaces import ITimetableSchemaContainer
-from schooltool.timetable.model import SequentialDaysTimetableModel
 from schooltool.term.interfaces import ITermContainer
 from schooltool.term.tests import setUpDateManagerStub
 from schooltool.testing.util import NiceDiffsMixin
@@ -78,6 +75,13 @@ from schooltool.app.browser.interfaces import ICalendarProvider
 from schooltool.app.browser.cal import EventForDisplay
 from schooltool.app.browser.cal import CalendarDay
 
+try:
+    from schooltool.timetable import SchooldayTemplate, SchooldaySlot
+    from schooltool.timetable.interfaces import ITimetableSchemaContainer
+    from schooltool.timetable.model import SequentialDaysTimetableModel
+except:
+    pass # XXX: tests not refactored yet
+
 
 class PrincipalStub:
 
@@ -107,6 +111,17 @@ def setUp(test=None):
     setUpDateManagerStub(test_today)
     app = ApplicationStub()
     provideAdapter(lambda x: app, (None,), ISchoolToolApplication)
+
+
+def setUpTimetabling():
+    from schooltool.timetable.app import getTimetableContainer
+    from schooltool.timetable.app import getScheduleContainer
+
+    provideAdapter(getTimetableContainer)
+    provideAdapter(getScheduleContainer)
+
+    from schooltool.testing import registry
+    registry.setupTimetablesComponents()
 
 
 class EventStub(object):
@@ -167,70 +182,12 @@ def createEvent(dtstart, duration, title, **kw):
     return CalendarEvent(dtstart, dur, title, **kw)
 
 
-def doctest_ToCalendarTraverser():
-    """Tests for CalendarOwnerTraverser.
-
-    CalendarOwnerTraverser allows you to traverse directly to the calendar
-    of a calendar owner.
-
-        >>> from schooltool.app.browser.cal import ToCalendarTraverser
-        >>> person = Person()
-        >>> request = TestRequest()
-        >>> traverser = ToCalendarTraverser(person, request)
-        >>> traverser.context is person
-        True
-        >>> traverser.request is request
-        True
-
-    The traverser should implement IBrowserPublisher:
-
-        >>> from zope.publisher.interfaces.browser import IBrowserPublisher
-        >>> verifyObject(IBrowserPublisher, traverser)
-        True
-
-    Let's check that browserDefault suggests 'index.html':
-
-        >>> context, path = traverser.browserDefault(request)
-        >>> context is person
-        True
-        >>> path
-        ('index.html',)
-
-    The whole point of this class is that we can ask for the calendar:
-
-        >>> calendar = ISchoolToolCalendar(person)
-        >>> traverser.publishTraverse(request, 'calendar') is calendar
-        True
-
-    We can also get the calendar as iCalendar:
-
-        >>> from schooltool.app.interfaces import ISchoolToolCalendar
-        >>> from zope.publisher.interfaces.browser import IDefaultBrowserLayer
-        >>> provideAdapter(BrowserView,
-        ...                (ISchoolToolCalendar, IDefaultBrowserLayer),
-        ...                Interface, 'calendar.ics')
-        >>> view = traverser.publishTraverse(request, 'calendar.ics')
-        >>> view.context is ISchoolToolCalendar(traverser.context)
-        True
-        >>> view.request is traverser.request
-        True
-
-    If we try to look up a nonexistent view, we should get a NotFound error:
-
-        >>> traverser.publishTraverse(request,
-        ...                           'nonexistent.html') # doctest: +ELLIPSIS
-        Traceback (most recent call last):
-        ...
-        NotFound: Object: <...Person object at ...>, name: 'nonexistent.html'
-
-    """
-
 def doctest_CalendarTraverser():
     """Tests for CalendarTraverser.
 
     CalendarTraverser allows you to traverse directly various calendar views:
 
-        >>> from schooltool.app.browser.cal import CalendarTraverser
+        >>> from schooltool.calendar.browser.calendar import CalendarTraverser
         >>> cal = Calendar(None)
         >>> request = TestRequest()
         >>> traverser = CalendarTraverser(cal, request)
@@ -1119,7 +1076,7 @@ class TestCalendarViewBase(unittest.TestCase):
             >>> from schooltool.app.cal import Calendar
 
             >>> app = sbsetup.setUpSchoolToolSite()
-            >>> sbsetup.setUpTimetabling()
+            >>> setUpTimetabling()
             >>> setUpDateManagerStub(date(2005, 5, 13))
 
             >>> person = app['persons']['ignas'] = Person(u'Ignas')
@@ -1255,7 +1212,7 @@ class TestCalendarViewBase(unittest.TestCase):
             >>> registerCalendarHelperViews()
             >>> registerCalendarSubscribers()
             >>> sbsetup.setUpSessions()
-            >>> sbsetup.setUpTimetabling()
+            >>> setUpTimetabling()
             >>> setUpDateManagerStub(date(2005, 5, 13))
 
         CalendarViewBase.getEvents returns a list of wrapped calendar
@@ -1362,7 +1319,7 @@ class TestCalendarViewBase(unittest.TestCase):
         from schooltool.app.browser.cal import CalendarViewBase
         from schooltool.app.cal import Calendar
         app = sbsetup.setUpSchoolToolSite()
-        sbsetup.setUpTimetabling()
+        setUpTimetabling()
 
         e0 = createEvent('2004-08-10 11:00', '1h', "e0")
         e2 = createEvent('2004-08-11 11:00', '1h', "e2")
@@ -1411,7 +1368,7 @@ class TestCalendarViewBase(unittest.TestCase):
         from schooltool.app.browser.cal import CalendarViewBase
         from schooltool.app.cal import Calendar
         app = sbsetup.setUpSchoolToolSite()
-        sbsetup.setUpTimetabling()
+        setUpTimetabling()
 
         e0 = createEvent('2004-08-10 22:00', '30m', "e0")
         e1 = createEvent('2004-08-11 02:00', '1h', "e1")
@@ -1484,7 +1441,7 @@ class TestCalendarViewBase(unittest.TestCase):
         from schooltool.app.browser.cal import CalendarViewBase
         from schooltool.app.cal import Calendar
         app = sbsetup.setUpSchoolToolSite()
-        sbsetup.setUpTimetabling()
+        setUpTimetabling()
 
         event = createEvent('2004-08-10', "1d", "e0", allday=True)
 
@@ -3475,7 +3432,7 @@ class TestDailyCalendarView(unittest.TestCase):
         registerCalendarHelperViews()
         registerCalendarSubscribers()
         sbsetup.setUpSessions()
-        sbsetup.setUpTimetabling()
+        setUpTimetabling()
         sbsetup.setUpCalendaring()
         setUpDateManagerStub(self.today)
 
@@ -3897,16 +3854,16 @@ class TestDailyCalendarView(unittest.TestCase):
         view = createView()
         result = list(view.getHours())
         self.assertEquals(clearMisc(result),
-                          [{'title': '0:00', 'cols': (ev4, None, None)},
-                           {'title': '1:00', 'cols': ('', None, None)},
-                           {'title': '2:00', 'cols': ('', None, None)},
-                           {'title': '3:00', 'cols': ('', None, None)},
-                           {'title': '4:00', 'cols': ('', None, None)},
-                           {'title': '5:00', 'cols': ('', None, None)},
-                           {'title': '6:00', 'cols': ('', None, None)},
-                           {'title': '7:00', 'cols': ('', None, None)},
-                           {'title': '8:00', 'cols': ('', None, None)},
-                           {'title': '9:00', 'cols': ('', None, None)},
+                          [{'title': '00:00', 'cols': (ev4, None, None)},
+                           {'title': '01:00', 'cols': ('', None, None)},
+                           {'title': '02:00', 'cols': ('', None, None)},
+                           {'title': '03:00', 'cols': ('', None, None)},
+                           {'title': '04:00', 'cols': ('', None, None)},
+                           {'title': '05:00', 'cols': ('', None, None)},
+                           {'title': '06:00', 'cols': ('', None, None)},
+                           {'title': '07:00', 'cols': ('', None, None)},
+                           {'title': '08:00', 'cols': ('', None, None)},
+                           {'title': '09:00', 'cols': ('', None, None)},
                            {'title': '10:00', 'cols': ('', None, None)},
                            {'title': '11:00', 'cols': ('', None, None)},
                            {'title': '12:00', 'cols': ('', ev1, None)},
@@ -3996,7 +3953,7 @@ class TestDailyCalendarView(unittest.TestCase):
             start = today + timedelta(hours=view.starthour)
             for end in row_ends:
                 duration = end - start
-                yield (rows_view.rowTitle(start.hour, start.minute),
+                yield (rows_view.rowTitle(start, duration),
                        start, duration)
                 start = end
 
@@ -4146,7 +4103,7 @@ class TestDailyCalendarView(unittest.TestCase):
             >>> registerCalendarHelperViews()
             >>> registerCalendarSubscribers()
             >>> sbsetup.setUpSessions()
-            >>> sbsetup.setUpTimetabling()
+            >>> setUpTimetabling()
             >>> setUpDateManagerStub(date(2005, 5, 13))
 
         DailyCalendarView.getAllDayEvents returns a list of wrapped
@@ -4732,7 +4689,7 @@ def doctest_AtomCalendarView():
 
         >>> setup.placefulSetUp()
         >>> app = sbsetup.setUpSchoolToolSite()
-        >>> sbsetup.setUpTimetabling()
+        >>> setUpTimetabling()
         >>> registerCalendarHelperViews()
         >>> registerCalendarSubscribers()
 

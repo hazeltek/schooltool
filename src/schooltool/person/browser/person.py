@@ -19,7 +19,7 @@
 """
 Person browser views.
 """
-from zope.interface import Interface
+from zope.interface import Interface, invariant, Invalid
 from zope.publisher.interfaces import NotFound
 from zope.schema import Password, TextLine, Bytes, Bool
 from zope.schema.interfaces import ValidationError
@@ -35,9 +35,9 @@ from zope.app.form.browser.interfaces import ITerms
 from zope.app.form.interfaces import IInputWidget
 from zope.app.form.interfaces import WidgetsError
 from zope.app.form.utility import getWidgetsData, setUpWidgets
+from zope.app.dependable.interfaces import IDependable
 from zope.publisher.browser import BrowserView
 from zope.viewlet.interfaces import IViewletManager
-from zope.formlib import form
 from zope.component import getUtility
 from zope.interface import implements
 from zope.browserpage import ViewPageTemplateFile
@@ -48,18 +48,22 @@ from zope.catalog.interfaces import ICatalog
 from zope.intid.interfaces import IIntIds
 from zope.traversing.browser.absoluteurl import absoluteURL
 from zope.security.checker import canAccess
+from z3c.form import form, field, button, widget, term, validator
+from z3c.form.browser.radio import RadioWidget
+from zope.i18n import translate
 
+import schooltool.skin.flourish.page
+import schooltool.skin.flourish.form
 from schooltool.group.interfaces import IGroupContainer
 from schooltool.common import SchoolToolMessage as _
-from schooltool.skin.form import BasicForm
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.person.interfaces import IPasswordWriter
 from schooltool.person.interfaces import IPerson, IPersonFactory
 from schooltool.person.interfaces import IPersonPreferences
 from schooltool.person.interfaces import IPersonContainer, IPersonContained
-from schooltool.widget.password import PasswordConfirmationWidget
 from schooltool.table.catalog import IndexedFilterWidget
 from schooltool.table.catalog import IndexedTableFormatter
+from schooltool.skin import flourish
 from schooltool.skin.containers import TableContainerView
 from schooltool.securitypolicy.crowds import Crowd
 from schooltool.securitypolicy.interfaces import ICrowd
@@ -83,38 +87,169 @@ class PersonPhotoView(BrowserView):
         return photo
 
 
-class PersonPreferencesView(BrowserView):
+class CalendarPeriodsWidgetTerms(term.BoolTerms):
+
+    trueLabel = _('Show periods')
+    falseLabel =  _('Show hours')
+
+
+class CalendarPublicWidgetTerms(term.BoolTerms):
+
+    trueLabel = _(u'the public')
+
+    @property
+    def falseLabel(self):
+        person = self.context.__parent__
+        return _('${person_full_name} and school administration',
+                 mapping={'person_full_name': "%s %s" % (person.first_name,
+                                                         person.last_name)})
+
+
+class CalendarPeriodsRadioWidget(RadioWidget):
+
+    @property
+    def terms(self):
+        return CalendarPeriodsWidgetTerms(self.context, self.request,
+                                          self.form, self.field, self)
+
+
+class CalendarPublicRadioWidget(RadioWidget):
+
+    @property
+    def terms(self):
+        return CalendarPublicWidgetTerms(self.context, self.request,
+                                         self.form, self.field, self)
+
+
+def calendar_public_widget_label(adapter):
+    person = adapter.context.__parent__
+    return _("${person_full_name}'s calendar is visible to...",
+             mapping={'person_full_name': "%s %s" % (person.first_name,
+                                                     person.last_name)})
+
+
+CalendarPublicWidgetLabel = widget.ComputedWidgetAttribute(
+    calendar_public_widget_label,
+    field=IPersonPreferences['cal_public'],
+    widget=CalendarPublicRadioWidget)
+
+
+def CalendarPeriodsWidgetFactory(field, request):
+    return widget.FieldWidget(field, CalendarPeriodsRadioWidget(request))
+
+
+def CalendarPublicWidgetFactory(field, request):
+    return widget.FieldWidget(field, CalendarPublicRadioWidget(request))
+
+
+class PersonPreferencesView(form.EditForm):
     """View used for editing person preferences."""
 
-    __used_for__ = IPersonPreferences
+    fields = field.Fields(IPersonPreferences)
+    fields['cal_periods'].widgetFactory = CalendarPeriodsWidgetFactory
+    fields['cal_public'].widgetFactory = CalendarPublicWidgetFactory
+    template = ViewPageTemplateFile('person_preferences.pt')
 
-    # TODO: these aren't used yet but should be
-    error = None
-    message = None
+    @property
+    def label(self):
+        person = self.context.__parent__
+        return _(u'Change preferences for ${person_full_name}',
+                 mapping={'person_full_name': "%s %s" % (person.first_name,
+                                                         person.last_name)})
 
-    schema = IPersonPreferences
+    @button.buttonAndHandler(_("Apply"))
+    def handle_edit_action(self, action):
+        data, errors = self.extractData()
+        if errors:
+            self.status = self.formErrorsMessage
+            return
+        self.applyChanges(data)
+        self.redirectToPerson()
 
-    def __init__(self, context, request):
-        BrowserView.__init__(self, context, request)
-        self.person = self.context.__parent__
-        initial = {}
-        for field in self.schema:
-            initial[field] = getattr(context, field)
-        setUpWidgets(self, self.schema, IInputWidget, initial=initial)
+    @button.buttonAndHandler(_("Cancel"))
+    def handle_cancel_action(self, action):
+        self.redirectToPerson()
 
-    def update(self):
-        if 'CANCEL' in self.request:
-            url = absoluteURL(self.person, self.request)
-            self.request.response.redirect(url)
-        elif 'UPDATE_SUBMIT' in self.request:
-            try:
-                data = getWidgetsData(self, self.schema)
-            except WidgetsError:
-                return # Errors will be displayed next to widgets
+    def updateActions(self):
+        super(PersonPreferencesView, self).updateActions()
+        self.actions['apply'].addClass('button-ok')
+        self.actions['cancel'].addClass('button-cancel')
 
-            for field in self.schema:
-                if field in data: # skip non-fields
-                    setattr(self.context, field, data[field])
+    def redirectToPerson(self):
+        url = absoluteURL(self.context.__parent__, self.request)
+        self.request.response.redirect(url)
+
+
+class FlourishPersonPreferencesView(flourish.form.DialogForm,
+                                    PersonPreferencesView):
+    """View used for editing person preferences."""
+
+    dialog_submit_actions = ('apply',)
+    dialog_close_actions = ('cancel',)
+    label = None
+
+    @button.handler(PersonPreferencesView.buttons['apply'])
+    def handleAdd(self, action):
+        self.handleApply.func(self, action)
+        # We never have errors, so just close the dialog.
+        self.ajax_settings['dialog'] = 'close'
+        # Also I assume the preferences don't change the parent
+        # view content, so let's not reload it now.
+        self.reload_parent = False
+
+
+class FlourishPersonPreferencesLink(flourish.page.ModalFormLinkViewlet):
+
+    @property
+    def dialog_title(self):
+        person = self.context
+        title = _(u'Change preferences for ${person_full_name}',
+                  mapping={'person_full_name': "%s %s" % (person.first_name,
+                                                          person.last_name)})
+        return translate(title, context=self.request)
+
+
+class FlourishPersonDeleteView(flourish.form.DialogForm, form.EditForm):
+    """View used for editing person preferences."""
+
+    dialog_submit_actions = ('apply',)
+    dialog_close_actions = ('cancel',)
+    label = None
+
+    @button.buttonAndHandler(_("Delete"), name='apply')
+    def handleDelete(self, action):
+        url = '%s/delete.html?delete.%s&CONFIRM' % (
+            absoluteURL(self.context.__parent__, self.request),
+            self.context.username)
+        self.request.response.redirect(url)
+        # We never have errors, so just close the dialog.
+        self.ajax_settings['dialog'] = 'close'
+
+    @button.buttonAndHandler(_("Cancel"))
+    def handle_cancel_action(self, action):
+        pass
+
+    def updateActions(self):
+        super(FlourishPersonDeleteView, self).updateActions()
+        self.actions['apply'].addClass('button-ok')
+        self.actions['cancel'].addClass('button-cancel')
+
+
+class FlourishPersonDeleteLink(flourish.page.ModalFormLinkViewlet):
+
+    @property
+    def dialog_title(self):
+        person = self.context
+        title = _(u'Delete ${person_full_name}',
+                  mapping={'person_full_name': "%s %s" % (person.first_name,
+                                                          person.last_name)})
+        return translate(title, context=self.request)
+
+    def render(self, *args, **kw):
+        dep = IDependable(removeSecurityProxy(self.context), None)
+        if (dep is not None and dep.dependents()):
+            return ''
+        return flourish.page.ModalFormLinkViewlet.render(self, *args, **kw)
 
 
 # Should this be moved to a interface.py file ?
@@ -158,20 +293,31 @@ class GroupsTerms(object):
 class IPasswordEditForm(Interface):
     """Schema for a person's edit form."""
 
+    current = Password(
+        title=_('Current password'),
+        required=False)
+
     password = Password(
-        title=_("Password"),
+        title=_("New password"),
+        required=False)
+
+    verify_password = Password(
+        title=_("Verify new password"),
         required=False)
 
 
-class PersonPasswordEditView(BasicForm):
-    form_fields = form.Fields(IPasswordEditForm, render_context=False)
-    form_fields['password'].custom_widget = PasswordConfirmationWidget
+class PersonPasswordEditView(form.Form):
 
-    def title(self):
-        return _("Edit password")
+    label = _("Edit password")
+    fields = field.Fields(IPasswordEditForm, ignoreContext=True)
+    template = ViewPageTemplateFile('password_form.pt')
 
-    @form.action(_("Apply"))
-    def handle_edit_action(self, action, data):
+    @button.buttonAndHandler(_("Apply"))
+    def handle_edit_action(self, action):
+        data, errors = self.extractData()
+        if errors:
+            self.status = self.formErrorsMessage
+            return
         if not data['password']:
             self.status = _("No new password was supplied so "
                             "original password is unchanged")
@@ -180,12 +326,71 @@ class PersonPasswordEditView(BasicForm):
         writer.setPassword(data['password'])
         self.status = _('Changed password')
 
-    @form.action(_("Cancel"))
-    def handle_cancel_action(self, action, data):
+    @button.buttonAndHandler(_("Cancel"))
+    def handle_cancel_action(self, action):
         # redirect to parent
         url = absoluteURL(self.context, self.request)
         self.request.response.redirect(url)
-        return ''
+
+    def updateActions(self):
+        super(PersonPasswordEditView, self).updateActions()
+        self.actions['apply'].addClass('button-ok')
+        self.actions['cancel'].addClass('button-cancel')
+
+
+class FlourishPersonPasswordEditView(flourish.page.Page,
+                                     PersonPasswordEditView):
+
+    label = None
+    legend = _('Change password')
+    formErrorsMessage = _('Please correct the marked fields below.')
+
+    @property
+    def fields(self):
+        fields = field.Fields(IPasswordEditForm, ignoreContext=True)
+        person = IPerson(self.request.principal)
+        if person.username is not self.context.username:
+            # Editing someone else's password
+            fields = fields.omit('current')
+        return fields
+
+    def update(self):
+        PersonPasswordEditView.update(self)
+
+
+class WrongCurrentPassword(ValidationError):
+    __doc__ = _('Wrong password supplied')
+
+
+class PasswordsDontMatch(ValidationError):
+    __doc__ = _('Supplied new passwords are not identical')
+
+
+class CurrentPasswordValidator(validator.SimpleFieldValidator):
+
+    def validate(self, value):
+        if value is not None and not self.context.checkPassword(value):
+            raise WrongCurrentPassword(value)
+
+
+validator.WidgetValidatorDiscriminators(CurrentPasswordValidator,
+                                        view=FlourishPersonPasswordEditView,
+                                        field=IPasswordEditForm['current'])
+
+
+class PasswordsMatchValidator(validator.SimpleFieldValidator):
+
+    def validate(self, value):
+        # XXX: hack to display the validation error next to the widget!
+        name = self.view.widgets['verify_password'].name
+        verify = self.request.get(name)
+        if value is not None and value not in (verify,):
+            raise PasswordsDontMatch(value)
+
+
+validator.WidgetValidatorDiscriminators(PasswordsMatchValidator,
+                                        view=FlourishPersonPasswordEditView,
+                                        field=IPasswordEditForm['password'])
 
 
 class IPersonInfoManager(IViewletManager):
@@ -198,6 +403,13 @@ class PasswordEditMenuItem(ViewletBase):
     def render(self):
         if checkPermission('schooltool.edit', IPasswordWriter(self.context)):
             return super(PasswordEditMenuItem, self).render()
+
+
+class FlourishPasswordLinkViewlet(flourish.page.LinkViewlet):
+
+    def render(self):
+        if checkPermission('schooltool.edit', IPasswordWriter(self.context)):
+            return super(FlourishPasswordLinkViewlet, self).render()
 
 
 class PersonFilterWidget(IndexedFilterWidget):
@@ -504,3 +716,7 @@ class PersonAddPersonViewlet(object):
             return False
         return True
 
+
+class FlourishPersonFilterWidget(PersonFilterWidget):
+
+    template = ViewPageTemplateFile('f_person_filter.pt')

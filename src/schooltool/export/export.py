@@ -28,34 +28,42 @@ from zope.security.proxy import removeSecurityProxy
 from zope.publisher.browser import BrowserView
 
 from schooltool.basicperson.demographics import DateFieldDescription
-from schooltool.basicperson.interfaces import IDemographics
+from schooltool.basicperson.interfaces import IDemographics, IBasicPerson
 from schooltool.basicperson.interfaces import IDemographicsFields
 from schooltool.group.interfaces import IGroupContainer
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.app.interfaces import ISchoolToolCalendar
 from schooltool.app.interfaces import IAsset
 from schooltool.schoolyear.interfaces import ISchoolYear
-from schooltool.timetable.browser import format_time_range
-from schooltool.timetable.interfaces import ITimetableCalendarEvent
-from schooltool.timetable.interfaces import ITimetables
-from schooltool.timetable.interfaces import ITimetableSchemaContainer
+from schooltool.common import format_time_range
+from schooltool.contact.contact import URIPerson, URIContact
+from schooltool.contact.contact import URIContactRelationship
+from schooltool.contact.interfaces import IContact, IContactContainer
+from schooltool.contact.interfaces import IContactable
 from schooltool.schoolyear.interfaces import ISchoolYearContainer
 from schooltool.term.interfaces import ITermContainer
 from schooltool.course.interfaces import ICourseContainer
 from schooltool.course.interfaces import ISectionContainer
+from schooltool.relationship.relationship import IRelationshipLinks
+from schooltool.timetable.interfaces import ITimetableContainer
+from schooltool.timetable.interfaces import IScheduleContainer
+from schooltool.timetable.interfaces import IHaveTimetables
+from schooltool.timetable.daytemplates import CalendarDayTemplates
+from schooltool.timetable.daytemplates import WeekDayTemplates
+from schooltool.timetable.daytemplates import SchoolDayTemplates
 
 
 class ExcelExportView(BrowserView):
 
     def __init__(self, context, request):
-        self.context, self.request = context, request
+        super(ExcelExportView, self).__init__(context, request)
         self._font_cache = {}
         self._style_cache = {}
 
     def setUpHeaders(self, data):
-        """Set up HTTP headers to serve data as PDF."""
+        """Set up HTTP headers to serve data as excel spreadsheet."""
         response = self.request.response
-        response.setHeader('Content-Type', 'application/excel')
+        response.setHeader('Content-Type', 'application/vnd.ms-excel')
         response.setHeader('Content-Length', len(data))
 
     def listIds(self, header, items, ws, offset, last=False):
@@ -138,56 +146,55 @@ class SchoolTimetableExportView(ExcelExportView):
     dows = ['Monday', 'Tuesday', 'Wednesday', 'Thursday',
             'Friday', 'Saturday', 'Sunday']
 
-    def format_day_templates(self, school_tt, ws, offset):
-        self.write_header(ws, offset, 0, "Day Templates")
+    def format_periods(self, periods, ws, offset):
+        self.write_header(ws, offset, 0, "Days")
+        max_periods = max([len(day) for day in periods.templates.values()])
+        self.write_header(ws, offset, 1, "Periods", merge=max_periods - 1)
         offset += 1
 
-        day_templates = school_tt.model.dayTemplates.items()
-        for row, (id, day) in enumerate(day_templates):
-            if id is None:
-                used = "default"
-            elif id in school_tt.keys():
-                used = id
-            else:
-                used = self.dows[id]
-            self.write(ws, offset + row, 0, used)
-            periods = []
-            for col, period in enumerate(sorted(day, key=lambda p: p.tstart)):
-                period_str = format_time_range(period.tstart, period.duration)
-                self.write(ws, offset + row, col + 1, period_str)
-        return offset + len(day_templates)
+        for day in periods.templates.values():
+            self.write(ws, offset, 0, day.title)
+            for col, period in enumerate(day.values()):
+                self.write(ws, offset, col + 1, period.title)
+                self.write(ws, offset + 1, col + 1, period.activity_type)
+            offset += 2
+        return offset
 
-    def format_days(self, school_tt, ws, offset):
-        self.write_header(ws, offset, 0, "Days")
-        max_periods = max([len(day.periods) for day_id, day in school_tt.items()])
-        self.write_header(ws, offset, 1, "Periods", merge=max_periods - 1)
+    def format_time_slots(self, time_slots, ws, offset):
+        self.write_header(ws, offset, 0, "Time schedule")
+        offset += 1
 
-        max_homerooms = max([len(day.homeroom_period_ids)
-                             for day_id, day in school_tt.items()])
-        if max_homerooms:
-            self.write_header(ws, offset, 1 + max_periods, "Homeroom periods",
-                              merge=max_homerooms - 1)
+        for day in time_slots.templates.values():
+            self.write(ws, offset, 0, day.title)
+            for col, slot in enumerate(day.values()):
+                time = format_time_range(slot.tstart, slot.duration)
+                self.write(ws, offset, col + 1, time)
+                self.write(ws, offset + 1, col + 1, slot.activity_type)
+            offset += 2
+        return offset
 
-        for row, (day_id, day) in enumerate(school_tt.items()):
-            self.write(ws, offset + row + 1, 0, day_id)
-            for col, period in enumerate(day.periods):
-                self.write(ws, offset + row + 1, col + 1, period)
-            for col, period in enumerate(day.homeroom_period_ids):
-                self.write(ws, offset + row + 1, max_periods + col + 1, period)
+    day_templates = (
+        ('calendar_days', CalendarDayTemplates),
+        ('week_days', WeekDayTemplates),
+        ('school_days', SchoolDayTemplates),
+        )
 
-        return offset + len(school_tt.items())
-
-    def format_school_timetable(self, school_tt, ws, offset):
+    def format_school_timetable(self, timetable, ws, offset):
+        template_ids = dict([(cls, tid)
+                             for tid, cls in self.day_templates])
+        factory_id = lambda t: template_ids[t.__class__]
+        schoolyear_id = lambda t: IHaveTimetables(t).__name__
         fields = [lambda i: ("School Timetable", i.title, None),
                   lambda i: ("ID", i.__name__, None),
-                  lambda i: ("School Year", ISchoolYear(i).__name__, None),
-                  lambda i: ("Model", i.model.factory_id, None)]
+                  lambda i: ("School Year", schoolyear_id(i), None),
+                  lambda i: ("Period days", factory_id(i.periods), None),
+                  lambda i: ("Time slots", factory_id(i.time_slots), None)]
 
-        offset = self.listFields(school_tt, fields, ws, offset)
+        offset = self.listFields(timetable, fields, ws, offset)
         offset = self.skipRow(ws, offset)
-        offset = self.format_day_templates(school_tt, ws, offset)
+        offset = self.format_periods(timetable.periods, ws, offset)
         offset = self.skipRow(ws, offset)
-        offset = self.format_days(school_tt, ws, offset)
+        offset = self.format_time_slots(timetable.time_slots, ws, offset)
         return offset + 1
 
     def export_school_timetables(self, wb):
@@ -196,9 +203,9 @@ class SchoolTimetableExportView(ExcelExportView):
                               key=lambda s: s.first)
         row = 0
         for school_year in sorted(school_years, key=lambda i: i.last):
-            school_tts = ITimetableSchemaContainer(school_year)
-            for school_tt in sorted(school_tts.values(), key=lambda i: i.__name__):
-                row = self.format_school_timetable(school_tt, ws, row) + 1
+            timetables = ITimetableContainer(school_year)
+            for timetable in sorted(timetables.values(), key=lambda i: i.__name__):
+                row = self.format_school_timetable(timetable, ws, row) + 1
 
 
 def merge_date_ranges(dates):
@@ -246,6 +253,14 @@ class Date(Text):
 
     def __repr__(self):
         return 'Date(%r)' % self.data
+
+
+class ContactRelationship(object):
+
+    def __init__(self, person, contact, relationship):
+        self.person = person
+        self.contact = contact
+        self.relationship = relationship
 
 
 class MegaExporter(SchoolTimetableExportView):
@@ -417,6 +432,73 @@ class MegaExporter(SchoolTimetableExportView):
         ws = wb.add_sheet("Persons")
         self.print_table(self.format_persons(), ws)
 
+    def format_contact_persons(self):
+        def contact_getter(attribute):
+            def getter(contact):
+                person = IBasicPerson(contact.__parent__, None)
+                if person is None:
+                    return getattr(contact, attribute)
+                if attribute == '__name__':
+                    return person.username
+                return ''
+            return getter
+
+        fields = [('ID', Text, contact_getter('__name__')),
+                  ('Prefix', Text, contact_getter('prefix')),
+                  ('First Name', Text, contact_getter('first_name')),
+                  ('Middle Name', Text, contact_getter('middle_name')),
+                  ('Last Name', Text, contact_getter('last_name')),
+                  ('Suffix', Text, contact_getter('suffix')),
+                  ('Address line 1', Text, attrgetter('address_line_1')),
+                  ('Address line 2', Text, attrgetter('address_line_2')),
+                  ('City', Date, attrgetter('city')),
+                  ('State', Date, attrgetter('state')),
+                  ('Country', Date, attrgetter('country')),
+                  ('Postal code', Date, attrgetter('postal_code')),
+                  ('Home phone', Text, attrgetter('home_phone')),
+                  ('Work phone', Text, attrgetter('work_phone')),
+                  ('Mobile phone', Text, attrgetter('mobile_phone')),
+                  ('Email', Text, attrgetter('email')),
+                  ('Language', Text, attrgetter('language'))]
+
+        items = []
+        for person in self.context['persons'].values():
+            items.append(IContact(person))
+            for contact in IContactable(person).contacts:
+                items.append(contact)
+        for contact in IContactContainer(self.context).values():
+            if contact not in items:
+                items.append(contact)
+
+        return self.format_table(fields, items)
+
+    def format_contact_relationships(self):
+        fields = [('Person ID', Text, attrgetter('person')),
+                  ('Contact ID', Text, attrgetter('contact')),
+                  ('Relationship', Text, attrgetter('relationship'))]
+
+        items = []
+        for person in self.context['persons'].values():
+            person = removeSecurityProxy(person)
+            for contact in IContactable(person).contacts:
+                try:
+                    links = IRelationshipLinks(person)
+                    link = links.find(
+                        URIPerson, contact, URIContact, URIContactRelationship)
+                except ValueError:
+                    continue
+                item = ContactRelationship(person.username,
+                    link.target.__name__, link.extra_info.relationship)
+                items.append(item)
+
+        return self.format_table(fields, items)
+
+    def export_contacts(self, wb):
+        ws = wb.add_sheet("Contact Persons")
+        self.print_table(self.format_contact_persons(), ws)
+        ws = wb.add_sheet("Contact Relationships")
+        self.print_table(self.format_contact_relationships(), ws)
+
     def format_resources(self):
         fields = [('ID', Text, attrgetter('__name__')),
                   ('Type', Text, lambda r: r.__class__.__name__),
@@ -446,33 +528,32 @@ class MegaExporter(SchoolTimetableExportView):
         self.print_table(self.format_courses(), ws)
 
     def format_timetables(self, section, ws, offset):
-        timetables = ITimetables(section).timetables.values()
-        if not timetables:
+        schedules = IScheduleContainer(section)
+        if not schedules:
             return offset
-        timetables.sort(key=lambda t: t.schooltt.__name__)
-        for timetable in timetables:
+        schedules = list(sorted(schedules.values(),
+                                key=lambda s: s.timetable.__name__))
+        for schedule in schedules:
+            timetable = schedule.timetable
             self.write_header(ws, offset, 0,  "School Timetable")
-            self.write(ws, offset, 1,  timetable.schooltt.__name__)
+            self.write(ws, offset, 1,  timetable.__name__)
+            offset += 1
+
+            self.write(ws, offset, 0,  "Consecutive periods as one")
+            self.write(ws, offset, 1,
+                       schedule.consecutive_periods_as_one and 'yes' or 'no')
             offset += 1
 
             self.write_header(ws, offset, 0,  "Day")
-            self.write_header(ws, offset, 1,  "Period ID")
-            self.write_header(ws, offset, 2,  "Location ID")
+            self.write_header(ws, offset, 1,  "Period")
             offset += 1
 
-            for n, (day_id, period_id, activity) in enumerate(timetable.activities()):
-                resource = None
-                for event in ISchoolToolCalendar(section):
-                    if ITimetableCalendarEvent.providedBy(event):
-                        if event.activity == activity:
-                            if event.resources:
-                                resource = event.resources[0]
-                            break
-                self.write(ws, offset + n, 0,  day_id)
-                self.write(ws, offset + n, 1,  period_id)
-                if resource is not None:
-                    self.write(ws, offset + n, 2,  resource.__name__)
-            offset += 1 + len(timetable.activities())
+            for period in schedule.periods:
+                day = period.__parent__
+                self.write(ws, offset, 0,  day.title)
+                self.write(ws, offset, 1,  period.title)
+                offset += 1
+            offset += 1
         return offset
 
     def format_section(self, section, ws, offset):
@@ -540,6 +621,7 @@ class MegaExporter(SchoolTimetableExportView):
         self.export_school_timetables(wb)
         self.export_resources(wb)
         self.export_persons(wb)
+        self.export_contacts(wb)
         self.export_courses(wb)
         self.export_sections(wb)
         self.export_groups(wb)

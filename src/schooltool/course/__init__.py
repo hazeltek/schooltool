@@ -11,21 +11,13 @@ def registerTestSetup():
             classImplements(section.Section, IHaveCalendar)
     registry.register('CalendarComponents', haveCalendar)
 
-    def ownTimetables():
-        from schooltool.course import section
-        from schooltool.timetable.interfaces import IOwnTimetables
-        if not IOwnTimetables.implementedBy(section.Section):
-            classImplements(section.Section, IOwnTimetables)
-
-    registry.register('TimetablesComponents', ownTimetables)
-
     def bookResources():
         from schooltool.course import section
-        from schooltool.timetable.interfaces import IBookResources
+        from schooltool.resource.interfaces import IBookResources
         if not IBookResources.implementedBy(section.Section):
             classImplements(section.Section, IBookResources)
 
-    registry.register('TimetablesComponents', bookResources)
+    registry.register('ResourceComponents', bookResources)
 
 registerTestSetup()
 del registerTestSetup

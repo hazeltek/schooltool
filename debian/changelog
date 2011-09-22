@@ -1,3 +1,18 @@
+schooltool (1:1.9.0-0ubuntu1) oneiric; urgency=low
+
+  * New upstream release, "flourish alpha".
+  * debian/watch: switch to flourish series.
+  * debian/patches/system-jquery.patch: refresh, do the same in flourish skin.
+  * debian/site.zcml: make flourish skin the default.
+  * debian/control:
+    - Move schooltool plugins from Depends to Recommends
+    - Breaks: schooltool.lyceum.journal, schooltool.gradebook,
+      schooltool.intervention non-flourish versions (<< 1.9)
+    - Breaks zope.security 3.8.2, get permission errors with it.
+  * debian/python-schooltool.pyinstall: install schooltool/__init__.py
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 22 Sep 2011 17:53:45 +0300
+
 schooltool (1:1.7.0-0ubuntu1) oneiric; urgency=low
 
   * New upstream release

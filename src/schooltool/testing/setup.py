@@ -79,18 +79,11 @@ def setUpSchoolToolSite():
 from schooltool.app.interfaces import IHaveCalendar
 from schooltool.app.interfaces import ISchoolToolCalendar
 from schooltool.app.cal import getCalendar
+from schooltool.app.browser.cal import getCalendarEventDeleteLink
 def setUpCalendaring():
     provideAdapter(getCalendar, (IHaveCalendar,), ISchoolToolCalendar)
+    provideAdapter(getCalendarEventDeleteLink, name="delete_link")
     registry.setupCalendarComponents()
-
-
-# -------------- Setup Timetable Adapter and set IHaveTimetable ------------
-from schooltool.timetable import TimetablesAdapter
-from schooltool.timetable import CompositeTimetables
-def setUpTimetabling():
-    provideAdapter(TimetablesAdapter)
-    provideAdapter(CompositeTimetables)
-    registry.setupTimetablesComponents()
 
 
 # ----------------- Setup SchoolTool application preferences ---------------

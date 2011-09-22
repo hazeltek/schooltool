@@ -3,12 +3,25 @@ Index: schooltool/src/schooltool/skin/configure.zcml
 ===================================================================
 --- schooltool.orig/src/schooltool/skin/configure.zcml
 +++ schooltool/src/schooltool/skin/configure.zcml
-@@ -186,7 +186,7 @@
+@@ -175,7 +175,7 @@
  	    layer="schooltool.skin.ISchoolToolLayer" />
  
    <resource name="jquery.js"
 -            file="resources/jquery.min.js"
 +            file="/usr/share/javascript/jquery/jquery.min.js"
  	    layer="schooltool.skin.ISchoolToolLayer" />
+   <resourceDirectory
+             name="jstree"
+Index: schooltool/src/schooltool/skin/flourish/instance/skin.zcml
+===================================================================
+--- schooltool.orig/src/schooltool/skin/flourish/instance/skin.zcml
++++ schooltool/src/schooltool/skin/flourish/instance/skin.zcml
+@@ -25,7 +25,7 @@
+       layer="schooltool.skin.flourish.IFlourishLayer" />
+ 
+   <resource name="jquery.js"
+-            file="resources/jquery.min.js"
++            file="/usr/share/javascript/jquery/jquery.min.js"
+ 	    layer="schooltool.skin.flourish.IFlourishLayer" />
    <resourceDirectory
              name="jstree"

@@ -1,0 +1,27 @@
+.batch-navigation {
+    font-size: 12px;
+    line-height: 16px;
+    margin-bottom: -16px;
+    padding: 4px 8px;
+}
+
+.batch-navigation .batch-extra-navigation {
+    float: right;
+}
+
+.batch-navigation > span {
+    margin-right: 8px;
+}
+
+.batch-navigation a.less {
+    display: none;
+}
+
+.batch-navigation a.all {
+    margin-left: 16px;
+}
+
+.batch-navigation a.previous,
+.batch-navigation span.previous {
+    margin-right:  8px;
+}

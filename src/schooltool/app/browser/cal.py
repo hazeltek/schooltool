@@ -21,22 +21,21 @@ SchoolTool application views.
 """
 
 import urllib
-import base64
 import calendar
 from datetime import datetime, date, time, timedelta
 
 import transaction
 from pytz import utc
 from zope.component import getUtility
-from zope.component import queryMultiAdapter, adapts, getMultiAdapter
-from zope.component import provideAdapter
+from zope.component import queryMultiAdapter, getMultiAdapter
+from zope.component import adapts, adapter
 from zope.component import subscribers
 from zope.event import notify
-from zope.interface import implements, Interface
-from zope.interface import directlyProvides
+from zope.interface import implements, implementer, Interface
 from zope.i18n import translate
 from zope.publisher.interfaces.browser import IBrowserPublisher
 from zope.publisher.interfaces import NotFound
+from zope.security import checkPermission
 from zope.security.interfaces import ForbiddenAttribute, Unauthorized
 from zope.security.proxy import removeSecurityProxy
 from zope.security.checker import canAccess, canWrite
@@ -51,6 +50,7 @@ from zope.app.form.interfaces import IWidgetInputError, IInputWidget
 from zope.app.form.interfaces import WidgetInputError, WidgetsError
 from zope.app.form.utility import getWidgetsData
 from zope.publisher.browser import BrowserView
+from zope.publisher.interfaces.browser import IBrowserRequest
 from zope.traversing.browser.absoluteurl import absoluteURL
 from zope.traversing.api import getParent
 from zope.filerepresentation.interfaces import IWriteFile, IReadFile
@@ -78,7 +78,6 @@ from schooltool.app.browser.interfaces import IEventForDisplay
 from schooltool.app.browser.interfaces import IHaveEventLegend
 from schooltool.app.interfaces import ISchoolToolCalendarEvent
 from schooltool.app.interfaces import ISchoolToolCalendar
-from schooltool.app.interfaces import IHaveCalendar
 from schooltool.table.batch import IterableBatch
 from schooltool.table.table import label_cell_formatter_factory
 from schooltool.calendar.interfaces import ICalendar
@@ -92,7 +91,7 @@ from schooltool.calendar.interfaces import IYearlyRecurrenceRule
 from schooltool.calendar.interfaces import IMonthlyRecurrenceRule
 from schooltool.calendar.interfaces import IWeeklyRecurrenceRule
 from schooltool.calendar.utils import parse_date, parse_datetimetz
-from schooltool.calendar.utils import parse_time, weeknum_bounds
+from schooltool.calendar.utils import parse_time
 from schooltool.calendar.utils import week_start, prev_month, next_month
 from schooltool.app.utils import vocabulary
 from schooltool.person.interfaces import IPerson
@@ -147,141 +146,23 @@ short_day_of_week_names = dict(weekday_names)
 
 
 #
-# Traversal
-#
-
-class ToCalendarTraverser(object):
-    """A traverser that allows to traverse to a calendar owner's calendar."""
-
-    adapts(IHaveCalendar)
-    implements(IBrowserPublisher)
-
-    def __init__(self, context, request):
-        self.context = context
-        self.request = request
-
-    def publishTraverse(self, request, name):
-        if name == 'calendar':
-            return ISchoolToolCalendar(self.context)
-        elif name in ('calendar.ics', 'calendar.vfb'):
-            calendar = ISchoolToolCalendar(self.context)
-            view = queryMultiAdapter((calendar, request), name=name)
-            if view is not None:
-                return view
-
-        raise NotFound(self.context, name, request)
-
-    def browserDefault(self, request):
-        return self.context, ('index.html', )
-
-
-class CalendarTraverser(object):
-    """A smart calendar traverser that can handle dates in the URL."""
-
-    adapts(ICalendar)
-    implements(IBrowserPublisher)
-
-    queryMultiAdapter = staticmethod(queryMultiAdapter)
-
-    def __init__(self, context, request):
-        self.context = context
-        self.request = request
-
-    def browserDefault(self, request):
-        return self.context, ('daily.html', )
-
-    def publishTraverse(self, request, name):
-        view_name = self.getHTMLViewByDate(request, name)
-        if not view_name:
-            view_name = self.getPDFViewByDate(request, name)
-        if view_name:
-            return self.queryMultiAdapter((self.context, request),
-                                          name=view_name)
-
-        view = queryMultiAdapter((self.context, request), name=name)
-        if view is not None:
-            return view
-
-        try:
-            event_id = base64.decodestring(name).decode("utf-8")
-        except:
-            raise NotFound(self.context, name, request)
-
-        try:
-            return self.context.find(event_id)
-        except KeyError:
-            raise NotFound(self.context, event_id, request)
-
-    def getHTMLViewByDate(self, request, name):
-        """Get HTML view name from URL component."""
-        return self.getViewByDate(request, name, 'html')
-
-    def getPDFViewByDate(self, request, name):
-        """Get PDF view name from URL component."""
-        if not name.endswith('.pdf'):
-            return None
-        name = name[:-4] # strip off the .pdf
-        view_name = self.getViewByDate(request, name, 'pdf')
-        if view_name == 'yearly.pdf':
-            return None # the yearly PDF view is not available
-        else:
-            return view_name
-
-    def getViewByDate(self, request, name, suffix):
-        """Get view name from URL component."""
-        parts = name.split('-')
-
-        if len(parts) == 2 and parts[1].startswith('w'): # a week was given
-            try:
-                year = int(parts[0])
-                week = int(parts[1][1:])
-            except ValueError:
-                return
-            request.form['date'] = self.getWeek(year, week).isoformat()
-            return 'weekly.%s' % suffix
-
-        # a year, month or day might have been given
-        try:
-            parts = [int(part) for part in parts]
-        except ValueError:
-            return
-        if not parts:
-            return
-        parts = tuple(parts)
-
-        if not (1900 < parts[0] < 2100):
-            return
-
-        if len(parts) == 1:
-            request.form['date'] = "%d-01-01" % parts
-            return 'yearly.%s' % suffix
-        elif len(parts) == 2:
-            request.form['date'] = "%d-%02d-01" % parts
-            return 'monthly.%s' % suffix
-        elif len(parts) == 3:
-            request.form['date'] = "%d-%02d-%02d" % parts
-            return 'daily.%s' % suffix
-
-    def getWeek(self, year, week):
-        """Get the start of a week by week number.
-
-        The Monday of the given week is returned as a datetime.date.
-
-            >>> traverser = CalendarTraverser(None, None)
-            >>> traverser.getWeek(2002, 11)
-            datetime.date(2002, 3, 11)
-            >>> traverser.getWeek(2005, 1)
-            datetime.date(2005, 1, 3)
-            >>> traverser.getWeek(2005, 52)
-            datetime.date(2005, 12, 26)
-
-        """
-        return weeknum_bounds(year, week)[0]
-
-
-#
 # Calendar displaying backend
 #
+
+@adapter(IEventForDisplay, IBrowserRequest, IEditCalendar)
+@implementer(Interface)
+def getCalendarEventDeleteLink(event, request, calendar):
+    if not checkPermission("schooltool.edit", event.source_calendar):
+        return None
+    url = '%s/delete.html?event_id=%s&date=%s' % (
+        absoluteURL(calendar, request),
+        event.unique_id,
+        event.dtstarttz.strftime('%Y-%m-%d'))
+    back_url = urllib.quote(event.parent_view_link)
+    if back_url:
+        url = '%s&back_url=%s' % (url, back_url)
+    return url
+
 
 class EventForDisplay(object):
     """A decorated calendar event."""
@@ -386,17 +267,10 @@ class EventForDisplay(object):
         if self.context.__parent__ is None:
             return None
 
-        if not IEditCalendar.providedBy(self.source_calendar):
-            return None
-
-        url = '%s/delete.html?event_id=%s&date=%s' % (
-            absoluteURL(self.source_calendar, self.request),
-            self.unique_id,
-            self.dtstarttz.strftime('%Y-%m-%d'))
-        back_url = urllib.quote(self.parent_view_link)
-        if back_url:
-            url = '%s&back_url=%s' % (url, back_url)
-        return url
+        link = queryMultiAdapter(
+            (self, self.request, self.source_calendar), Interface,
+            name="delete_link")
+        return link
 
     def linkAllowed(self):
         """Return the URL where you can view/edit this event.
@@ -1555,21 +1429,21 @@ class DailyCalendarRowsView(BrowserView):
         rows = [daystart + timedelta(hours=hour)
                 for hour in range(starthour, endhour+1)]
 
-        calendarRows = []
+        calendar_rows = []
 
-        start, row_ends = rows[0], rows[1:]
-        start = start.astimezone(tz)
+        starts, row_ends = rows[0], rows[1:]
+        starts = starts.astimezone(tz)
         for end in row_ends:
-            duration = end - start
-            calendarRows.append(('%d:%02d' % (start.hour, start.minute),
-                                 start, duration))
-            start = end
-        return calendarRows
+            duration = end - starts
+            calendar_rows.append(
+                (self.rowTitle(starts, duration), starts, duration))
+            starts = end
+        return calendar_rows
 
-    def rowTitle(self, hour, minute):
+    def rowTitle(self, starts, duration):
         """Return the row title as HH:MM or H:MM am/pm."""
         prefs = ViewPreferences(self.request)
-        return time(hour, minute).strftime(prefs.timeformat)
+        return starts.strftime(prefs.timeformat)
 
 
 class CalendarListSubscriber(object):
@@ -2647,6 +2521,7 @@ def enableICalendarUpload(ical_view):
     So, to hook up iCalendar uploads, the simplest way is to register an
     adapter for CalendarICalendarView that provides IWriteFile.
 
+        >>> from zope.component import provideAdapter
         >>> from zope.app.testing import setup
         >>> setup.placelessSetUp()
 
@@ -2685,6 +2560,9 @@ def enableICalendarUpload(ical_view):
 
 class CalendarEventBreadcrumbInfo(GenericBreadcrumbInfo):
     """Calendar Event Breadcrumb Info
+
+      >>> from zope.component import provideAdapter
+      >>> from zope.interface import directlyProvides
 
     First, set up a parent:
 
@@ -2729,6 +2607,7 @@ class CalendarEventBreadcrumbInfo(GenericBreadcrumbInfo):
             (self.context.__parent__, self.request), IBreadcrumbInfo)
         return '%s/%s/edit.html' %(parent_info.url, name)
 
+
 CalendarBreadcrumbInfo = CustomNameBreadCrumbInfo(_('Calendar'))
 
 
@@ -2745,6 +2624,7 @@ class CalendarMenuViewletCrowd(Crowd):
                              ICrowd,
                              name="schooltool.view")
         return crowd.contains(principal)
+
 
 class ICalendarPortletViewletManager(IViewletManager):
     """ Interface for the Calendar Portlet Viewlet Manager """

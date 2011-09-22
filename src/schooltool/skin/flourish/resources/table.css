@@ -1,0 +1,128 @@
+/*
+
+  Table CSS:
+
+*/
+
+table {
+    margin-bottom: 8px;
+    margin-top: 16px;
+    width: 100%;
+}
+
+.zc-table-sortable {
+    cursor: pointer;
+}
+
+td, th {
+    text-align: left;
+    padding: 4px 8px;
+    font-size: 12px;
+    line-height: 16px;
+}
+
+th {
+    font-weight: bold;
+}
+
+tbody th {
+    font-weight: normal;
+}
+
+table.person-view-sections th {
+    width: 33%;
+}
+
+table.person-view-demographics .label {
+    width: 33%;
+}
+
+/* Styles used in tables in relationship views */
+
+table.relationships-table input[type="image"] {
+    vertical-align: middle;
+}
+
+table.groups-table th.title,
+table.groups-table th.schoolyear {
+    width: 40%;
+}
+
+table.groups-table th.action {
+    width: 20%;
+}
+
+table.persons-table th.last-name,
+table.persons-table th.first-name {
+    width: 40%;
+}
+
+table.persons-table th.action {
+    width: 20%;
+}
+
+table.contacts-table th.last-name,
+table.contacts-table th.first-name {
+    width: 30%;
+}
+
+table.contacts-table th.action {
+    width: 15%;
+}
+
+table.section-terms .active-term {
+    font-weight: bold;
+}
+
+table.errors-settings .label {
+    width: 45%;
+}
+
+table.exceptions .time {
+    width: 20%;
+}
+
+table.exceptions .username {
+    width: 20%;
+}
+
+table.exceptions .exception-link div {
+    width: 290px;
+    overflow: hidden;
+}
+
+table.report-reference .category {
+    width: 13%;
+}
+
+table.report-reference .title {
+    width: 22%;
+}
+
+table.report-reference .file-type {
+    width: 8%
+}
+
+table.schooldaymodel tbody td.schoolday {
+    font-weight: bold;
+}
+
+table.schoolday-legend td.schoolday {
+    font-weight: bold;
+}
+
+table.schoolday-legend td.legend {
+    width: 15%;
+}
+
+table.schoolday-legend td.schoolday,
+table.schoolday-legend td.holiday {
+    width: 25%;
+    text-align: center;
+}
+
+/* XXX: select a better class name for these tables */
+
+table.form-fields .label {
+    width: 35%;
+}

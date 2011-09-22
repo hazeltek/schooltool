@@ -66,15 +66,15 @@
       <input onclick="selectAll(true)"
              type="button" class="button-neutral"
              value="Select All Visible"
-             i18n:attributes="value select-all-visible-button"/>
+             i18n:attributes="value" />
       <input onclick="selectAll(false)"
              type="button" class="button-neutral"
              value="Select None"
-             i18n:attributes="value select-none-button"/>
+             i18n:attributes="value" />
       <input onclick="invertSelection('copy')"
              type="button" class="button-neutral"
              value="Invert Selection"
-             i18n:attributes="value invert-selection-button"/>
+             i18n:attributes="value" />
     </div>
   </tal:block>
 
@@ -92,9 +92,6 @@
         </th>
         <th i18n:translate="">
           Instructors
-        </th>
-        <th i18n:translate="">
-          Schedule
         </th>
         <th i18n:translate="">
           Current Size
@@ -133,13 +130,6 @@
           </tal:loop>
         </td>
         <td>
-          <tal:loop repeat="tt python: view.getTimetables(obj)">
-            <span tal:condition="not:repeat/tt/start">, </span>
-            <a href="" tal:attributes="href tt/@@absolute_url"
-               tal:content="tt/title" />
-          </tal:loop>
-        </td>
-        <td>
           <span class="hint">
             (<span tal:replace="obj/size"/>
             <span i18n:translate="">Students</span>)
@@ -157,7 +147,7 @@
 
     <div class="controls">
       <input type="submit" class="button-ok" name="COPY" value="Copy"
-             i18n:attributes="value copy-button" />
+             i18n:attributes="value" />
     </div>
   </form>
 

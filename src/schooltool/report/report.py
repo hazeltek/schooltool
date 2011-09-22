@@ -36,12 +36,39 @@ from schooltool.report.interfaces import IReportLinkViewletManager
 from schooltool.report.interfaces import IRegisteredReportsUtility
 from schooltool.report.interfaces import IReportLinksURL
 from schooltool.schoolyear.interfaces import ISchoolYear
+from schooltool.skin import flourish
 from schooltool.skin.skin import OrderedViewletManager
 from schooltool.term.interfaces import IDateManager
 
 
 class ReportLinkViewletManager(OrderedViewletManager):
     implements(IReportLinkViewletManager)
+
+
+class IFlourishReportLinkViewletManager(flourish.interfaces.IViewletManager,
+                                        IReportLinkViewletManager):
+    pass
+
+
+class FlourishReportLinkViewletManager(flourish.viewlet.ViewletManager):
+    template = ViewPageTemplateFile('templates/f_report_link_manager.pt')
+
+    @property
+    def table(self):
+        result = {}
+        for viewlet in self.viewlets:
+            group = result.setdefault(viewlet.file_type, {
+                'file_type': viewlet.file_type.upper(),
+                'rows': [],
+                })
+            group['rows'].append({
+                'title': viewlet.title,
+                'url': viewlet.link,
+                'link_id': viewlet.link.replace('.', '_'),
+                'form_id': viewlet.link.replace('.', '_') + '_form',
+                'description': viewlet.description,
+                })
+        return [group for key, group in sorted(result.items())]
 
 
 class ReportLinkViewlet(object):
@@ -64,7 +91,7 @@ class RegisteredReportsUtility(object):
     def __init__(self):
         self.reports_by_group = {}
 
-    def registerReport(self, group, title, description):
+    def registerReport(self, group, title, description, file_type, name, layer):
         # make a non-translatable group key
         group_key = unicode(group)
 
@@ -74,6 +101,9 @@ class RegisteredReportsUtility(object):
             'group': group, # remember the translatable group title
             'title': title,
             'description': description,
+            'file_type': file_type,
+            'name': name,
+            'layer': layer,
             })
 
 
@@ -145,3 +175,37 @@ class SectionReportLinksURL(ReportLinksURL):
             return ISchoolToolApplication(None)
         return ISectionContainer(current_term)
 
+
+class FlourishSchoolReportLinksURL(ReportLinksURL):
+
+    def __str__(self):
+        app = ISchoolToolApplication(None)
+        return absoluteURL(app, self.request) + '/manage'
+
+
+class FlourishGroupReportLinksURL(GroupReportLinksURL):
+
+    def __str__(self):
+        app = ISchoolToolApplication(None)
+        return absoluteURL(app, self.request) + '/groups'
+
+
+class FlourishSchoolYearReportLinksURL(SchoolYearReportLinksURL):
+
+    def __str__(self):
+        app = ISchoolToolApplication(None)
+        return absoluteURL(app, self.request) + '/schoolyears'
+
+
+class FlourishTermReportLinksURL(TermReportLinksURL):
+
+    def __str__(self):
+        app = ISchoolToolApplication(None)
+        return absoluteURL(app, self.request) + '/terms'
+
+
+class FlourishSectionReportLinksURL(SectionReportLinksURL):
+
+    def __str__(self):
+        app = ISchoolToolApplication(None)
+        return absoluteURL(app, self.request) + '/sections'

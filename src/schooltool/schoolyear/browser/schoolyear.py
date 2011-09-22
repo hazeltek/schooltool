@@ -19,33 +19,48 @@
 """
 Views for school years and school year container implementation
 """
+import cPickle
+from StringIO import StringIO
+
 from zope.viewlet.viewlet import ViewletBase
 from zope.publisher.interfaces.browser import IBrowserRequest
+from zope.cachedescriptors.property import Lazy
 from zope.component import adapts, getMultiAdapter
 from zope.security import checkPermission
 from zope.schema import Date, TextLine
+from zope.schema.interfaces import ValidationError
 from zope.interface.exceptions import Invalid
 from zope.interface import implements
 from zope.interface import Interface
+from zope.location.pickling import CopyPersistent
 from zope.traversing.browser.absoluteurl import AbsoluteURL
 from zope.traversing.browser.interfaces import IAbsoluteURL
 from zope.traversing.browser import absoluteURL
 from zope.container.interfaces import INameChooser
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from zope.proxy import sameProxiedObjects
+from zope.i18n import translate
 from zope.i18n.interfaces.locales import ICollator
+from zope.security.checker import canAccess
 
 from z3c.form import form, field, button
 from z3c.form.util import getSpecification
 from z3c.form.validator import NoInputData
 from z3c.form.validator import WidgetsValidatorDiscriminators
 from z3c.form.validator import InvariantsValidator
+from z3c.form.validator import WidgetValidatorDiscriminators
+from z3c.form.validator import SimpleFieldValidator
 from z3c.form.error import ErrorViewSnippet
 
+from zc.table import column
+
+import schooltool.skin.flourish.containers
+import schooltool.skin.flourish.breadcrumbs
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.demographics.browser.table import DateColumn
 from schooltool.table.table import url_cell_formatter
 from schooltool.table.table import DependableCheckboxColumn
+from schooltool.table.table import SchoolToolTableFormatter
 from schooltool.schoolyear.browser.interfaces import ISchoolYearViewMenuViewletManager
 from schooltool.schoolyear.schoolyear import validateScholYearForOverflow
 from schooltool.schoolyear.schoolyear import validateScholYearsForOverlap
@@ -57,14 +72,16 @@ from schooltool.schoolyear.interfaces import ISchoolYearContainer
 from schooltool.skin.skin import OrderedViewletManager
 from schooltool.skin.containers import ContainerDeleteView
 from schooltool.skin.containers import TableContainerView
+from schooltool.skin import flourish
+from schooltool.timetable.interfaces import ITimetableContainer
 from schooltool.common import DateRange
 from schooltool.common import SchoolToolMessage as _
+from schooltool.common.inlinept import InheritTemplate
+from schooltool.common.inlinept import InlineViewPageTemplate
 from schooltool.course.interfaces import ICourseContainer
 from schooltool.course.course import Course
-from schooltool.timetable.interfaces import ITimetableSchemaContainer
 from schooltool.group.interfaces import IGroupContainer
 from schooltool.group.group import Group, defaultGroups
-from schooltool.timetable.schema import locationCopy
 
 
 class SchoolYearContainerAbsoluteURLAdapter(AbsoluteURL):
@@ -169,6 +186,85 @@ class SchoolYearContainerView(TableContainerView, SchoolYearContainerBaseView):
                     self.request.response.redirect(self.nextURL())
 
 
+class FlourishActiveSchoolYearColumn(column.Column):
+    """Table column that displays whether a schoolyear is the active one.
+    """
+
+    def renderCell(self, item, formatter):
+        if item.__parent__.active_id == item.__name__:
+            return '<span class="ui-icon ui-icon-check"></span>'
+        else:
+            return ''
+
+
+class SchoolYearTableFormatter(SchoolToolTableFormatter):
+
+    def sortOn(self):
+        return (('first', True),)
+
+
+class FlourishSchoolYearContainerView(flourish.containers.TableContainerView):
+    """flourish SchoolYear container view."""
+
+    def getColumnsAfter(self):
+        result = [
+            DateColumn(title=_("First Day"),
+                       name='first',
+                       getter=lambda x, y: x.first),
+            DateColumn(title=_("Last Day"),
+                       getter=lambda x, y: x.last),
+            FlourishActiveSchoolYearColumn(title=_("Active")),
+            ]
+        return result
+
+
+class FlourishSchoolYearContainerLinks(flourish.page.RefineLinksViewlet):
+    """SchoolYear container links viewlet."""
+
+
+class FlourishSchoolYearContainerActionLinks(flourish.page.RefineLinksViewlet):
+    """SchoolYear container action links viewlet."""
+
+
+class FlourishSchoolYearActionLinks(flourish.page.RefineLinksViewlet):
+    """SchoolYear action links viewlet."""
+
+
+class FlourishSchoolYearDeleteLink(flourish.page.ModalFormLinkViewlet):
+
+    @property
+    def dialog_title(self):
+        title = _(u'Delete ${schoolyear}',
+                  mapping={'schoolyear': self.context.title})
+        return translate(title, context=self.request)
+
+
+class FlourishSchoolYearDeleteView(flourish.form.DialogForm, form.EditForm):
+    """View used for confirming deletion of a schoolyear."""
+
+    dialog_submit_actions = ('apply',)
+    dialog_close_actions = ('cancel',)
+    label = None
+
+    @button.buttonAndHandler(_("Delete"), name='apply')
+    def handleDelete(self, action):
+        url = '%s/delete.html?delete.%s&CONFIRM' % (
+            absoluteURL(self.context.__parent__, self.request),
+            self.context.__name__)
+        self.request.response.redirect(url)
+        # We never have errors, so just close the dialog.
+        self.ajax_settings['dialog'] = 'close'
+
+    @button.buttonAndHandler(_("Cancel"))
+    def handle_cancel_action(self, action):
+        pass
+
+    def updateActions(self):
+        super(FlourishSchoolYearDeleteView, self).updateActions()
+        self.actions['apply'].addClass('button-ok')
+        self.actions['cancel'].addClass('button-cancel')
+
+
 class ISchoolYearAddForm(Interface):
 
     title = TextLine(
@@ -202,7 +298,7 @@ class ImportSchoolYearData(object):
         return bool(courses)
 
     def hasTimetableSchemas(self, schoolyear):
-        timetables = ITimetableSchemaContainer(schoolyear)
+        timetables = ITimetableContainer(schoolyear)
         return bool(timetables)
 
     def activeSchoolyearInfo(self):
@@ -240,15 +336,38 @@ class ImportSchoolYearData(object):
             new_course.government_id = course.government_id
             new_course.credits = course.credits
 
+    def copyTimetable(self, timetable):
+        # XXX: copy-pasted old hack, would be nice
+        #      to replace with something decent!
+
+        tmp = StringIO()
+        persistent = CopyPersistent(timetable)
+
+        # Pickle the object to a temporary file
+        pickler = cPickle.Pickler(tmp, 2)
+        pickler.persistent_id = persistent.id
+        pickler.dump(timetable)
+
+        # Now load it back
+        tmp.seek(0)
+        unpickler = cPickle.Unpickler(tmp)
+        unpickler.persistent_load = persistent.load
+        new_tt = unpickler.load()
+        return new_tt
+
     def importAllTimetables(self):
         if not self.shouldImportAllTimetables():
             return
-        oldTimetables = ITimetableSchemaContainer(self.activeSchoolyear)
-        newTimetables = ITimetableSchemaContainer(self.newSchoolyear)
+        oldTimetables = ITimetableContainer(self.activeSchoolyear)
+        newTimetables = ITimetableContainer(self.newSchoolyear)
         for schooltt in oldTimetables.values():
-            newSchooltt = locationCopy(schooltt)
+            newSchooltt = self.copyTimetable(schooltt)
+            newSchooltt.exceptions.clear()
             newSchooltt.__parent__ = None
             newTimetables[newSchooltt.__name__] = newSchooltt
+            if (oldTimetables.default is not None and
+                sameProxiedObjects(oldTimetables.default, schooltt)):
+                newTimetables.default = newSchooltt
 
     def importGroupMembers(self, sourceGroup, targetGroup):
         for member in sourceGroup.members:
@@ -362,6 +481,28 @@ class SchoolYearAddView(form.AddForm, ImportSchoolYearData):
         self.request.response.redirect(url)
 
 
+class FlourishSchoolYearAddView(flourish.form.AddForm, SchoolYearAddView):
+
+    template = InheritTemplate(flourish.page.Page.template)
+    label = None
+    legend = _('School Year Details')
+
+    @button.buttonAndHandler(_('Submit'), name='add')
+    def handleAdd(self, action):
+        super(FlourishSchoolYearAddView, self).handleAdd.func(self, action)
+
+    @button.buttonAndHandler(_("Cancel"))
+    def handle_cancel_action(self, action):
+        super(FlourishSchoolYearAddView, self).handle_cancel_action.func(self,
+            action)
+
+    def updateWidgets(self):
+        super(FlourishSchoolYearAddView, self).updateWidgets()
+        self.widgets['title'].maxlength = 12
+        title_description =  _('Limited to 12 characters or less')
+        self.widgets['title'].field.description = title_description
+
+
 class SchoolYearEditView(form.EditForm):
     """Edit form for basic person."""
     form.extends(form.EditForm)
@@ -381,6 +522,39 @@ class SchoolYearEditView(form.EditForm):
 
     @property
     def label(self):
+        return _(u'Change information for ${schoolyear_title}',
+                 mapping={'schoolyear_title': self.context.title})
+
+
+class FlourishSchoolYearEditView(flourish.form.Form, SchoolYearEditView):
+    """flourish Edit form for schoolyear."""
+
+    template = InheritTemplate(flourish.page.Page.template)
+    label = None
+
+    def update(self):
+        SchoolYearEditView.update(self)
+
+    @button.buttonAndHandler(_('Submit'), name='apply')
+    def handleApply(self, action):
+        super(FlourishSchoolYearEditView, self).handleApply.func(self, action)
+        if self.status == self.successMessage:
+            url = absoluteURL(self.context, self.request)
+            self.request.response.redirect(url)
+
+    @button.buttonAndHandler(_("Cancel"))
+    def handle_cancel_action(self, action):
+        url = absoluteURL(self.context, self.request)
+        self.request.response.redirect(url)
+
+    def updateWidgets(self):
+        super(FlourishSchoolYearEditView, self).updateWidgets()
+        self.widgets['title'].maxlength = 12
+        title_description =  _('Limited to 12 characters or less')
+        self.widgets['title'].field.description = title_description
+
+    @property
+    def legend(self):
         return _(u'Change information for ${schoolyear_title}',
                  mapping={'schoolyear_title': self.context.title})
 
@@ -428,10 +602,78 @@ class EditSchoolYearValidator(InvariantsValidator):
             return errors
         return errors
 
+
 WidgetsValidatorDiscriminators(
     EditSchoolYearValidator,
     view=SchoolYearEditView,
     schema=getSpecification(ISchoolYearAddForm, force=True))
+
+
+class FlourishInvalidDateRangeError(ValidationError):
+    __doc__ = _('School year must begin before it ends')
+
+
+class FlourishOverlapError(ValidationError):
+    __doc__ = _('Date range overlaps another school year')
+
+
+class FlourishOverflowError(ValidationError):
+    __doc__ = _('Date range too small to contain the currently set up term(s)')
+
+
+class FlourishOverlapValidator(SimpleFieldValidator):
+
+    def validate(self, value):
+        # XXX: hack to display the overlap error next to the widget!
+        rv = super(FlourishOverlapValidator, self).validate(value)
+        last_widget = self.view.widgets['last']
+        last_value = self.request.get(last_widget.name)
+        try:
+            last_value = last_widget._toFieldValue(last_value)
+        except:
+            return
+        try:
+            dr = DateRange(value, last_value)
+        except:
+            raise FlourishInvalidDateRangeError()
+        try:
+            validateScholYearsForOverlap(self.container, dr, self.schoolyear)
+        except SchoolYearOverlapError, e:
+            raise FlourishOverlapError()
+        if self.schoolyear:
+            try:
+                validateScholYearForOverflow(dr, self.schoolyear)
+            except TermOverflowError, e:
+                raise FlourishOverflowError()
+
+
+class FlourishOverlapAddValidator(FlourishOverlapValidator):
+    schoolyear = None
+
+    @property
+    def container(self):
+        return self.context
+
+
+class FlourishOverlapEditValidator(FlourishOverlapValidator):
+
+    @property
+    def schoolyear(self):
+        return self.context
+
+    @property
+    def container(self):
+        return self.context.__parent__
+
+
+WidgetValidatorDiscriminators(FlourishOverlapAddValidator,
+                              view=FlourishSchoolYearAddView,
+                              field=ISchoolYearAddForm['first'])
+
+
+WidgetValidatorDiscriminators(FlourishOverlapEditValidator,
+                              view=FlourishSchoolYearEditView,
+                              field=ISchoolYearAddForm['first'])
 
 
 class OverlapErrorViewSnippet(ErrorViewSnippet):
@@ -504,3 +746,144 @@ class ActiveSchoolYears(ViewletBase):
         syc = ISchoolYearContainer(ISchoolToolApplication(None))
         if checkPermission("schooltool.edit", syc):
             return syc.getNextSchoolYear()
+
+
+class FlourishSchoolYearView(flourish.page.Page):
+    """flourish SchoolYear view."""
+
+    fields = field.Fields(ISchoolYearAddForm).omit('title')
+
+    @property
+    def subtitle(self):
+        return self.context.title
+
+    def makeRow(self, attr, value):
+        if value is None:
+            value = u''
+        return {
+            'label': attr,
+            'value': unicode(value),
+            }
+
+    @property
+    def table(self):
+        rows = []
+        for attr in self.fields:
+            value = getattr(self.context, attr)
+            if value:
+                label = self.fields[attr].field.title
+                rows.append(self.makeRow(label, value))
+        return rows
+
+    @property
+    def canModify(self):
+        return canAccess(self.context.__parent__, '__delitem__')
+
+
+class FlourishSchoolYearActivateView(flourish.page.Page):
+
+    message = None
+
+    def years(self):
+        for year in reversed(tuple(self.context.values())):
+            yield {
+                'obj': year,
+                'active': year.__name__ == year.__parent__.active_id,
+                }
+
+    def update(self):
+        if 'CANCEL' in self.request:
+            self.request.response.redirect(self.nextURL())
+        if 'SUBMIT' in self.request:
+            if self.request.get('ACTIVATE'):
+                self.context.activateNextSchoolYear(self.request['ACTIVATE'])
+                self.request.response.redirect(self.nextURL())
+            else:
+                self.message = _("Please select a school year before clicking "
+                                 "'Submit'.")
+
+    def nextURL(self):
+        return absoluteURL(self.context, self.request)
+
+
+class ManageSchoolTertiaryNavigation(flourish.page.Content,
+                                     flourish.page.TertiaryNavigationManager):
+
+    template = InlineViewPageTemplate("""
+        <ul tal:attributes="class view/list_class"
+            tal:condition="view/items">
+          <li tal:repeat="item view/items"
+              tal:attributes="class item/class">
+              <a tal:attributes="href item/url"
+                 tal:content="item/schoolyear/@@title" />
+          </li>
+        </ul>
+    """)
+
+    @property
+    def items(self):
+        result = []
+        schoolyears = ISchoolYearContainer(self.context)
+        active = schoolyears.getActiveSchoolYear()
+        if 'schoolyear_id' in self.request:
+            schoolyear_id = self.request['schoolyear_id']
+            active = schoolyears.get(schoolyear_id, active)
+        for schoolyear in schoolyears.values():
+            url = '%s/%s?schoolyear_id=%s' % (
+                absoluteURL(self.context, self.request),
+                'manage',
+                schoolyear.__name__)
+            css_class = schoolyear.first == active.first and 'active' or None
+            result.append({
+                    'class': css_class,
+                    'url': url,
+                    'schoolyear': schoolyear,
+                    })
+        return result
+
+
+class SchoolyearNavBreadcrumbs(flourish.breadcrumbs.Breadcrumbs):
+
+    traversal_name = u''
+
+    @property
+    def schoolyear_id(self):
+        sy = ISchoolYear(self.context, None)
+        if sy is None:
+            return u''
+        return sy.__name__
+
+    @property
+    def crumb_parent(self):
+        return ISchoolToolApplication(None)
+
+    @property
+    def url(self):
+        if not self.checkPermission():
+            return False
+        app = ISchoolToolApplication(None)
+        app_url = absoluteURL(app, self.request)
+        link = '%s/%s' % (app_url, self.traversal_name)
+        sy_id = self.schoolyear_id
+        if sy_id:
+            link += '?schoolyear_id=%s' % sy_id
+        return link
+
+
+class FlourishSchoolYearsOverview(flourish.page.Content):
+
+    body_template = ViewPageTemplateFile(
+        'templates/f_manage_schoolyears_overview.pt')
+
+    @Lazy
+    def schoolyears(self):
+        syc = ISchoolYearContainer(self.context)
+        return syc
+
+
+class SchoolYearAddLink(flourish.page.LinkViewlet):
+
+    @property
+    def url(self):
+        schoolyears = ISchoolYearContainer(self.context)
+        return absoluteURL(schoolyears, self.request) + '/add.html'

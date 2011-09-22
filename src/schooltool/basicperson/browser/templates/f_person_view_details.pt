@@ -1,0 +1,14 @@
+<div class="person-info">
+  <tal:block tal:replace="structure context/schooltool:content/schooltool.person.FlourishInfo"/>
+</div>
+<h3><a tal:attributes="href string:${context/schooltool:app/@@absolute_url}/persons">Done</a></h3>
+<script>
+$(document).ready(function() {
+    // accordion setup
+    $( ".person-info" ).accordion({
+        header: 'h2',
+        collapsible: true,
+        autoHeight: false,
+    });
+});
+</script>

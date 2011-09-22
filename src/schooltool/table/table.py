@@ -26,7 +26,7 @@ from zope.interface import implements
 from zope.interface import directlyProvides
 from zope.i18n.interfaces.locales import ICollator
 from zope.browserpage import ViewPageTemplateFile
-from zope.component import queryMultiAdapter
+from zope.component import queryAdapter, queryMultiAdapter
 from zope.security.proxy import removeSecurityProxy
 from zope.app.dependable.interfaces import IDependable
 from zope.traversing.browser.absoluteurl import absoluteURL
@@ -191,6 +191,54 @@ class LocaleAwareGetterColumn(GetterColumn):
         return s and collator.key(s)
 
 
+class ImageInputColumn(column.Column):
+
+    def __init__(self, prefix, title=None, name=None,
+                 alt=None, library=None, image=None, id_getter=None):
+        super(ImageInputColumn, self).__init__(title=title, name=name)
+        self.prefix = prefix
+        self.alt = alt
+        self.library = library
+        self.image = image
+        if id_getter is None:
+            self.id_getter = stupid_form_key
+        else:
+            self.id_getter = id_getter
+
+    def getImageURL(self, item, formatter):
+        if not self.image:
+            return None
+        if self.library is not None:
+            library = queryAdapter(formatter.request, name=self.library)
+            image = library.get(self.image)
+        else:
+            image = queryAdapter(formatter.request, name=self.image)
+        if image is None:
+            return None
+        return absoluteURL(image, formatter.request)
+
+    def params(self, item, formatter):
+        image_url = self.getImageURL(item, formatter)
+        if not image_url:
+            return None
+        form_id = ".".join(filter(None, [self.prefix, self.id_getter(item)]))
+        return {
+            'title': self.title or '',
+            'alt': self.alt or '',
+            'name': form_id,
+            'src': image_url,
+            }
+
+    def renderCell(self, item, formatter):
+        params = self.params(item, formatter)
+        if not params:
+            return ''
+        param_str = ' '.join(['%s="%s"' % (name, p)
+                              for name, p in sorted(params.items())])
+
+        return '<input type="image" value="1" %s />' % param_str
+
+
 class NullTableFormatter(object):
     implements(ITableFormatter)
 
@@ -212,6 +260,7 @@ class SchoolToolTableFormatter(object):
 
     filter_widget = None
     batch = None
+    css_classes = None
 
     def __init__(self, context, request):
         self.context, self.request = context, request
@@ -245,7 +294,7 @@ class SchoolToolTableFormatter(object):
     def setUp(self, items=None, ommit=[], filter=None, columns=None,
               columns_before=[], columns_after=[], sort_on=None, prefix="",
               formatters=[], table_formatter=table.FormFullFormatter,
-              batch_size=25):
+              batch_size=25, css_classes=None):
 
         self.filter_widget = queryMultiAdapter((self.context, self.request),
                                                IFilterWidget)
@@ -278,6 +327,11 @@ class SchoolToolTableFormatter(object):
 
         self._sort_on = sort_on or self.sortOn()
 
+        if css_classes:
+            self.css_classes = css_classes
+        else:
+            self.css_classes = {'table': 'data'}
+
     def extra_url(self):
         extra_url = ""
         if self.filter_widget:
@@ -295,6 +349,6 @@ class SchoolToolTableFormatter(object):
             batch_start=self.batch.start, batch_size=self.batch.size,
             sort_on=self._sort_on,
             prefix=self.prefix)
-        formatter.cssClasses['table'] = 'data'
+        formatter.cssClasses.update(self.css_classes)
         return formatter()
 

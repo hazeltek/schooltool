@@ -77,7 +77,6 @@ src/schooltool/app/browser/ftests/setup.py
 src/schooltool/app/browser/ftests/system-objects.txt
 src/schooltool/app/browser/ftests/test_all.py
 src/schooltool/app/browser/ftests/ttschema-wizard.txt
-src/schooltool/app/browser/ftests/ttschema.txt
 src/schooltool/app/browser/ftests/undead-calendar-overlays.txt
 src/schooltool/app/browser/ftests/images/ttschema-wizard-1-tiny.png
 src/schooltool/app/browser/ftests/images/ttschema-wizard-1.png
@@ -99,6 +98,9 @@ src/schooltool/app/browser/resources/calwidget/README.txt
 src/schooltool/app/browser/resources/calwidget/calendar.css
 src/schooltool/app/browser/resources/calwidget/calendar.js
 src/schooltool/app/browser/resources/calwidget/icon.gif
+src/schooltool/app/browser/stests/__init__.py
+src/schooltool/app/browser/stests/app.txt
+src/schooltool/app/browser/stests/test_all.py
 src/schooltool/app/browser/templates/about.pt
 src/schooltool/app/browser/templates/application_preferences.pt
 src/schooltool/app/browser/templates/cal_atom.pt
@@ -493,6 +495,7 @@ src/schooltool/export/ftesting.py
 src/schooltool/export/ftesting.zcml
 src/schooltool/export/importer.py
 src/schooltool/export/sample_data.xls
+src/schooltool/export/sample_data_small.xls
 src/schooltool/export/ftests/__init__.py
 src/schooltool/export/ftests/errant_contacts.xls
 src/schooltool/export/ftests/errant_courses.xls
@@ -643,9 +646,7 @@ src/schooltool/locales/eu.po
 src/schooltool/locales/fi.po
 src/schooltool/locales/fo.po
 src/schooltool/locales/fr.po
-src/schooltool/locales/ga.po
 src/schooltool/locales/gl.po
-src/schooltool/locales/he.po
 src/schooltool/locales/hu.po
 src/schooltool/locales/id.po
 src/schooltool/locales/it.po
@@ -656,7 +657,6 @@ src/schooltool/locales/ms.po
 src/schooltool/locales/nb.po
 src/schooltool/locales/ne.po
 src/schooltool/locales/nl.po
-src/schooltool/locales/oc.po
 src/schooltool/locales/pl.po
 src/schooltool/locales/pt.po
 src/schooltool/locales/pt_BR.po
@@ -664,10 +664,8 @@ src/schooltool/locales/ro.po
 src/schooltool/locales/ru.po
 src/schooltool/locales/schooltool.pot
 src/schooltool/locales/sk.po
-src/schooltool/locales/sl.po
 src/schooltool/locales/sr.po
 src/schooltool/locales/sv.po
-src/schooltool/locales/sw.po
 src/schooltool/locales/te.po
 src/schooltool/locales/tr.po
 src/schooltool/locales/uk.po
@@ -695,9 +693,7 @@ src/schooltool/locales/eu/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/fi/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/fo/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/fr/LC_MESSAGES/schooltool.mo
-src/schooltool/locales/ga/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/gl/LC_MESSAGES/schooltool.mo
-src/schooltool/locales/he/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/hu/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/id/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/it/LC_MESSAGES/schooltool.mo
@@ -708,17 +704,14 @@ src/schooltool/locales/ms/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/nb/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/ne/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/nl/LC_MESSAGES/schooltool.mo
-src/schooltool/locales/oc/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/pl/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/pt/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/pt_BR/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/ro/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/ru/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/sk/LC_MESSAGES/schooltool.mo
-src/schooltool/locales/sl/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/sr/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/sv/LC_MESSAGES/schooltool.mo
-src/schooltool/locales/sw/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/te/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/tr/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/uk/LC_MESSAGES/schooltool.mo
@@ -1293,6 +1286,7 @@ src/schooltool/testing/functional.py
 src/schooltool/testing/mock.py
 src/schooltool/testing/pdf.py
 src/schooltool/testing/registry.py
+src/schooltool/testing/selenium.py
 src/schooltool/testing/setup.py
 src/schooltool/testing/stubs.py
 src/schooltool/testing/util.py
@@ -1321,6 +1315,7 @@ src/schooltool/timetable/timetable.zcml
 src/schooltool/timetable/browser/__init__.py
 src/schooltool/timetable/browser/app.py
 src/schooltool/timetable/browser/calendar.py
+src/schooltool/timetable/browser/configure-oldskin.zcml
 src/schooltool/timetable/browser/configure.zcml
 src/schooltool/timetable/browser/flourish.zcml
 src/schooltool/timetable/browser/schedule.py

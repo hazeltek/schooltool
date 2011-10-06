@@ -1,8 +1,11 @@
-schooltool (1:1.9.0-0ubuntu2) oneiric; urgency=low
+schooltool (1:1.9.1-0ubuntu1) oneiric; urgency=low
 
+  * New upstream release, "flourish beta".
+    - Fully translatable.
+    - Added small sample data xls.
   * Move breaks (<< 1.9) to python-schooltool package.
 
- -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 29 Sep 2011 17:37:19 +0300
+ -- Gediminas Paulauskas <menesis@pov.lt>  Fri, 07 Oct 2011 00:53:02 +0300
 
 schooltool (1:1.9.0-0ubuntu1) oneiric; urgency=low
 

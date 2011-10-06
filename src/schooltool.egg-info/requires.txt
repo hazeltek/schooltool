@@ -5,6 +5,7 @@ PIL
 pytz
 reportlab
 rwproperty
+simplejson
 setuptools
 xlrd
 xlwt
@@ -88,6 +89,8 @@ zope.copypastemove
 zope.exceptions
 zope.principalregistry
 zope.testbrowser
+schooltool.devtools>=0.6
+selenium
 
 [docs]
 Sphinx

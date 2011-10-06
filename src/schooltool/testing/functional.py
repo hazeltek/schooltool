@@ -109,33 +109,35 @@ class TestBrowser(Browser):
     def queryHTML(self, query):
         return queryHTML(query, self.contents)
 
-    def printQuery(self, query):
+    def printQuery(self, query, skip_inner_blank=False):
         for item in queryHTML(query, self.contents):
             if item.strip():
-                print item.strip()
+                if skip_inner_blank:
+                    result = str(item.strip()).splitlines()
+                    for line in result:
+                        line = line.strip()
+                        if line:
+                            print line
+                else:
+                    print item.strip()
 
 
-def collect_ftests(package=None, level=None, layer=None, filenames=None):
+def collect_txt_ftests(package=None, level=None, layer=None, filenames=None,
+                       suite_factory=None):
     """Collect all functional doctest files in a given package.
 
     If `package` is None, looks up the call stack for the right module.
 
     Returns a unittest.TestSuite.
     """
-    package = doctest._normalize_module(package)
     testdir = os.path.dirname(package.__file__)
     if filenames is None:
         filenames = [fn for fn in os.listdir(testdir)
                      if fn.endswith('.txt') and not fn.startswith('.')]
-    optionflags = (doctest.ELLIPSIS | doctest.REPORT_NDIFF |
-                   doctest.NORMALIZE_WHITESPACE |
-                   doctest.REPORT_ONLY_FIRST_FAILURE)
     suites = []
     for filename in filenames:
-        suite = FunctionalDocFileSuite(filename, package=package,
-                                       optionflags=optionflags,
-                                       globs={'analyze': analyze,
-                                              'Browser': TestBrowser})
+        suite = suite_factory(
+            filename, package=package)
         if level is not None:
             suite.level = level
         if layer is None:
@@ -143,3 +145,19 @@ def collect_ftests(package=None, level=None, layer=None, filenames=None):
         suite.layer = layer
         suites.append(suite)
     return unittest.TestSuite(suites)
+
+
+def collect_ftests(package=None, level=None, layer=None, filenames=None):
+    package = doctest._normalize_module(package)
+    def make_suite(filename, package=None):
+        optionflags = (doctest.ELLIPSIS | doctest.REPORT_NDIFF |
+                       doctest.NORMALIZE_WHITESPACE |
+                       doctest.REPORT_ONLY_FIRST_FAILURE)
+        suite = FunctionalDocFileSuite(filename, package=package,
+                                       optionflags=optionflags,
+                                       globs={'analyze': analyze,
+                                              'Browser': TestBrowser})
+        return suite
+    return collect_txt_ftests(package=package, level=level,
+                              layer=layer, filenames=filenames,
+                              suite_factory=make_suite)

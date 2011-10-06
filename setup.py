@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # SchoolTool - common information systems platform for school administration
-# Copyright (c) 2003-2010 Shuttleworth Foundation
+# Copyright (c) 2003-2011 Shuttleworth Foundation
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,9 +13,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 """
 SchoolTool setup script.
@@ -67,6 +67,7 @@ Javascript will be usable, although perhaps not very nice or convenient.""",
                       'pytz',
                       'reportlab',
                       'rwproperty',
+                      'simplejson', # for python << 2.6
                       'setuptools',
                       'xlrd',
                       'xlwt',
@@ -147,7 +148,9 @@ Javascript will be usable, although perhaps not very nice or convenient.""",
                              'zope.copypastemove',
                              'zope.exceptions',
                              'zope.principalregistry',
-                             'zope.testbrowser'],
+                             'zope.testbrowser',
+                             'schooltool.devtools>=0.6',
+                             'selenium'],
                     'docs': ['Sphinx',
                              'z3c.recipe.sphinxdoc'],
                     'apidoc': ['zope.app.apidoc'],

@@ -15,7 +15,10 @@ Package: python-schooltool
 Architecture: all
 Depends: ${pydeb:Depends}, ${python:Depends}, ${misc:Depends}, libjs-jquery,
          python-z3c.autoinclude (>= 0.3.4)
-Breaks: python-zope.security (= 3.8.2-0ubuntu1)
+Breaks: python-zope.security (= 3.8.2-0ubuntu1),
+        python-schooltool.gradebook (<< 1.9),
+        python-schooltool.lyceum.journal (<< 1.9),
+        python-schooltool.intervention (<< 1.9)
 Provides: ${pydeb:Provides}
 Recommends: ttf-liberation
 Suggests: ${pydeb:Suggests}
@@ -30,9 +33,6 @@ Depends: ${misc:Depends}, adduser, lsb-base,
 Recommends: python-schooltool.gradebook,
             python-schooltool.lyceum.journal,
             python-schooltool.intervention
-Breaks: python-schooltool.gradebook (<< 1.9),
-        python-schooltool.lyceum.journal (<< 1.9),
-        python-schooltool.intervention (<< 1.9)
 Provides: schooltool-server
 Conflicts: schooltool-2009
 Description: Suite of free administrative software for schools

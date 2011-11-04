@@ -132,6 +132,7 @@ src/schooltool/app/browser/templates/f_errors.pt
 src/schooltool/app/browser/templates/f_errors_entry.pt
 src/schooltool/app/browser/templates/f_errors_entry_text.pt
 src/schooltool/app/browser/templates/f_generations_related.pt
+src/schooltool/app/browser/templates/f_language_selector.pt
 src/schooltool/app/browser/templates/f_login.pt
 src/schooltool/app/browser/templates/f_managers.pt
 src/schooltool/app/browser/templates/f_overlay_filter_widget.pt
@@ -211,7 +212,6 @@ src/schooltool/basicperson/browser/templates/container.pt
 src/schooltool/basicperson/browser/templates/demographics-view.pt
 src/schooltool/basicperson/browser/templates/f_advisoryViewlet.pt
 src/schooltool/basicperson/browser/templates/f_csvimport_description.pt
-src/schooltool/basicperson/browser/templates/f_demographicsViewlet.pt
 src/schooltool/basicperson/browser/templates/f_demographics_reorder.pt
 src/schooltool/basicperson/browser/templates/f_demographics_view.pt
 src/schooltool/basicperson/browser/templates/f_generalViewlet.pt
@@ -647,6 +647,7 @@ src/schooltool/locales/fi.po
 src/schooltool/locales/fo.po
 src/schooltool/locales/fr.po
 src/schooltool/locales/gl.po
+src/schooltool/locales/he.po
 src/schooltool/locales/hu.po
 src/schooltool/locales/id.po
 src/schooltool/locales/it.po
@@ -694,6 +695,7 @@ src/schooltool/locales/fi/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/fo/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/fr/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/gl/LC_MESSAGES/schooltool.mo
+src/schooltool/locales/he/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/hu/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/id/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/it/LC_MESSAGES/schooltool.mo
@@ -751,6 +753,8 @@ src/schooltool/person/person.py
 src/schooltool/person/preference.py
 src/schooltool/person/sampledata.py
 src/schooltool/person/security.zcml
+src/schooltool/person/stesting.py
+src/schooltool/person/stesting.zcml
 src/schooltool/person/utility.py
 src/schooltool/person/browser/__init__.py
 src/schooltool/person/browser/configure.zcml
@@ -776,6 +780,9 @@ src/schooltool/person/browser/person_edit.pt
 src/schooltool/person/browser/person_filter.pt
 src/schooltool/person/browser/person_preferences.pt
 src/schooltool/person/browser/tests.py
+src/schooltool/person/browser/stests/__init__.py
+src/schooltool/person/browser/stests/password_edit.txt
+src/schooltool/person/browser/stests/test_selenium.py
 src/schooltool/person/tests/__init__.py
 src/schooltool/person/tests/test_person.py
 src/schooltool/person/tests/test_utility.py
@@ -1386,9 +1393,13 @@ src/schooltool/timetable/browser/templates/ttwizard_slottimes.pt
 src/schooltool/timetable/browser/tests/__init__.py
 src/schooltool/timetable/browser/tests/specialdays.txt
 src/schooltool/timetable/browser/tests/test_cal.py
+src/schooltool/timetable/browser/tests/test_calendar.py
 src/schooltool/timetable/browser/tests/test_timetable.py
 src/schooltool/timetable/browser/tests/test_ttwizard.py
 src/schooltool/timetable/tests/__init__.py
+src/schooltool/timetable/tests/test_calendar.py
+src/schooltool/timetable/tests/test_schedule.py
+src/schooltool/timetable/tests/test_timetable.py
 src/schooltool/traverser/README.txt
 src/schooltool/traverser/__init__.py
 src/schooltool/traverser/browser.py

@@ -5,16 +5,8 @@ export PYDEB_SUGGESTS_EXTRAS=test docs apidoc
 %:
 	dh $@ --with pydeb --with python2
 
-package=python-schooltool
-
 override_dh_auto_build:
 	rm -f src/schooltool/skin/resources/jquery.min.js
 	rm -f src/schooltool/locales/*.po
 	rm -f src/schooltool/locales/*.pot
 	dh_auto_build
-
-override_dh_install:
-	dh_install
-	for script in debian/$(package)/usr/bin/* ; do \
-	    sed -s -i -e 's,/usr/bin/python2\.[0-9],/usr/bin/python,g' $$script ; \
-	done

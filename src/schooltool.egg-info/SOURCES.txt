@@ -1,6 +1,7 @@
 CHANGES.txt
 GPL.txt
 MANIFEST.in
+Makefile
 README.txt
 base.cfg
 bootstrap.py
@@ -245,7 +246,6 @@ src/schooltool/calendar/README.txt
 src/schooltool/calendar/__init__.py
 src/schooltool/calendar/app.py
 src/schooltool/calendar/configure.zcml
-src/schooltool/calendar/generate_vcal_dict.py
 src/schooltool/calendar/icalendar.py
 src/schooltool/calendar/interfaces.py
 src/schooltool/calendar/mixins.py
@@ -253,7 +253,6 @@ src/schooltool/calendar/recurrent.py
 src/schooltool/calendar/simple.py
 src/schooltool/calendar/timezones.txt
 src/schooltool/calendar/utils.py
-src/schooltool/calendar/vcal_dict.py
 src/schooltool/calendar/browser/__init__.py
 src/schooltool/calendar/browser/calendar.py
 src/schooltool/calendar/browser/configure.zcml
@@ -278,7 +277,6 @@ src/schooltool/calendar/browser/templates/event_delete_dialog.pt
 src/schooltool/calendar/browser/templates/event_edit.pt
 src/schooltool/calendar/tests/__init__.py
 src/schooltool/calendar/tests/sample.ics
-src/schooltool/calendar/tests/test_generate_vcal_dict.py
 src/schooltool/calendar/tests/test_icalendar.py
 src/schooltool/calendar/tests/test_recurrent.py
 src/schooltool/calendar/tests/test_schooltool.py
@@ -457,12 +455,16 @@ src/schooltool/devmode/devmode.css
 src/schooltool/devmode/devmode.pt
 src/schooltool/devmode/devmode.py
 src/schooltool/devmode/devmode.txt
+src/schooltool/devmode/f_unauthorized.pt
+src/schooltool/devmode/flourish-overrides.zcml
+src/schooltool/devmode/flourish.zcml
 src/schooltool/devmode/ftesting.zcml
 src/schooltool/devmode/ftests.py
 src/schooltool/devmode/introspector.css
 src/schooltool/devmode/modules.pt
 src/schooltool/devmode/overrides.zcml
 src/schooltool/devmode/skin.py
+src/schooltool/devmode/unauthorized.pt
 src/schooltool/email/__init__.py
 src/schooltool/email/configure.zcml
 src/schooltool/email/ftesting.py
@@ -509,11 +511,9 @@ src/schooltool/export/ftests/errant_timetables.xls
 src/schooltool/export/ftests/errant_years.xls
 src/schooltool/export/ftests/linked_sections.txt
 src/schooltool/export/ftests/linked_sections.xls
-src/schooltool/export/ftests/non_ascii.txt
 src/schooltool/export/ftests/sample_data.txt
 src/schooltool/export/ftests/test_all.py
 src/schooltool/export/ftests/test_data.xls
-src/schooltool/export/ftests/test_non_ascii_data.xls
 src/schooltool/export/templates/f_import.pt
 src/schooltool/export/templates/f_import_related.pt
 src/schooltool/export/templates/import.pt

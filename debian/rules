@@ -3,10 +3,10 @@
 export PYDEB_SUGGESTS_EXTRAS=test docs apidoc
 
 %:
-	dh $@ --with pydeb --with python2
+	dh $@ -Spython_distutils --with pydeb --with python2
 
-override_dh_auto_build:
+override_dh_build:
 	rm -f src/schooltool/skin/resources/jquery.min.js
 	rm -f src/schooltool/locales/*.po
 	rm -f src/schooltool/locales/*.pot
-	dh_auto_build
+	dh_build

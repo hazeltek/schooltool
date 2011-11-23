@@ -13,6 +13,13 @@ Copyright: 2011, John Resig
 Comment: Removed from package, libjs-jquery used instead
 License: MIT or GPL-2
 
+Files: src/schooltool/skin/flourish/resources/jquery/js/*
+       src/schooltool/skin/flourish/resources/jquery/development-budle/*
+Copyright: 2011, Paul Bakaus, http://jqueryui.com/
+           2011, AUTHORS.txt (http://jqueryui.com/about)
+Comment: Removed from package, libjs-jquery-ui used instead
+License: MIT or GPL-2
+
 Files: src/schooltool/skin/resources/jstree/jquery.tree.js
 Copyright: (c) 2009 Ivan Bozhanov (vakata.com)
 License: MIT or GPL

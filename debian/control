@@ -13,10 +13,10 @@ Homepage: http://www.schooltool.org/
 
 Package: python-schooltool
 Architecture: all
-Depends: ${pydeb:Depends}, ${python:Depends}, ${misc:Depends}, libjs-jquery,
+Depends: ${pydeb:Depends}, ${python:Depends}, ${misc:Depends},
+         libjs-jquery, libjs-jquery-ui,
          python-z3c.autoinclude (>= 0.3.4)
-Breaks: python-zope.security (= 3.8.2-0ubuntu1),
-        python-schooltool.gradebook (<< 1.9),
+Breaks: python-schooltool.gradebook (<< 1.9),
         python-schooltool.lyceum.journal (<< 1.9),
         python-schooltool.intervention (<< 1.9)
 Provides: ${pydeb:Provides}

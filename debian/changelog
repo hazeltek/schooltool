@@ -1,3 +1,12 @@
+schooltool (1:2.0.0-0ubuntu1) oneiric; urgency=low
+
+  * New upstream release.
+  * debian/patches/system-jquery.patch, debian/rules, debian/control:
+    use system libjs-jquery-ui, remove included one.
+  * debian/copyright: add section about jqueryui.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Wed, 23 Nov 2011 17:52:40 +0200
+
 schooltool (1:1.9.3-0ubuntu1) oneiric; urgency=low
 
   * New upstream release.

@@ -1,3 +1,9 @@
+schooltool (1:2.0.0-0ubuntu2) oneiric; urgency=low
+
+  * debian/patches/add-resource.patch: fix adding resources (LP: #894632)
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Fri, 25 Nov 2011 15:10:43 +0200
+
 schooltool (1:2.0.0-0ubuntu1) oneiric; urgency=low
 
   * New upstream release.

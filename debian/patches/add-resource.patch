@@ -1,0 +1,20 @@
+Fix adding resources (LP: #894632)
+Index: schooltool/src/schooltool/resource/browser/resource.py
+===================================================================
+--- schooltool.orig/src/schooltool/resource/browser/resource.py
++++ schooltool/src/schooltool/resource/browser/resource.py
+@@ -670,13 +670,8 @@ class BaseFlourishResourceAddForm(AddFor
+         self._resource = resource
+         return resource
+ 
+-    @button.buttonAndHandler(_("Cancel"))
+-    def handle_cancel_action(self, action):
+-        url = absoluteURL(self.context, self.request)
+-        self.request.response.redirect(url)
+-
+     def nextURL(self):
+-        return absoluteURL(self._resource, self.request)
++        return absoluteURL(self._resource or self.context, self.request)
+ 
+ 
+ ###############  Resource add/edit views ################

@@ -1,3 +1,9 @@
+schooltool (1:2.0.0-0ubuntu3) precise; urgency=low
+
+  * Upload to Precise.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Tue, 29 Nov 2011 20:49:36 +0200
+
 schooltool (1:2.0.0-0ubuntu2) oneiric; urgency=low
 
   * debian/patches/add-resource.patch: fix adding resources (LP: #894632)

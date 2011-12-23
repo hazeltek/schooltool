@@ -1,3 +1,18 @@
+schooltool (1:2.0.1-0ubuntu1) precise; urgency=low
+
+  * New upstream release.
+  * debian/patches/add-resource.patch: remove, fixed upstream.
+  * debian/control: Replaces schooltool-2009 in addition to Conflicts to
+    aid upgrades from Lucid.
+  * debian/schooltool.docs: install README.txt
+  * debian/schooltool.README.Debian: remove, README.txt contains the same.
+  * debian/apache-school1.conf, debian/schooltool.examples: add example apache
+    site.
+  * debian/rules: install CHANGES.txt
+  * debian/schooltool.conf: liberation font location changed
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Fri, 23 Dec 2011 19:40:24 +0200
+
 schooltool (1:2.0.0-0ubuntu3) precise; urgency=low
 
   * Upload to Precise.

@@ -5,7 +5,6 @@ PIL
 pytz
 reportlab
 rwproperty
-simplejson
 setuptools
 xlrd
 xlwt

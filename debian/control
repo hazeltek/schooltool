@@ -35,6 +35,7 @@ Recommends: python-schooltool.gradebook,
             python-schooltool.intervention
 Provides: schooltool-server
 Conflicts: schooltool-2009
+Replaces: schooltool-2009
 Description: Suite of free administrative software for schools
  This is the standard distribution of SchoolTool, providing a running
  web-based student information system for a single school, including

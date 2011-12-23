@@ -2,10 +2,27 @@
 CHANGES
 =======
 
-2.0.0 (2011-11-23)
+2.0.1 (2011-12-22)
 ------------------
 
+- Cannot add resources (https://launchpad.net/bugs/894632)
+- Email view needs formatting (https://launchpad.net/bugs/886304)
+- Batches missing in several views (https://launchpad.net/bugs/882060)
+- Show usernames in every persons table (https://launchpad.net/bugs/897260)
 - Many CSS fixes (https://launchpad.net/bugs/885807)
+- Many wording and i18n fixes by Douglas Cerna.
+- Hide demographics fieldset if it is empty in person add views (https://launchpad.net/bugs/752051)
+- Fix test failing when translations are compiled.
+- Sorted course titles in section add form (https://launchpad.net/bugs/905386)
+- Fixed required demographics description fields (https://launchpad.net/bugs/896390)
+- Styled the fckeditor widget (https://launchpad.net/bugs/891348)
+- Updated README.txt (https://launchpad.net/bugs/590781)
+- Document running on port 80 (https://launchpad.net/bugs/259415)
+- Updated translations.
+
+
+2.0.0 (2011-11-23)
+------------------
 
 Bugfixes
 ++++++++
@@ -73,7 +90,7 @@ Devmode
 - Make sandbox with virtualenv. Fixes bootstrap with Python 2.7.
 - Group sections by term in calendar (https://launchpad.net/bugs/872289)
 - Terms are listed upside down (https://launchpad.net/bugs/872240)
-- Moved Demographics into General Information accordion
+- Moved Demographics into General Information accordion (https://launchpad.net/bugs/882073)
 - Added two "Other" contact fields (https://launchpad.net/bugs/874568)
 - User information doesn't show username (https://launchpad.net/bugs/545767)
 - Username in login bar should go to user home (https://launchpad.net/bugs/868394)

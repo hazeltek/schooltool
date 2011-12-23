@@ -1,9 +1,10 @@
 SchoolTool
 ==========
 
-SchoolTool - a common information systems platform for school administration.
+SchoolTool: the Global Student Information System
 
 | Website: http://www.schooltool.org/
+| Documentation: http://book.schooltool.org/
 | Mailing list: https://launchpad.net/~schooltoolers
 | Bug tracker: http://bugs.launchpad.net/schooltool
 
@@ -11,12 +12,9 @@ SchoolTool - a common information systems platform for school administration.
 Overview
 --------
 
-SchoolTool is an open source school management information system.  It is
-a web application, usable with an ordinary browser.
-
-Any modern web browser is suitable for the web application interface.  The
-interface degrades gracefully, so a browser that does not support CSS or
-Javascript will be usable, although perhaps not very nice or convenient.
+SchoolTool is an open source, web based student information system designed for
+schools in the developing world, with strong support for translation,
+localization and automated deployment and updates on Ubuntu.
 
 
 System requirements
@@ -33,65 +31,84 @@ System requirements
   generate PDF reports and calendars.  To enable PDF support you will
   need to specify the path to fonts in the configuration file.
 
+On Ubuntu (or Debian), you can install the needed tools and libraries by::
 
-Building and running SchoolTool from a source tarball
------------------------------------------------------
+  $ make ubuntu-environment
 
-You need the basic C development tools::
+If that suceeded, you can skip to `Building SchoolTool from Source`_.
+
+What is being installed, is detailed below.
+
+Basic C development tools::
 
   $ sudo apt-get install build-essential
 
-You need the Python development libraries::
+Python development libraries and virtualenv::
 
-  $ sudo apt-get install python-dev
+  $ sudo apt-get install python-dev python-virtualenv
 
-You need this Unicode library::
+Unicode library::
 
   $ sudo apt-get install libicu-dev
 
-You also need the Python Imaging library::
+Python Imaging Library, to build it you need freetype and jpeg development libraries::
 
-  $ sudo apt-get install python-imaging
+  $ sudo apt-get install libfreetype6-dev libjpeg62-dev
 
-For pdf generation to work, you need to install fonts::
+gettext, needed to compile translations::
+
+  $ sudo apt-get install gettext
+
+For PDF generation to work need fonts::
 
   $ sudo apt-get install ttf-liberation
+
+Other tools::
+
+  $ sudo apt-get install libxslt1-dev enscript
+
+
+Building SchoolTool from source
+-------------------------------
 
 Run ``make`` to download and install all the required zope packages into
 the eggs folder::
 
   $ make
 
-Now test the installation by running::
+It is a good idea to run tests to check the installation::
 
   $ make test ftest
 
-Create a fresh instance::
+If you are running from a bzr checkout, you need to compile translation
+catalogs::
+
+  $ make compile-translations
+
+
+Creating a SchoolTool Instance
+------------------------------
+
+An "instance" is a set of configuration files and data directories, that contain
+everything needed to run a server for one school.
+
+Let's create one::
 
   $ make instance
 
-The instance is created in `instance` directory. If you want to,
-edit `instance/schooltool.conf` and uncomment the line
-that says ``devmode on``. This allows you to add sample data, view the
-online docs and other useful things. You don't want to leave this on
-for a production server, however.
+An instance of SchoolTool is created in the ``instance`` directory.
 
-Start your server::
+Database is ZODB_, in a single file ``instance/Data.fs``.
 
-  $ make run
+Location of the database, logs, and a few other options can be changed in a
+configuration file ``instance/schooltool.conf``.
 
-Go to http://localhost:7080 to see your new server in action.
+One of the options is developer mode, that allows you to add sample data,
+introspect the database, read API docs, and other useful things. Uncomment a
+line that says ``devmode on``. You don't want to leave this on for a production
+server, however.
 
-
-Building SchoolTool from a checkout
------------------------------------
-
-Run ``make compile-translations`` to build the necessary extension modules and
-translations.  You will need to have `gettext` installed to compile the
-translations.
-
-It is a good idea to run ``make test`` and ``make ftest`` to check that all
-unit and functional tests pass.
+.. _ZODB: http://zodb.org
 
 
 Running SchoolTool
@@ -101,18 +118,14 @@ To start::
 
   $ make run
 
-An instance of SchoolTool is created in the ``instance`` directory, and
-the server started.
-
-Database is ZODB_ in a single file ``instance/Data.fs``.
-Location of the database and a few other options can be changed in a
-configuration file ``schooltool.conf``.
-
-.. _ZODB: http://zodb.org
-
-Server is started on local port 7080.
-
 Once the server is running, go to http://127.0.0.1:7080 in the browser.
+
+Server is started on local port 7080. You can change the port in the file
+``instance/paste.ini``.
+
+You will most likely want to make SchoolTool available on port 80. But this port
+is reserved for the web the server. You will have to configure a virtual host or
+a path in web server configuration. See `Virtual Hosting`_.
 
 
 Securing SchoolTool
@@ -132,8 +145,8 @@ You SHOULD change the password after your first login by clicking on `SchoolTool
 Administrator` in the top right and then `Change password` in the left sidebar.
 
 
-Project structure (checkout only)
----------------------------------
+Project structure
+-----------------
 
 ::
 
@@ -238,38 +251,85 @@ template (copy it to YOUR_LANG.po).  Generate `.mo` files with ``msgfmt`` (or
 Virtual hosting
 ---------------
 
-SchoolTool provides support for virtual hosting with Apache's mod_rewrite.
-For example, let's say you have two SchoolTool instances running on ports
-7080 and 7081, and you want to make them available as school1.example.org
-and school2.example.org, both on port 80.  In order to do that, add the
-following to your Apache configuration file::
-
-  NameVirtualHost *:80
+SchoolTool provides support for virtual hosting with Apache's mod_proxy_. The
+standard instance is running on port 7080.  You want to make it available on
+``school1.example.org`` port 80.  Add the following to your Apache configuration,
+best place it in a separate file ``/etc/apache/sites-available/school1.example.org``::
 
   <VirtualHost *:80>
     ServerName school1.example.org
-    RewriteEngine On
-    RewriteRule ^/(.*) http://localhost:7080/++vh++http:school1.example.org:80/++/$1 [P]
+
+    <Proxy *>
+        order allow,deny
+        allow from all
+        deny from none
+    </Proxy>
+
+    ProxyPass / http://127.0.0.1:7080/++vh++http:school1.example.org:80/++/
+
   </VirtualHost>
 
-  <VirtualHost *:80>
-    ServerName school2.example.org
-    RewriteEngine On
-    RewriteRule ^/(.*) http://localhost:7081/++vh++http:school2.example.org:80/++/$1 [P]
-  </VirtualHost>
+You need to enable Apache modules ``mod_proxy`` and ``mod_proxy_http``::
 
-Also, enable mod_proxy and mod_rewrite.
+  $ sudo a2enmod proxy_http
 
-You can get SSL support in the same way::
+Then enable the site and restart apache::
 
-  NameVirtualHost *:443
+  $ sudo a2ensite school1.example.org
+  $ sudo service apache reload
+
+If you cannot, or don't want to, setup a subdomain for schooltool, you can make
+it available at a custom path on another site, e.g. ``example.org/schooltool``.
+Place the path before the last ``++`` in the URL, and put it somewhere in
+the configuration of that site::
+
+    ProxyPass /schooltool http://127.0.0.1:7080/++vh++http:example.org:80/schooltool/++/
+
+For more information, see `Setting Up Virtual Hosting`_ in Zope documentation.
+
+.. _mod_proxy: http://httpd.apache.org/docs/current/mod/mod_proxy.html
+.. _Setting Up Virtual Hosting: http://wiki.zope.org/zope3/virtualhosting.html
+
+
+HTTPS
+-----
+
+It is recommmended to use HTTPS/SSL to best protect your users. The
+configuration is similar, just use port 443 and https instead of http::
 
   <VirtualHost *:443>
     ServerName school1.example.org
-    # SSLEnable        # Apache 1.3
-    SSLEngine On       # Apache 2.0
-    RewriteEngine On
-    RewriteRule ^/(.*) http://localhost:7080/++vh++https:school1.example.org:443/++/$1 [P]
+
+    SSLEngine On
+    SSLCertificateFile /etc/ssl/certs/ssl-cert-snakeoil.pem
+    SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.pem
+
+    <Proxy *>
+            order allow,deny
+            allow from all
+            deny from none
+    </Proxy>
+
+    ProxyPass / http://localhost:7080/++vh++https:school1.example.org:443/++/
+
+  </VirtualHost>
+
+For SSL to work, you need a SSL certificate. Read Ubuntu documentation on
+OpenSSL_ about creating one.
+
+.. _OpenSSL: https://help.ubuntu.com/community/OpenSSL#SSL_Certificates
+
+The ``mod_ssl`` module has to be enabled::
+
+  $ sudo a2enmod ssl
+
+When you get this working, you may want to redirect users that connect through
+regular HTTP to the secure site.  Remove the ``ProxyPass`` for port 80 and
+replace it with a ``Redirect``::
+
+  <VirtualHost *:80>
+    ServerName school1.example.org
+    Redirect / https://school1.example.org/
   </VirtualHost>
 
 

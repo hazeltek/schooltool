@@ -38,6 +38,7 @@ src/schooltool/app/relationships.py
 src/schooltool/app/security.py
 src/schooltool/app/security.txt
 src/schooltool/app/security.zcml
+src/schooltool/app/stesting.zcml
 src/schooltool/app/testing.py
 src/schooltool/app/timetable-integration.zcml
 src/schooltool/app/timetable.py
@@ -589,6 +590,7 @@ src/schooltool/locales/eu.po
 src/schooltool/locales/fi.po
 src/schooltool/locales/fo.po
 src/schooltool/locales/fr.po
+src/schooltool/locales/fr_BE.po
 src/schooltool/locales/gl.po
 src/schooltool/locales/he.po
 src/schooltool/locales/hu.po
@@ -637,6 +639,7 @@ src/schooltool/locales/eu/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/fi/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/fo/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/fr/LC_MESSAGES/schooltool.mo
+src/schooltool/locales/fr_BE/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/gl/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/he/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/hu/LC_MESSAGES/schooltool.mo
@@ -1235,7 +1238,9 @@ src/schooltool/testing/functional.py
 src/schooltool/testing/mock.py
 src/schooltool/testing/pdf.py
 src/schooltool/testing/registry.py
+src/schooltool/testing/selenium-overrides.zcml
 src/schooltool/testing/selenium.py
+src/schooltool/testing/selenium.zcml
 src/schooltool/testing/setup.py
 src/schooltool/testing/stubs.py
 src/schooltool/testing/util.py

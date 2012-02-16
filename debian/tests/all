@@ -6,7 +6,7 @@ PYVERS=$(pyversions -vr debian/control)
 TMPFILE=$(mktemp)
 
 cat > $TMPFILE << EOF
-from zope.testing import testrunner
+from zope import testrunner
 from distutils import sysconfig
 
 test_path = sysconfig.get_python_lib()

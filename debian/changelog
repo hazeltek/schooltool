@@ -1,3 +1,13 @@
+schooltool (1:2.0.2-0ubuntu1) precise; urgency=low
+
+  * New upstream release.
+  * debian/schooltool.conf:
+    - enable blob storage.
+    - add more configuration option examples from template.
+  * debian/tests: use zope.testrunner.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Tue, 14 Feb 2012 19:33:31 +0200
+
 schooltool (1:2.0.1-0ubuntu1) precise; urgency=low
 
   * New upstream release.

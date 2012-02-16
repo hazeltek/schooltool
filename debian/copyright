@@ -39,7 +39,7 @@ License:
 Files: bootstrap.py
 Comment: Not installed and not used for build
 Copyright: (c) 2006 Zope Corporation and Contributors
-License: ZPL-2.1
+License: Zope-2.1
  Zope Public License (ZPL) Version 2.1
  .
  A copyright notice accompanies this license document that identifies the

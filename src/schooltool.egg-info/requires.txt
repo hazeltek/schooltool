@@ -52,6 +52,7 @@ zope.container>=3.7.2
 zope.contentprovider
 zope.dublincore>=3.7
 zope.event
+zope.file
 zope.filerepresentation
 zope.formlib>=4.0
 zope.html

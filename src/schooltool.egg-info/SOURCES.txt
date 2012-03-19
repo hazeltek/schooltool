@@ -132,6 +132,8 @@ src/schooltool/app/browser/templates/f_errors.pt
 src/schooltool/app/browser/templates/f_errors_entry.pt
 src/schooltool/app/browser/templates/f_errors_entry_text.pt
 src/schooltool/app/browser/templates/f_generations_related.pt
+src/schooltool/app/browser/templates/f_hide_unhide_tabs.pt
+src/schooltool/app/browser/templates/f_hide_unhide_tabs_related.pt
 src/schooltool/app/browser/templates/f_language_selector.pt
 src/schooltool/app/browser/templates/f_login.pt
 src/schooltool/app/browser/templates/f_managers.pt
@@ -141,6 +143,7 @@ src/schooltool/app/browser/templates/f_runtimeinfo.pt
 src/schooltool/app/browser/templates/f_section_csvimport_description.pt
 src/schooltool/app/browser/templates/f_server_settings_overview.pt
 src/schooltool/app/browser/templates/f_settings.pt
+src/schooltool/app/browser/templates/f_tabled_edit_relationships.pt
 src/schooltool/app/browser/templates/f_translationdomaincontrol.pt
 src/schooltool/app/browser/templates/index.pt
 src/schooltool/app/browser/templates/javascript_viewlet.pt
@@ -159,6 +162,7 @@ src/schooltool/app/browser/tests/__init__.py
 src/schooltool/app/browser/tests/test_app.py
 src/schooltool/app/browser/tests/test_browser.py
 src/schooltool/app/browser/tests/test_cal.py
+src/schooltool/app/browser/tests/test_catalog.py
 src/schooltool/app/browser/tests/test_csvimport.py
 src/schooltool/app/browser/tests/test_overlay.py
 src/schooltool/app/browser/tests/test_pdfcal.py
@@ -190,6 +194,8 @@ src/schooltool/basicperson/person.py
 src/schooltool/basicperson/sampledata.py
 src/schooltool/basicperson/security.py
 src/schooltool/basicperson/security.zcml
+src/schooltool/basicperson/stesting.py
+src/schooltool/basicperson/stesting.zcml
 src/schooltool/basicperson/vocabularies.py
 src/schooltool/basicperson/browser/__init__.py
 src/schooltool/basicperson/browser/configure.zcml
@@ -208,6 +214,9 @@ src/schooltool/basicperson/browser/ftests/group_aware.txt
 src/schooltool/basicperson/browser/ftests/person_info.txt
 src/schooltool/basicperson/browser/ftests/setup.py
 src/schooltool/basicperson/browser/ftests/test_all.py
+src/schooltool/basicperson/browser/stests/__init__.py
+src/schooltool/basicperson/browser/stests/selenium_extensions.txt
+src/schooltool/basicperson/browser/stests/test_selenium.py
 src/schooltool/basicperson/browser/templates/addPersonViewlet.pt
 src/schooltool/basicperson/browser/templates/container.pt
 src/schooltool/basicperson/browser/templates/demographics-view.pt
@@ -216,10 +225,12 @@ src/schooltool/basicperson/browser/templates/f_csvimport_description.pt
 src/schooltool/basicperson/browser/templates/f_demographics_reorder.pt
 src/schooltool/basicperson/browser/templates/f_demographics_view.pt
 src/schooltool/basicperson/browser/templates/f_generalViewlet.pt
+src/schooltool/basicperson/browser/templates/f_id_cards_template.pt
 src/schooltool/basicperson/browser/templates/f_manage_people_overview.pt
 src/schooltool/basicperson/browser/templates/f_person_add_multiple.pt
 src/schooltool/basicperson/browser/templates/f_person_add_subform.pt
 src/schooltool/basicperson/browser/templates/f_person_form.pt
+src/schooltool/basicperson/browser/templates/f_person_id_cards.pt
 src/schooltool/basicperson/browser/templates/f_person_view_details.pt
 src/schooltool/basicperson/browser/templates/field_description_view.pt
 src/schooltool/basicperson/browser/templates/groups.pt
@@ -321,6 +332,7 @@ src/schooltool/contact/browser/templates/email_form.pt
 src/schooltool/contact/browser/templates/f_confirm_delete_contact.pt
 src/schooltool/contact/browser/templates/f_contact_filter.pt
 src/schooltool/contact/browser/templates/f_contact_form.pt
+src/schooltool/contact/browser/templates/f_contact_table_filter.pt
 src/schooltool/contact/browser/templates/f_contact_view.pt
 src/schooltool/contact/browser/templates/f_contactsViewlet.pt
 src/schooltool/contact/browser/templates/f_contacts_related.pt
@@ -342,6 +354,8 @@ src/schooltool/course/ftesting.zcml
 src/schooltool/course/interfaces.py
 src/schooltool/course/section.py
 src/schooltool/course/security.zcml
+src/schooltool/course/stesting.py
+src/schooltool/course/stesting.zcml
 src/schooltool/course/browser/__init__.py
 src/schooltool/course/browser/configure.zcml
 src/schooltool/course/browser/course.py
@@ -358,6 +372,10 @@ src/schooltool/course/browser/ftests/propagate_roster_changes.txt
 src/schooltool/course/browser/ftests/section_linkage.txt
 src/schooltool/course/browser/ftests/sections_and_courses.txt
 src/schooltool/course/browser/ftests/test_all.py
+src/schooltool/course/browser/stests/__init__.py
+src/schooltool/course/browser/stests/section_locations.txt
+src/schooltool/course/browser/stests/selenium_extensions.txt
+src/schooltool/course/browser/stests/test_selenium.py
 src/schooltool/course/browser/templates/basic_subform.pt
 src/schooltool/course/browser/templates/copy_sections.pt
 src/schooltool/course/browser/templates/course-csvimport.pt
@@ -373,7 +391,6 @@ src/schooltool/course/browser/templates/f_course_add.pt
 src/schooltool/course/browser/templates/f_course_csvimport_description.pt
 src/schooltool/course/browser/templates/f_course_filter.pt
 src/schooltool/course/browser/templates/f_course_view.pt
-src/schooltool/course/browser/templates/f_courses.pt
 src/schooltool/course/browser/templates/f_courses_related.pt
 src/schooltool/course/browser/templates/f_coursesviewlet.pt
 src/schooltool/course/browser/templates/f_extend_term.pt
@@ -501,6 +518,7 @@ src/schooltool/generations/evolve33.py
 src/schooltool/generations/evolve34.py
 src/schooltool/generations/evolve35.py
 src/schooltool/generations/evolve37.py
+src/schooltool/generations/evolve38.py
 src/schooltool/generations/evolve36/__init__.py
 src/schooltool/generations/evolve36/calendar_builders.py
 src/schooltool/generations/evolve36/evolve.py
@@ -519,17 +537,23 @@ src/schooltool/generations/tests/test_evolve33.py
 src/schooltool/generations/tests/test_evolve34.py
 src/schooltool/generations/tests/test_evolve35.py
 src/schooltool/generations/tests/test_evolve37.py
+src/schooltool/generations/tests/test_evolve38.py
 src/schooltool/group/__init__.py
 src/schooltool/group/configure.zcml
 src/schooltool/group/group.py
 src/schooltool/group/interfaces.py
 src/schooltool/group/security.zcml
+src/schooltool/group/stesting.py
+src/schooltool/group/stesting.zcml
 src/schooltool/group/browser/__init__.py
 src/schooltool/group/browser/configure.zcml
 src/schooltool/group/browser/csvimport.py
 src/schooltool/group/browser/flourish.zcml
 src/schooltool/group/browser/group.py
 src/schooltool/group/browser/tests.py
+src/schooltool/group/browser/stests/__init__.py
+src/schooltool/group/browser/stests/selenium_extensions.txt
+src/schooltool/group/browser/stests/test_selenium.py
 src/schooltool/group/browser/templates/f_confirm_delete_group.pt
 src/schooltool/group/browser/templates/f_group_add.pt
 src/schooltool/group/browser/templates/f_group_csvimport_description.pt
@@ -603,6 +627,7 @@ src/schooltool/locales/ms.po
 src/schooltool/locales/nb.po
 src/schooltool/locales/ne.po
 src/schooltool/locales/nl.po
+src/schooltool/locales/oc.po
 src/schooltool/locales/pl.po
 src/schooltool/locales/pt.po
 src/schooltool/locales/pt_BR.po
@@ -652,6 +677,7 @@ src/schooltool/locales/ms/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/nb/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/ne/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/nl/LC_MESSAGES/schooltool.mo
+src/schooltool/locales/oc/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/pl/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/pt/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/pt_BR/LC_MESSAGES/schooltool.mo
@@ -711,6 +737,7 @@ src/schooltool/person/browser/f_confirm_delete_person.pt
 src/schooltool/person/browser/f_password_changed.pt
 src/schooltool/person/browser/f_password_form.pt
 src/schooltool/person/browser/f_person_filter.pt
+src/schooltool/person/browser/f_person_table_filter.pt
 src/schooltool/person/browser/flourish.zcml
 src/schooltool/person/browser/ftests.py
 src/schooltool/person/browser/home.pt
@@ -785,6 +812,8 @@ src/schooltool/resource/interfaces.py
 src/schooltool/resource/resource.py
 src/schooltool/resource/sampledata.py
 src/schooltool/resource/security.zcml
+src/schooltool/resource/stesting.py
+src/schooltool/resource/stesting.zcml
 src/schooltool/resource/types.py
 src/schooltool/resource/browser/__init__.py
 src/schooltool/resource/browser/booking.py
@@ -809,6 +838,9 @@ src/schooltool/resource/browser/resources.txt
 src/schooltool/resource/browser/security.txt
 src/schooltool/resource/browser/subtype_widget.pt
 src/schooltool/resource/browser/tests.py
+src/schooltool/resource/browser/stests/__init__.py
+src/schooltool/resource/browser/stests/bug_953454.txt
+src/schooltool/resource/browser/stests/test_selenium.py
 src/schooltool/resource/browser/templates/f_manage_resources_overview.pt
 src/schooltool/resource/browser/templates/f_resource_container_related.pt
 src/schooltool/resource/browser/templates/f_resource_csvimport_description.pt
@@ -816,6 +848,7 @@ src/schooltool/resource/browser/templates/f_resource_delete_confirmation.pt
 src/schooltool/resource/browser/templates/f_resource_demographics_related.pt
 src/schooltool/resource/browser/templates/f_resource_filter.pt
 src/schooltool/resource/browser/templates/f_resource_form.pt
+src/schooltool/resource/browser/templates/f_resource_table_filter.pt
 src/schooltool/resource/browser/templates/f_resource_view.pt
 src/schooltool/resource/browser/templates/resource_form.pt
 src/schooltool/resource/browser/templates/resource_view.pt
@@ -848,6 +881,8 @@ src/schooltool/schoolyear/interfaces.py
 src/schooltool/schoolyear/schoolyear.py
 src/schooltool/schoolyear/schoolyear.zcml
 src/schooltool/schoolyear/security.zcml
+src/schooltool/schoolyear/stesting.py
+src/schooltool/schoolyear/stesting.zcml
 src/schooltool/schoolyear/subscriber.py
 src/schooltool/schoolyear/testing.py
 src/schooltool/schoolyear/browser/__init__.py
@@ -861,6 +896,9 @@ src/schooltool/schoolyear/browser/ftests/schoolyear.txt
 src/schooltool/schoolyear/browser/ftests/schoolyear_activation.txt
 src/schooltool/schoolyear/browser/ftests/schoolyear_import.txt
 src/schooltool/schoolyear/browser/ftests/test_all.py
+src/schooltool/schoolyear/browser/stests/__init__.py
+src/schooltool/schoolyear/browser/stests/selenium_extensions.txt
+src/schooltool/schoolyear/browser/stests/test_selenium.py
 src/schooltool/schoolyear/browser/templates/f_confirm_delete_schoolyear.pt
 src/schooltool/schoolyear/browser/templates/f_manage_schoolyears_overview.pt
 src/schooltool/schoolyear/browser/templates/f_manage_year_overview.pt
@@ -934,6 +972,7 @@ src/schooltool/skin/skin.py
 src/schooltool/skin/widgets.py
 src/schooltool/skin/z3cform.zcml
 src/schooltool/skin/flourish/__init__.py
+src/schooltool/skin/flourish/ajax.py
 src/schooltool/skin/flourish/breadcrumbs.py
 src/schooltool/skin/flourish/configure.zcml
 src/schooltool/skin/flourish/containers.py
@@ -946,6 +985,7 @@ src/schooltool/skin/flourish/meta.zcml
 src/schooltool/skin/flourish/page.py
 src/schooltool/skin/flourish/resource.py
 src/schooltool/skin/flourish/sorting.py
+src/schooltool/skin/flourish/stesting.py
 src/schooltool/skin/flourish/tal.py
 src/schooltool/skin/flourish/tal.zcml
 src/schooltool/skin/flourish/viewlet.py
@@ -973,10 +1013,10 @@ src/schooltool/skin/flourish/resources/gradebook.css
 src/schooltool/skin/flourish/resources/gradebook.js
 src/schooltool/skin/flourish/resources/logo-small.png
 src/schooltool/skin/flourish/resources/logo.png
+src/schooltool/skin/flourish/resources/mail.png
 src/schooltool/skin/flourish/resources/page.css
 src/schooltool/skin/flourish/resources/remove-icon.png
 src/schooltool/skin/flourish/resources/reset.css
-src/schooltool/skin/flourish/resources/schooltool_favicon2.ico
 src/schooltool/skin/flourish/resources/spinner.gif
 src/schooltool/skin/flourish/resources/subnav_active_bg.png
 src/schooltool/skin/flourish/resources/subnav_divider.png
@@ -1087,7 +1127,7 @@ src/schooltool/skin/flourish/templates/modal_form_link.pt
 src/schooltool/skin/flourish/templates/page.pt
 src/schooltool/skin/flourish/templates/page_content.pt
 src/schooltool/skin/flourish/templates/page_nosidebar.pt
-src/schooltool/skin/flourish/templates/table_container.pt
+src/schooltool/skin/flourish/templates/photo_input.pt
 src/schooltool/skin/flourish/templates/z3c-schooltool-display.pt
 src/schooltool/skin/flourish/templates/z3c-schooltool-form.pt
 src/schooltool/skin/flourish/templates/z3c_form_display.pt
@@ -1181,12 +1221,22 @@ src/schooltool/standard/ftests/test_all.py
 src/schooltool/stapp2007/__init__.py
 src/schooltool/stapp2007/configure.zcml
 src/schooltool/table/__init__.py
+src/schooltool/table/ajax.py
 src/schooltool/table/batch.py
 src/schooltool/table/catalog.py
+src/schooltool/table/column.py
 src/schooltool/table/configure.zcml
+src/schooltool/table/flourish.zcml
 src/schooltool/table/interfaces.py
 src/schooltool/table/table.py
+src/schooltool/table/resources/table.js
 src/schooltool/table/templates/batch.pt
+src/schooltool/table/templates/f_ajax_table.pt
+src/schooltool/table/templates/f_batch.pt
+src/schooltool/table/templates/f_filter.pt
+src/schooltool/table/templates/f_form_table.pt
+src/schooltool/table/templates/f_table.pt
+src/schooltool/table/templates/f_table_container.pt
 src/schooltool/table/templates/filter.pt
 src/schooltool/table/tests/__init__.py
 src/schooltool/table/tests/test_batch.py
@@ -1200,6 +1250,8 @@ src/schooltool/term/interfaces.py
 src/schooltool/term/sampledata.py
 src/schooltool/term/schoolyear.py
 src/schooltool/term/security.zcml
+src/schooltool/term/stesting.py
+src/schooltool/term/stesting.zcml
 src/schooltool/term/term-configure.zcml
 src/schooltool/term/term.py
 src/schooltool/term/time_machine.zcml
@@ -1215,6 +1267,9 @@ src/schooltool/term/browser/tests.py
 src/schooltool/term/browser/ftests/__init__.py
 src/schooltool/term/browser/ftests/term.txt
 src/schooltool/term/browser/ftests/test_all.py
+src/schooltool/term/browser/stests/__init__.py
+src/schooltool/term/browser/stests/selenium_extensions.txt
+src/schooltool/term/browser/stests/test_selenium.py
 src/schooltool/term/browser/templates/emergency2.pt
 src/schooltool/term/browser/templates/emergency_select.pt
 src/schooltool/term/browser/templates/f_confirm_delete_term.pt
@@ -1231,6 +1286,7 @@ src/schooltool/term/tests/__init__.py
 src/schooltool/term/tests/date_management.pt
 src/schooltool/term/tests/test_sampledata.py
 src/schooltool/term/tests/test_term.py
+src/schooltool/testing/README.selenium.txt
 src/schooltool/testing/README.txt
 src/schooltool/testing/__init__.py
 src/schooltool/testing/analyze.py

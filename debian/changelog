@@ -1,3 +1,9 @@
+schooltool (1:2.0.3-0ubuntu1) precise; urgency=low
+
+  * New upstream release.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Mon, 19 Mar 2012 21:20:45 +0200
+
 schooltool (1:2.0.2-0ubuntu1) precise; urgency=low
 
   * New upstream release.

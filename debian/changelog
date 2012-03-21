@@ -1,3 +1,10 @@
+schooltool (1:2.0.3-0ubuntu2) precise; urgency=low
+
+  * debian/schooltool.conf: add path to Ubuntu font.
+  * debian/control: recommend ttf-ubuntu-font-family.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Wed, 21 Mar 2012 15:59:00 +0200
+
 schooltool (1:2.0.3-0ubuntu1) precise; urgency=low
 
   * New upstream release.

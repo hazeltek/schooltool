@@ -20,7 +20,7 @@ Breaks: python-schooltool.gradebook (<< 1.9),
         python-schooltool.lyceum.journal (<< 1.9),
         python-schooltool.intervention (<< 1.9)
 Provides: ${pydeb:Provides}
-Recommends: ttf-liberation
+Recommends: ttf-liberation, ttf-ubuntu-font-family
 Suggests: ${pydeb:Suggests}
 Description: Python libraries used by SchoolTool
  This package contains the core of SchoolTool.

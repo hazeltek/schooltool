@@ -38,6 +38,7 @@ src/schooltool/app/relationships.py
 src/schooltool/app/security.py
 src/schooltool/app/security.txt
 src/schooltool/app/security.zcml
+src/schooltool/app/stesting-oldskin.zcml
 src/schooltool/app/stesting.zcml
 src/schooltool/app/testing.py
 src/schooltool/app/timetable-integration.zcml
@@ -102,6 +103,7 @@ src/schooltool/app/browser/resources/calwidget/calendar.js
 src/schooltool/app/browser/resources/calwidget/icon.gif
 src/schooltool/app/browser/stests/__init__.py
 src/schooltool/app/browser/stests/app.txt
+src/schooltool/app/browser/stests/server_tabs.txt
 src/schooltool/app/browser/stests/test_all.py
 src/schooltool/app/browser/templates/about.pt
 src/schooltool/app/browser/templates/application_preferences.pt
@@ -215,6 +217,8 @@ src/schooltool/basicperson/browser/ftests/person_info.txt
 src/schooltool/basicperson/browser/ftests/setup.py
 src/schooltool/basicperson/browser/ftests/test_all.py
 src/schooltool/basicperson/browser/stests/__init__.py
+src/schooltool/basicperson/browser/stests/person_view_demographics.txt
+src/schooltool/basicperson/browser/stests/person_view_demographics.xls
 src/schooltool/basicperson/browser/stests/selenium_extensions.txt
 src/schooltool/basicperson/browser/stests/test_selenium.py
 src/schooltool/basicperson/browser/templates/addPersonViewlet.pt
@@ -373,6 +377,7 @@ src/schooltool/course/browser/ftests/section_linkage.txt
 src/schooltool/course/browser/ftests/sections_and_courses.txt
 src/schooltool/course/browser/ftests/test_all.py
 src/schooltool/course/browser/stests/__init__.py
+src/schooltool/course/browser/stests/section_delete.txt
 src/schooltool/course/browser/stests/section_locations.txt
 src/schooltool/course/browser/stests/selenium_extensions.txt
 src/schooltool/course/browser/stests/test_selenium.py
@@ -502,6 +507,10 @@ src/schooltool/export/ftests/errant_years.xls
 src/schooltool/export/ftests/linked_sections.txt
 src/schooltool/export/ftests/linked_sections.xls
 src/schooltool/export/ftests/sample_data.txt
+src/schooltool/export/ftests/section_teachers_students.txt
+src/schooltool/export/ftests/section_teachers_students.xls
+src/schooltool/export/ftests/teachers_students_sheets.txt
+src/schooltool/export/ftests/teachers_students_sheets.xls
 src/schooltool/export/ftests/test_all.py
 src/schooltool/export/ftests/test_data.xls
 src/schooltool/export/templates/f_import.pt
@@ -634,6 +643,7 @@ src/schooltool/locales/pt_BR.po
 src/schooltool/locales/ro.po
 src/schooltool/locales/ru.po
 src/schooltool/locales/schooltool.pot
+src/schooltool/locales/si.po
 src/schooltool/locales/sk.po
 src/schooltool/locales/sr.po
 src/schooltool/locales/sv.po
@@ -683,6 +693,7 @@ src/schooltool/locales/pt/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/pt_BR/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/ro/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/ru/LC_MESSAGES/schooltool.mo
+src/schooltool/locales/si/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/sk/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/sr/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/sv/LC_MESSAGES/schooltool.mo
@@ -840,6 +851,7 @@ src/schooltool/resource/browser/subtype_widget.pt
 src/schooltool/resource/browser/tests.py
 src/schooltool/resource/browser/stests/__init__.py
 src/schooltool/resource/browser/stests/bug_953454.txt
+src/schooltool/resource/browser/stests/non_ascii_titles.txt
 src/schooltool/resource/browser/stests/test_selenium.py
 src/schooltool/resource/browser/templates/f_manage_resources_overview.pt
 src/schooltool/resource/browser/templates/f_resource_container_related.pt
@@ -1064,6 +1076,7 @@ src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-bs.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-ca.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-cs.js
+src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-cy-GB.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-da.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-de.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-el.js
@@ -1081,6 +1094,7 @@ src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-fr.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-gl.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-he.js
+src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-hi.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-hr.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-hu.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-hy.js
@@ -1088,12 +1102,17 @@ src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-is.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-it.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-ja.js
+src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-kk.js
+src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-km.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-ko.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-kz.js
+src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-lb.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-lt.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-lv.js
+src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-mk.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-ml.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-ms.js
+src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-nl-BE.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-nl.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-no.js
 src/schooltool/skin/flourish/resources/jquery/development-bundle/ui/i18n/jquery.ui.datepicker-pl.js

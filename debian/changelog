@@ -1,3 +1,11 @@
+schooltool (1:2.1.0-0ubuntu1) precise; urgency=low
+
+  * New upstream release.
+  * debian/control: change section to education.
+  * debian/patches/python-imaging.patch: use PIL on Ubuntu.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 19 Apr 2012 21:41:46 +0300
+
 schooltool (1:2.0.3-0ubuntu2) precise; urgency=low
 
   * debian/schooltool.conf: add path to Ubuntu font.

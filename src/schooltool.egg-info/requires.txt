@@ -1,7 +1,7 @@
 hurry.query
 PasteDeploy
 PasteScript
-PIL
+Pillow
 pytz
 reportlab
 rwproperty
@@ -78,7 +78,9 @@ zope.site
 zope.size
 zope.tales
 zope.testing
-zope.traversing>=3.9
+zope.testbrowser
+zope.app.testing
+zope.traversing>=3.13
 zope.ucol
 zope.viewlet
 

@@ -124,7 +124,7 @@ class ExcelExportView(BrowserView):
                 style.pattern = pattern
 
             if format_str is not None:
-                style.num_format_str = 'YYYY-MM-DD'
+                style.num_format_str = format_str
 
             if borders:
                 b = xlwt.Formatting.Borders()
@@ -519,7 +519,10 @@ class MegaExporter(SchoolTimetableExportView):
         fields = [('School Year', Text, lambda c: ISchoolYear(c).__name__),
                   ('ID', Text, attrgetter('__name__')),
                   ('Title', Text, attrgetter('title')),
-                  ('Description', Date, attrgetter('description'))]
+                  ('Description', Text, attrgetter('description')),
+                  ('Local ID', Text, attrgetter('course_id')),
+                  ('Government ID', Text, attrgetter('government_id')),
+                  ('Credits', Text, attrgetter('credits'))]
 
         school_years = ISchoolYearContainer(self.context).values()
         items = []
@@ -594,6 +597,8 @@ class MegaExporter(SchoolTimetableExportView):
                 row += 2
                 sections = removeSecurityProxy(ISectionContainer(term))
                 for section in sorted(sections.values(), key=lambda i: i.__name__):
+                    if not list(section.courses):
+                        continue
                     row = self.format_section(section, ws, row) + 1
 
     def format_group(self, group, ws, offset):

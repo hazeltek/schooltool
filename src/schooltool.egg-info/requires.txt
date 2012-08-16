@@ -91,7 +91,7 @@ zope.copypastemove
 zope.exceptions
 zope.principalregistry
 zope.testbrowser
-schooltool.devtools>=0.6
+schooltool.devtools>=0.7
 selenium
 
 [docs]

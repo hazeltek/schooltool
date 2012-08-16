@@ -22,11 +22,11 @@ SchoolTool simple import views.
 import xlrd
 import transaction
 import datetime
+from decimal import Decimal, InvalidOperation
 
 from zope.container.contained import containedEvent
 from zope.container.interfaces import INameChooser
 from zope.event import notify
-from zope.component import queryUtility
 from zope.security.proxy import removeSecurityProxy
 from zope.publisher.browser import BrowserView
 from zope.traversing.browser.absoluteurl import absoluteURL
@@ -112,6 +112,7 @@ ERROR_UNICODE_CONVERSION = _(
 ERROR_WEEKLY_DAY_ID = _('is not a valid weekday number (0-6)')
 ERROR_CONTACT_RELATIONSHIP = _("is not a valid contact relationship")
 ERROR_NOT_BOOLEAN = _("must be either True or False")
+ERROR_INVALID_COURSE_CREDITS = _("course credits need to be a valid number")
 
 
 no_date = object()
@@ -223,9 +224,9 @@ class ImporterBase(object):
         value, found, valid = self.getTextFoundValid(sheet, row, col)
         if not valid or not value:
             return None
-        if value.upper() == 'TRUE':
+        if value.upper() in ['TRUE', 'YES']:
             return True
-        elif value.upper() == 'FALSE':
+        elif value.upper() in ['FALSE', 'NO']:
             return False
         else:
             self.error(row, col, ERROR_NOT_BOOLEAN)
@@ -996,6 +997,9 @@ class CourseImporter(ImporterBase):
         else:
             course = Course(data['title'], data['description'])
             course.__name__ = data['__name__']
+        course.course_id = data['course_id'] or None
+        course.government_id = data['government_id'] or None
+        course.credits = data['credits'] or None
         return course
 
     def addCourse(self, course, data):
@@ -1018,10 +1022,18 @@ class CourseImporter(ImporterBase):
             data['__name__'] = self.getRequiredTextFromCell(sh, row, 1)
             data['title'] = self.getRequiredTextFromCell(sh, row, 2)
             data['description'] = self.getTextFromCell(sh, row, 3)
+            data['course_id'] = self.getTextFromCell(sh, row, 4)
+            data['government_id'] = self.getTextFromCell(sh, row, 5)
+            data['credits'] = self.getTextFromCell(sh, row, 6)
             if num_errors < len(self.errors):
                 continue
             if data['school_year'] not in ISchoolYearContainer(self.context):
                 self.error(row, 0, ERROR_INVALID_SCHOOL_YEAR)
+            try:
+                if data['credits']:
+                    data['credits'] = Decimal(data['credits'])
+            except InvalidOperation:
+                self.error(row, 6, ERROR_INVALID_COURSE_CREDITS)
             if num_errors < len(self.errors):
                 continue
             course = self.createCourse(data)
@@ -1164,7 +1176,8 @@ class SectionImporter(ImporterBase):
                 if course not in section.courses:
                     section.courses.add(removeSecurityProxy(course))
             row += 1
-        else:
+
+        if not list(section.courses):
             self.errors.append(format_message(
                 ERROR_HAS_NO_COURSES,
                 mapping={'title': data['title'], 'row': row + 1}

@@ -2,6 +2,37 @@
 CHANGES
 =======
 
+2.1.1 (2012-08-16)
+------------------
+
+Translations
+++++++++++++
+
+- Updated translations
+- Added Bosnian, Croatian, Slovenian translations
+
+XLS
++++
+
+- Added course_id, government_id and credits to Courses sheet import/export.
+- Exporters must skip sections with no courses (https://launchpad.net/bugs/1020842)
+
+Bugfixes
+++++++++
+
+- Missing hexes.svg background in released packages (https://launchpad.net/bugs/1030218)
+- Timetables evolution fails on exception days (https://launchpad.net/bugs/1003834)
+- Advisory accordion doesn't show advisees (https://launchpad.net/bugs/1005989)
+- Fix upgrade from schooltool < 1.5 crashing (https://launchpad.net/bugs/1007361)
+- Remove demographics when person is deleted.
+- Users cannot see their own photo (https://launchpad.net/bugs/1007145)
+
+Development tools
++++++++++++++++++
+
+- Selenium screenshots
+
+
 2.1.0 (2012-04-19)
 ------------------
 

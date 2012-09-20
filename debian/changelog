@@ -1,3 +1,9 @@
+schooltool (1:2.1.1-0ubuntu3) quantal; urgency=low
+
+  * debian/copyright: add MIT license, change all GPL references to GPL-2.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 20 Sep 2012 19:21:29 +0300
+
 schooltool (1:2.1.1-0ubuntu1) precise; urgency=low
 
   * New upstream bugfix release.

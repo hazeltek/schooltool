@@ -2,6 +2,102 @@
 CHANGES
 =======
 
+2.3.0 (2012-10-19)
+------------------
+
+- Update scheduled calendar event titles on section title change (https://launchpad.net/bugs/899368)
+- Allow student's instructors edit his contact's data (https://launchpad.net/bugs/479336)
+- Schedule for all terms at once (https://launchpad.net/bugs/1047266)
+
+
+2.2.4 (2012-10-09)
+------------------
+
+New features
+++++++++++++
+
+- School logo (https://launchpad.net/bugs/314151)
+- Photos for contacts (https://launchpad.net/bugs/970201)
+- Highlight today in calendars (https://launchpad.net/bugs/79865)
+- Done links now look like buttons
+- New script, schooltool-server, to enable --pack and --restore-password
+  commands (https://launchpad.net/bugs/505824)
+
+Bugfixes
+++++++++
+
+- SectionTimetables sheet doesn't add calendar events (https://launchpad.net/bugs/1061385)
+- Log In button should remember where you came from (https://launchpad.net/bugs/1039194)
+- Permission fixes
+- Updated translations.
+
+
+2.2.3 (2012-09-13)
+------------------
+
+- Section add form needs title and location (https://launchpad.net/bugs/1042267)
+- Person links in group view return to group
+
+
+2.2.2 (2012-08-31)
+------------------
+
+- We need person filters on the group page (https://launchpad.net/bugs/1038845)
+- Ignore trailing space in ID cells (https://launchpad.net/bugs/1042773)
+- Unrecognized day id error on localized XLS import (https://launchpad.net/bugs/901267)
+- Updated translations
+
+
+2.2.1 (2012-08-15)
+------------------
+
+XLS
++++
+
+- Handle empty Weekends table (https://launchpad.net/bugs/1035969)
+- Skip empty rows if there is only one table in the sheet (https://launchpad.net/bugs/1035088)
+
+
+2.2.0 (2012-08-07)
+------------------
+
+New features
+++++++++++++
+
+- Refactored gradebook/journal javascript and style
+- Add teachers column sections list
+- Add filter by course and term to sections list
+- Show term details in term view
+
+Old features
+++++++++++++
+
+- Show sections and groups of a person in a tree, grouped by term, like in old skin.
+- List sections in course view (https://launchpad.net/bugs/868396)
+
+XLS
++++
+
+- New sections sheets to replace section sheets per term (https://launchpad.net/bugs/1020836)
+- Remove the old Sections exporter and tests (https://launchpad.net/bugs/1020837).
+  Old section import still supported.
+- New LinkedSectionImport sheet for import only (https://launchpad.net/bugs/1020838)
+- Import errors grouped by sheet and error type, displayed in a textarea
+  (https://launchpad.net/bugs/1020839)
+- ResourceImporter needs to process description cells (https://launchpad.net/bugs/1020840)
+
+Bugfixes
+++++++++
+
+- Allow teachers to see attributes of all sections and resources.
+
+Development tools
++++++++++++++++++
+
+- Selenium downloads
+- XLS file testing helpers
+
+
 2.1.1 (2012-08-16)
 ------------------
 

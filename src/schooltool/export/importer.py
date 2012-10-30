@@ -27,6 +27,7 @@ from decimal import Decimal, InvalidOperation
 from zope.container.contained import containedEvent
 from zope.container.interfaces import INameChooser
 from zope.event import notify
+from zope.i18n import translate
 from zope.security.proxy import removeSecurityProxy
 from zope.publisher.browser import BrowserView
 from zope.traversing.browser.absoluteurl import absoluteURL
@@ -75,7 +76,6 @@ from schooltool.common import format_message
 from schooltool.common import SchoolToolMessage as _
 
 
-ERROR_FMT = _('${sheet_name} ${column}${row} ${message}')
 ERROR_NOT_INT = _('is not a valid integer')
 ERROR_NOT_UNICODE_OR_ASCII = _('not unicode or ascii string')
 ERROR_MISSING_REQUIRED_TEXT = _('missing required text')
@@ -88,8 +88,8 @@ ERROR_START_BEFORE_YEAR_START = _('start date before start of school year')
 ERROR_END_AFTER_YEAR_END = _('end date after end of school year')
 ERROR_START_OVERLAP_TERM = _('start date overlaps another term')
 ERROR_END_OVERLAP_TERM = _('end date overlaps another term')
-ERROR_HAS_NO_DAYS = _("${title} has no days in A${row}")
-ERROR_HAS_NO_DAY_TEMPLATES = _("${title} has no day templates in A${row}")
+ERROR_HAS_NO_DAYS = _("has no days")
+ERROR_HAS_NO_DAY_TEMPLATES = _("has no day templates")
 ERROR_TIME_RANGE = _("is not a valid time range")
 ERROR_TIMETABLE_MODEL = _("is not a valid timetable model")
 ERROR_DUPLICATE_DAY_ID = _("is the same day id as another in this timetable")
@@ -99,7 +99,7 @@ ERROR_DUPLICATE_HOMEROOM_PERIOD = _("is the same homeroom period id as another i
 ERROR_RESOURCE_TYPE = _("must be either 'Location', 'Equipment' or 'Resource'")
 ERROR_INVALID_TERM_ID = _('is not a valid term in the given school year')
 ERROR_INVALID_COURSE_ID = _('is not a valid course in the given school year')
-ERROR_HAS_NO_COURSES = _('${title} has no courses in A${row}')
+ERROR_HAS_NO_COURSES = _('has no courses')
 ERROR_INVALID_PERSON_ID = _('is not a valid username')
 ERROR_INVALID_SCHEMA_ID = _('is not a valid timetable in the given school year')
 ERROR_INVALID_DAY_ID = _('is not a valid day id for the given timetable')
@@ -107,12 +107,27 @@ ERROR_INVALID_PERIOD_ID = _('is not a valid period id for the given day')
 ERROR_INVALID_CONTACT_ID = _('is not a valid username or contact id')
 ERROR_UNWANTED_CONTACT_DATA = _('must be empty when ID is a user id')
 ERROR_INVALID_RESOURCE_ID = _('is not a valid resource id')
-ERROR_UNICODE_CONVERSION = _(
-    "Username cannot contain non-ascii characters: ${string}")
-ERROR_WEEKLY_DAY_ID = _('is not a valid weekday number (0-6)')
+ERROR_UNICODE_CONVERSION = _("Username cannot contain non-ascii characters")
 ERROR_CONTACT_RELATIONSHIP = _("is not a valid contact relationship")
-ERROR_NOT_BOOLEAN = _("must be either True or False")
+ERROR_NOT_BOOLEAN = _("must be either TRUE, FALSE, YES or NO (upper, lower and mixed case are all valid)")
+ERROR_MISSING_YEAR_ID = _("must have a school year")
+ERROR_MISSING_COURSES = _("must have a course")
+ERROR_MISSING_TERM_ID = _("must have a term")
+ERROR_CURRENT_SECTION_FIRST_TERM = _("the current section is in the first term of the school year")
+ERROR_CURRENT_SECTION_LAST_TERM = _("the current section is in the last term of the school year")
+ERROR_INVALID_PREV_TERM_SECTION = _("is not a valid section id in the previous term")
+ERROR_INVALID_NEXT_TERM_SECTION = _("is not a valid section id in the next term")
+ERROR_NO_TIMETABLE_DEFINED = _("no timetable is defined for this section")
+ERROR_NO_DAY_DEFINED = _("no day is defined in this row")
+ERROR_MISSING_PERIOD_ID = _('must have a valid period id')
 ERROR_INVALID_COURSE_CREDITS = _("course credits need to be a valid number")
+ERROR_INVALID_GENDER = _("gender must be male or female")
+ERROR_INVALID_PERSON_ID_LIST = _("has an invalid username")
+ERROR_INVALID_RESOURCE_ID_LIST = _("has an invalid resource id")
+ERROR_INVALID_COURSE_ID_LIST = _("has an invalid course id for the given school year")
+ERROR_END_TERM_BEFORE_START = _('end term cannot be before start term')
+ERROR_TERM_SECTION_ID = _('is not a valid section id in the specified term')
+ERROR_INCONSISTENT_SCHOOL_YEAR = _('school years must be consistent within this table')
 
 
 no_date = object()
@@ -125,6 +140,19 @@ class ImporterBase(object):
         self.context, self.request = context, request
         self.errors = []
 
+    def isEmptyRow(self, sheet, row, num_cols=30):
+        # We'll pick 30 as an arbitrary number of columns to test so that we
+        # don't need the caller to specify the number.  When a new column is
+        # added to a sheet, the needed change in calling this method would
+        # likely be overlooked.  It's not that expensive anyway to test all 30.
+        for col in range(num_cols):
+            try:
+                if sheet.cell_value(rowx=row, colx=col):
+                    return False
+            except IndexError:
+                break
+        return True
+
     def getCellValue(self, sheet, row, col, default=no_data):
         try:
             return sheet.cell_value(rowx=row, colx=col)
@@ -134,13 +162,7 @@ class ImporterBase(object):
             raise
 
     def error(self, row, col, message):
-        full_message = format_message(
-            ERROR_FMT,
-            {'sheet_name': self.sheet_name,
-             'column': chr(col + ord('A')),
-             'row': row + 1,
-             'message': message}
-            )
+        full_message = (self.sheet_name, row, col, message)
         self.errors.append(full_message)
 
     def getCellAndFound(self, sheet, row, col, default=u''):
@@ -186,6 +208,7 @@ class ImporterBase(object):
             except UnicodeError:
                 self.error(row, col, ERROR_NOT_UNICODE_OR_ASCII)
                 valid = False
+                value = default
         return value, found, valid
 
     def getTextFromCell(self, sheet, row, col, default=u''):
@@ -234,10 +257,33 @@ class ImporterBase(object):
 
     def getRequiredBoolFromCell(self, sheet, row, col):
         value, found = self.getCellAndFound(sheet, row, col)
-        if not found or value == '':
+        if not value:
             self.error(row, col, ERROR_MISSING_REQUIRED_TEXT)
             return None
         return self.getBoolFromCell(sheet, row, col)
+
+    def getIdFromCell(self, sheet, row, col, default=u''):
+        value, found, valid = self.getTextFoundValid(sheet, row, col, default)
+        return value.strip()
+
+    def getRequiredIdFromCell(self, sheet, row, col):
+        value, found, valid = self.getTextFoundValid(sheet, row, col)
+        if valid and not value:
+            self.error(row, col, ERROR_MISSING_REQUIRED_TEXT)
+        return value.strip()
+
+    def getIdsFromCell(self, sheet, row, col):
+        value, found, valid = self.getTextFoundValid(sheet, row, col)
+        if not value:
+            return []
+        return [p.strip() for p in str(value).split(',') if p.strip()]
+
+    def getRequiredIdsFromCell(self, sheet, row, col):
+        value, found = self.getCellAndFound(sheet, row, col)
+        if not value:
+            self.error(row, col, ERROR_MISSING_REQUIRED_TEXT)
+            return []
+        return self.getIdsFromCell(sheet, row, col)
 
     def validateUnicode(self, value, row, col):
         # XXX: this has to be fixed
@@ -245,12 +291,7 @@ class ImporterBase(object):
         try:
             value.encode('ascii')
         except UnicodeEncodeError:
-            self.error(
-                row, col,
-                format_message(
-                    ERROR_UNICODE_CONVERSION,
-                    mapping={'string': value})
-                )
+            self.error(row, col, ERROR_UNICODE_CONVERSION)
 
     @property
     def sheet(self):
@@ -282,6 +323,28 @@ class ImporterBase(object):
             teachers.__name__ = 'teachers'
             gc['teachers'] = teachers
             return teachers
+
+    def createSection(self, data, term, courses):
+        sc = ISectionContainer(term)
+        if data['__name__'] in sc:
+            section = sc[data['__name__']]
+            section.title = data['title']
+            section.description = data['description']
+            for course in section.courses:
+                section.courses.remove(course)
+            for resource in section.resources:
+                section.resources.remove(resource)
+            for student in section.members:
+                section.members.remove(student)
+            for teacher in section.instructors:
+                section.instructors.remove(teacher)
+        else:
+            section = Section(data['title'], data['description'])
+            section.__name__ = data['__name__']
+            sc[section.__name__] = section
+        for course in courses:
+            section.courses.add(removeSecurityProxy(course))
+        return section
 
 
 class SchoolYearImporter(ImporterBase):
@@ -321,7 +384,7 @@ class SchoolYearImporter(ImporterBase):
         for row in range(1, sh.nrows):
             num_errors = len(self.errors)
             data = {}
-            data['__name__'] = self.getRequiredTextFromCell(sh, row, 0)
+            data['__name__'] = self.getRequiredIdFromCell(sh, row, 0)
             data['title'] = self.getRequiredTextFromCell(sh, row, 1)
             data['first'] = self.getDateFromCell(sh, row, 2)
             data['last'] = self.getDateFromCell(sh, row, 3)
@@ -381,13 +444,13 @@ class TermImporter(ImporterBase):
         sh = self.sheet
 
         for row in range(1, sh.nrows):
-            if sh.cell_value(rowx=row, colx=0) == '':
+            if self.isEmptyRow(sh, row):
                 break
 
             num_errors = len(self.errors)
             data = {}
-            data['school_year'] = self.getRequiredTextFromCell(sh, row, 0)
-            data['__name__'] = self.getRequiredTextFromCell(sh, row, 1)
+            data['school_year'] = self.getRequiredIdFromCell(sh, row, 0)
+            data['__name__'] = self.getRequiredIdFromCell(sh, row, 1)
             data['title'] = self.getRequiredTextFromCell(sh, row, 2)
             data['first'] = self.getDateFromCell(sh, row, 3)
             data['last'] = self.getDateFromCell(sh, row, 4)
@@ -418,7 +481,7 @@ class TermImporter(ImporterBase):
         row += 1
         if self.getCellValue(sh, row, 0, '') == 'Holidays':
             for row in range(row + 1, sh.nrows):
-                if sh.cell_value(rowx=row, colx=0) == '':
+                if self.isEmptyRow(sh, row):
                     break
                 start = self.getDateFromCell(sh, row, 0)
                 end = self.getDateFromCell(sh, row, 1)
@@ -439,6 +502,10 @@ class TermImporter(ImporterBase):
         if self.getCellValue(sh, row, 0, '') == 'Weekends':
             row += 2
             for col in range(7):
+                try:
+                    sh.cell_value(rowx=row, colx=col)
+                except IndexError:
+                    continue
                 if sh.cell_value(rowx=row, colx=col) != '':
                     for sy in ISchoolYearContainer(self.context).values():
                         for term in sy.values():
@@ -448,9 +515,6 @@ class TermImporter(ImporterBase):
 class SchoolTimetableImporter(ImporterBase):
 
     sheet_name = 'School Timetables'
-
-    dows = ['Monday', 'Tuesday', 'Wednesday', 'Thursday',
-            'Friday', 'Saturday', 'Sunday']
 
     day_templates = (
         ('calendar_days', CalendarDayTemplates),
@@ -487,18 +551,11 @@ class SchoolTimetableImporter(ImporterBase):
         notify(event)
         timetable.time_slots.initTemplates()
 
-        name_chooser = INameChooser(timetable.periods.templates)
-        for entry in data['periods']:
-            day_id = entry['id']
-            day_title = day_id
-            if data['period_templates'] == 'week_days':
-                day_title = self.dows[int(day_id)]
+        for n, entry in enumerate(data['periods']):
+            day_title = entry['id']
             day = DayTemplate(day_title)
-            if data['period_templates'] == 'week_days':
-                name = day_id
-            else:
-                name = name_chooser.chooseName('', day)
-            timetable.periods.templates[name] = day
+            key = unicode(n)
+            timetable.periods.templates[key] = day
             p_chooser = INameChooser(day)
             for period_entry in entry['periods']:
                 period = Period(title=period_entry['title'],
@@ -506,18 +563,11 @@ class SchoolTimetableImporter(ImporterBase):
                 p_name = p_chooser.chooseName('', period)
                 day[p_name] = period
 
-        name_chooser = INameChooser(timetable.time_slots.templates)
-        for entry in data['time_slots']:
-            day_id = entry['id']
-            day_title = day_id
-            if data['time_templates'] == 'week_days':
-                day_title = self.dows[int(day_id)]
+        for n, entry in enumerate(data['time_slots']):
+            day_title = entry['id']
             day = DayTemplate(day_title)
-            if data['time_templates'] == 'week_days':
-                name = day_id
-            else:
-                name = name_chooser.chooseName('', day)
-            timetable.time_slots.templates[name] = day
+            key = unicode(n)
+            timetable.time_slots.templates[key] = day
             ts_chooser = INameChooser(day)
             for ts_entry in entry['time_slots']:
                 time_slot = TimeSlot(
@@ -526,36 +576,14 @@ class SchoolTimetableImporter(ImporterBase):
                 ts_name = ts_chooser.chooseName('', time_slot)
                 day[ts_name] = time_slot
 
-    def getWeeklyDayId(self, sh, row, col):
-        value, found = self.getCellAndFound(sh, row, col)
-        if not found:
-            self.error(row, col, ERROR_WEEKLY_DAY_ID)
-            return None
-
-        if isinstance(value, float):
-            if int(value) == value:
-                value = int(value)
-        else:
-            try:
-                value = self.dows.index(value)
-            except ValueError:
-                self.errors.append("Unrecognised day id %s" % value)
-
-            if isinstance(value, float):
-                if int(value) != value:
-                    self.error(row, col, ERROR_NOT_INT)
-                else:
-                    value = int(value)
-        return unicode(value)
-
     def import_school_timetable(self, sh, row):
         num_errors = len(self.errors)
         data = {}
         data['title'] = self.getRequiredTextFromCell(sh, row, 1)
-        data['__name__'] = self.getRequiredTextFromCell(sh, row+1, 1)
-        data['school_year'] = self.getRequiredTextFromCell(sh, row+2, 1)
-        data['period_templates'] = self.getRequiredTextFromCell(sh, row+3, 1)
-        data['time_templates'] = self.getRequiredTextFromCell(sh, row+4, 1)
+        data['__name__'] = self.getRequiredIdFromCell(sh, row+1, 1)
+        data['school_year'] = self.getRequiredIdFromCell(sh, row+2, 1)
+        data['period_templates'] = self.getRequiredIdFromCell(sh, row+3, 1)
+        data['time_templates'] = self.getRequiredIdFromCell(sh, row+4, 1)
         if num_errors < len(self.errors):
             return
 
@@ -581,13 +609,10 @@ class SchoolTimetableImporter(ImporterBase):
             row += 1
 
             while row < sh.nrows:
-                if sh.cell_value(rowx=row, colx=0) == '':
+                if self.isEmptyRow(sh, row):
                     break
 
-                if data['period_templates'] == 'week_days':
-                    day_id = self.getWeeklyDayId(sh, row, 0)
-                else:
-                    day_id = self.getRequiredTextFromCell(sh, row, 0)
+                day_id = self.getRequiredIdFromCell(sh, row, 0)
 
                 if day_id in [day['id'] for day in data['periods']]:
                     self.error(row, 0, ERROR_DUPLICATE_DAY_ID)
@@ -612,10 +637,7 @@ class SchoolTimetableImporter(ImporterBase):
                         'periods': periods,
                         })
         else:
-            self.errors.append(format_message(
-                ERROR_HAS_NO_DAYS,
-                mapping={'title': data['title'], 'row': row + 1}
-                ))
+            self.error(row, 0, ERROR_HAS_NO_DAYS)
 
         row += 1
         if self.getCellValue(sh, row, 0, '').lower() == 'time schedule':
@@ -623,13 +645,10 @@ class SchoolTimetableImporter(ImporterBase):
             row += 1
 
             while row < sh.nrows:
-                if sh.cell_value(rowx=row, colx=0) == '':
+                if self.isEmptyRow(sh, row):
                     break
 
-                if data['time_templates'] == 'week_days':
-                    day_id = self.getWeeklyDayId(sh, row, 0)
-                else:
-                    day_id = self.getRequiredTextFromCell(sh, row, 0)
+                day_id = self.getRequiredIdFromCell(sh, row, 0)
 
                 if day_id in [day['id'] for day in data['time_slots']]:
                     self.error(row, 0, ERROR_DUPLICATE_DAY_ID)
@@ -652,13 +671,13 @@ class SchoolTimetableImporter(ImporterBase):
                             'activity': activity,
                             })
                     col += 1
-                data['time_slots'].append({'id': day_id, 'time_slots': time_slots})
+                data['time_slots'].append({
+                        'id': day_id,
+                        'time_slots': time_slots
+                        })
                 row += 2
         else:
-            self.errors.append(format_message(
-                ERROR_HAS_NO_DAY_TEMPLATES,
-                mapping={'title': data['title'], 'row': row + 1}
-                ))
+            self.error(row, 0, ERROR_HAS_NO_DAY_TEMPLATES)
         if num_errors < len(self.errors):
             return
 
@@ -685,6 +704,7 @@ class ResourceImporter(ImporterBase):
         res_factory = res_types[data['type']]
         resource = res_factory(data['title'])
         resource.__name__ = data['__name__']
+        resource.description = data['description']
         return resource
 
     def addResource(self, resource, data):
@@ -692,6 +712,7 @@ class ResourceImporter(ImporterBase):
         if resource.__name__ in rc:
             resource = rc[resource.__name__]
             resource.title = data['title']
+            resource.description = data['description']
         else:
             if not resource.__name__:
                 resource.__name__ = INameChooser(rc).chooseName('', resource)
@@ -700,13 +721,14 @@ class ResourceImporter(ImporterBase):
     def process(self):
         sh = self.sheet
         for row in range(1, sh.nrows):
-            if sh.cell_value(rowx=row, colx=0) == '':
-                break
+            if self.isEmptyRow(sh, row):
+                continue
             num_errors = len(self.errors)
             data = {}
-            data['__name__'] = self.getRequiredTextFromCell(sh, row, 0)
+            data['__name__'] = self.getRequiredIdFromCell(sh, row, 0)
             data['type'] = self.getRequiredTextFromCell(sh, row, 1)
             data['title'] = self.getRequiredTextFromCell(sh, row, 2)
+            data['description'] = self.getTextFromCell(sh, row, 3)
             if num_errors < len(self.errors):
                 continue
             if data['type'] not in ['Location', 'Equipment', 'Resource']:
@@ -754,7 +776,7 @@ class PersonImporter(ImporterBase):
         fields = IDemographicsFields(ISchoolToolApplication(None))
         if self.group_name:
             num_errors = len(self.errors)
-            year_id = self.getRequiredTextFromCell(sh, 0, 1)
+            year_id = self.getRequiredIdFromCell(sh, 0, 1)
             if num_errors != len(self.errors):
                 return
             syc = ISchoolYearContainer(self.context)
@@ -774,12 +796,12 @@ class PersonImporter(ImporterBase):
             fields = list(fields.values())
 
         for row in range(first_row, sh.nrows):
-            if sh.cell_value(rowx=row, colx=0) == '':
-                break
+            if self.isEmptyRow(sh, row):
+                continue
 
             num_errors = len(self.errors)
             data = {}
-            data['__name__'] = self.getRequiredTextFromCell(sh, row, 0)
+            data['__name__'] = self.getRequiredIdFromCell(sh, row, 0)
             data['prefix'] = self.getTextFromCell(sh, row, 1)
             data['first_name'] = self.getRequiredTextFromCell(sh, row, 2)
             data['middle_name'] = self.getTextFromCell(sh, row, 3)
@@ -790,6 +812,8 @@ class PersonImporter(ImporterBase):
             data['gender'] = self.getTextFromCell(sh, row, 8)
             if data['gender'] == '':
                 data['gender'] = None
+            elif data['gender'] not in ['male', 'female']:
+                self.error(row, 8, ERROR_INVALID_GENDER)
             data['password'] = self.getTextFromCell(sh, row, 9)
 
             # XXX: this has to be fixed
@@ -797,12 +821,7 @@ class PersonImporter(ImporterBase):
             try:
                 str(data['__name__'])
             except UnicodeEncodeError:
-                self.error(
-                    row, 0,
-                    format_message(
-                        ERROR_UNICODE_CONVERSION,
-                        mapping={'string': data['__name__']})
-                    )
+                self.error(row, 0, ERROR_UNICODE_CONVERSION)
 
             if num_errors == len(self.errors):
                 person = self.createPerson(data)
@@ -892,14 +911,15 @@ class ContactPersonImporter(ImporterBase):
         sh = self.sheet
         persons = ISchoolToolApplication(None)['persons']
         for row in range(1, sh.nrows):
-            if sh.cell_value(rowx=row, colx=0) == '':
-                break
+            if self.isEmptyRow(sh, row):
+                continue
 
             num_errors = len(self.errors)
             data = {}
 
-            data['__name__'] = self.getRequiredTextFromCell(sh, row, 0)
-            self.validateUnicode(data['__name__'], row, 0)
+            data['__name__'] = self.getRequiredIdFromCell(sh, row, 0)
+            if data['__name__'] is not None:
+                self.validateUnicode(data['__name__'], row, 0)
             if num_errors == len(self.errors):
                 if data['__name__'] not in persons:
                     data['prefix'] = self.getTextFromCell(sh, row, 1)
@@ -941,13 +961,13 @@ class ContactRelationshipImporter(ImporterBase):
         contacts = IContactContainer(app)
         vocab = IContactPersonInfo['relationship'].vocabulary
         for row in range(1, sh.nrows):
-            if sh.cell_value(rowx=row, colx=0) == '':
-                break
+            if self.isEmptyRow(sh, row):
+                continue
 
             num_errors = len(self.errors)
             data = {}
 
-            data['__name__'] = self.getRequiredTextFromCell(sh, row, 0)
+            data['__name__'] = self.getRequiredIdFromCell(sh, row, 0)
             self.validateUnicode(data['__name__'], row, 0)
             if num_errors == len(self.errors):
                 if data['__name__'] not in persons:
@@ -1014,27 +1034,26 @@ class CourseImporter(ImporterBase):
     def process(self):
         sh = self.sheet
         for row in range(1, sh.nrows):
-            if sh.cell_value(rowx=row, colx=0) == '':
-                break
+            if self.isEmptyRow(sh, row):
+                continue
             num_errors = len(self.errors)
             data = {}
-            data['school_year'] = self.getRequiredTextFromCell(sh, row, 0)
-            data['__name__'] = self.getRequiredTextFromCell(sh, row, 1)
+            data['school_year'] = self.getRequiredIdFromCell(sh, row, 0)
+            data['__name__'] = self.getRequiredIdFromCell(sh, row, 1)
             data['title'] = self.getRequiredTextFromCell(sh, row, 2)
             data['description'] = self.getTextFromCell(sh, row, 3)
-            data['course_id'] = self.getTextFromCell(sh, row, 4)
-            data['government_id'] = self.getTextFromCell(sh, row, 5)
+            data['course_id'] = self.getIdFromCell(sh, row, 4)
+            data['government_id'] = self.getIdFromCell(sh, row, 5)
             data['credits'] = self.getTextFromCell(sh, row, 6)
-            if num_errors < len(self.errors):
-                continue
-            if data['school_year'] not in ISchoolYearContainer(self.context):
-                self.error(row, 0, ERROR_INVALID_SCHOOL_YEAR)
             try:
                 if data['credits']:
                     data['credits'] = Decimal(data['credits'])
             except InvalidOperation:
                 self.error(row, 6, ERROR_INVALID_COURSE_CREDITS)
             if num_errors < len(self.errors):
+                continue
+            if data['school_year'] not in ISchoolYearContainer(self.context):
+                self.error(row, 0, ERROR_INVALID_SCHOOL_YEAR)
                 continue
             course = self.createCourse(data)
             self.addCourse(course, data)
@@ -1076,7 +1095,7 @@ class SectionImporter(ImporterBase):
     def import_timetable(self, sh, row, section):
         timetables = ITimetableContainer(ISchoolYear(section))
 
-        timetable_id = self.getRequiredTextFromCell(sh, row, 1)
+        timetable_id = self.getRequiredIdFromCell(sh, row, 1)
         if timetable_id not in timetables:
             self.error(row, 0, ERROR_INVALID_SCHEMA_ID)
             return row
@@ -1098,11 +1117,11 @@ class SectionImporter(ImporterBase):
 
         for row in range(row, sh.nrows):
 
-            if sh.cell_value(rowx=row, colx=0) == '':
+            if self.isEmptyRow(sh, row):
                 break
             num_errors = len(self.errors)
-            day_title = self.getRequiredTextFromCell(sh, row, 0)
-            period_title = self.getRequiredTextFromCell(sh, row, 1)
+            day_title = self.getRequiredIdFromCell(sh, row, 0)
+            period_title = self.getRequiredIdFromCell(sh, row, 1)
             if num_errors < len(self.errors):
                 continue
 
@@ -1138,14 +1157,14 @@ class SectionImporter(ImporterBase):
         for row in range(row, sh.nrows):
             if sh.cell_value(rowx=row, colx=0) == 'School Timetable':
                 self.import_timetable(sh, row, section)
-            elif sh.cell_value(rowx=row, colx=0) == '':
+            elif self.isEmptyRow(sh, row):
                 break
         return row
 
     def import_section(self, sh, row, year, term):
         data = {}
         data['title'] = self.getRequiredTextFromCell(sh, row, 1)
-        data['__name__'] = self.getRequiredTextFromCell(sh, row+1, 1)
+        data['__name__'] = self.getRequiredIdFromCell(sh, row+1, 1)
         link = self.getTextFromCell(sh, row+1, 3)
         data['link'] = link.lower() in ['y', 'yes']
         data['description'] = self.getTextFromCell(sh, row+2, 1)
@@ -1161,11 +1180,11 @@ class SectionImporter(ImporterBase):
         if self.getCellValue(sh, row, 0, '') == 'Courses':
             row += 1
             for row in range(row, sh.nrows):
-                if sh.cell_value(rowx=row, colx=0) == '':
+                if self.isEmptyRow(sh, row):
                     break
                 num_errors = len(self.errors)
 
-                course_id = self.getRequiredTextFromCell(sh, row, 0)
+                course_id = self.getRequiredIdFromCell(sh, row, 0)
                 if num_errors < len(self.errors):
                     continue
                 if course_id not in courses:
@@ -1178,21 +1197,18 @@ class SectionImporter(ImporterBase):
             row += 1
 
         if not list(section.courses):
-            self.errors.append(format_message(
-                ERROR_HAS_NO_COURSES,
-                mapping={'title': data['title'], 'row': row + 1}
-                ))
+            self.error(row, 0, ERROR_HAS_NO_COURSES)
             return
 
         persons = self.context['persons']
         if self.getCellValue(sh, row, 0, '') == 'Students':
             row += 1
             for row in range(row, sh.nrows):
-                if sh.cell_value(rowx=row, colx=0) == '':
+                if self.isEmptyRow(sh, row):
                     break
                 num_errors = len(self.errors)
 
-                username = self.getRequiredTextFromCell(sh, row, 0)
+                username = self.getRequiredIdFromCell(sh, row, 0)
                 if num_errors < len(self.errors):
                     continue
                 if username not in persons:
@@ -1209,11 +1225,11 @@ class SectionImporter(ImporterBase):
         if self.getCellValue(sh, row, 0, '') == 'Instructors':
             row += 1
             for row in range(row, sh.nrows):
-                if sh.cell_value(rowx=row, colx=0) == '':
+                if self.isEmptyRow(sh, row):
                     break
                 num_errors = len(self.errors)
 
-                username = self.getRequiredTextFromCell(sh, row, 0)
+                username = self.getRequiredIdFromCell(sh, row, 0)
                 if num_errors < len(self.errors):
                     continue
                 if username not in persons:
@@ -1237,8 +1253,8 @@ class SectionImporter(ImporterBase):
             sheet = self.wb.sheet_by_name(self.sheet_name)
 
             num_errors = len(self.errors)
-            year_id = self.getRequiredTextFromCell(sheet, 0, 1)
-            term_id = self.getRequiredTextFromCell(sheet, 0, 3)
+            year_id = self.getRequiredIdFromCell(sheet, 0, 1)
+            term_id = self.getRequiredIdFromCell(sheet, 0, 3)
             if num_errors < len(self.errors):
                 continue
 
@@ -1260,10 +1276,418 @@ class SectionImporter(ImporterBase):
         self.wb = wb
         self.sheet_names = []
         for sheet_name in self.wb.sheet_names():
-            if sheet_name.startswith('Section'):
+            if (sheet_name.startswith('Section') and sheet_name not in
+                ['Sections', 'SectionTimetables', 'SectionEnrollment']):
                 self.sheet_names.append(sheet_name)
         if self.sheet_names:
             self.process()
+
+
+class SectionsImporter(ImporterBase):
+
+    sheet_name = 'Sections'
+
+    def import_section_links(self, prev_links, next_links):
+        for row, (section, link_id) in sorted(prev_links.items()):
+            term = ITerm(section)
+            previous_term = getPreviousTerm(term)
+            if previous_term is None:
+                self.error(row, 4, ERROR_CURRENT_SECTION_FIRST_TERM)
+            else:
+                previous_sections = ISectionContainer(previous_term)
+                if link_id in previous_sections:
+                    previous_sections[link_id].next = section
+                else:
+                    self.error(row, 4, ERROR_INVALID_PREV_TERM_SECTION)
+
+        for row, (section, link_id) in sorted(next_links.items()):
+            term = ITerm(section)
+            next_term = getNextTerm(term)
+            if next_term is None:
+                self.error(row, 5, ERROR_CURRENT_SECTION_LAST_TERM)
+            else:
+                next_sections = ISectionContainer(next_term)
+                if link_id in next_sections:
+                    next_sections[link_id].previous = section
+                else:
+                    self.error(row, 5, ERROR_INVALID_NEXT_TERM_SECTION)
+
+    def process(self):
+        sh = self.sheet
+        schoolyears = ISchoolYearContainer(self.context)
+        persons = self.context['persons']
+        resources = self.context['resources']
+        prev_links, next_links = {}, {}
+
+        for row in range(1, sh.nrows):
+            if self.isEmptyRow(sh, row):
+                continue
+
+            data = {}
+            num_errors = len(self.errors)
+            data['year'] = self.getRequiredIdFromCell(sh, row, 0)
+            data['courses'] = self.getRequiredIdsFromCell(sh, row, 1)
+            data['term'] = self.getRequiredIdFromCell(sh, row, 2)
+            data['__name__'] = self.getRequiredIdFromCell(sh, row, 3)
+            data['link_prev'] = self.getIdFromCell(sh, row, 4)
+            data['link_next'] = self.getIdFromCell(sh, row, 5)
+            data['title'] = self.getRequiredTextFromCell(sh, row, 6)
+            data['description'] = self.getTextFromCell(sh, row, 7)
+            data['instructors'] = self.getIdsFromCell(sh, row, 8)
+            data['resources'] = self.getIdsFromCell(sh, row, 9)
+            if num_errors < len(self.errors):
+                continue
+
+            for person_id in data['instructors']:
+                if person_id not in persons:
+                    self.error(row, 8, ERROR_INVALID_PERSON_ID_LIST)
+                    break
+
+            for resource_id in data['resources']:
+                if resource_id not in resources:
+                    self.error(row, 9, ERROR_INVALID_RESOURCE_ID_LIST)
+                    break
+
+            if data['year'] not in schoolyears:
+                self.error(row, 0, ERROR_INVALID_SCHOOL_YEAR)
+                continue
+
+            year = schoolyears[data['year']]
+            teachers = self.ensure_teachers_group(year)
+            course_container = ICourseContainer(year)
+
+            courses = []
+            for course_id in data['courses']:
+                if course_id not in course_container:
+                    self.error(row, 1, ERROR_INVALID_COURSE_ID_LIST)
+                    break
+                else:
+                    course = course_container[course_id]
+                    courses.append(removeSecurityProxy(course))
+
+            if data['term'] not in year:
+                self.error(row, 2, ERROR_INVALID_TERM_ID)
+
+            if num_errors < len(self.errors):
+                continue
+
+            term = year[data['term']]
+            section = self.createSection(data, term, courses)
+
+            if data['link_prev']:
+                prev_links[row] = (section, data['link_prev'])
+
+            if data['link_next']:
+                next_links[row] = (section, data['link_next'])
+
+            for person_id in data['instructors']:
+                teacher = persons[person_id]
+                if teacher not in section.instructors:
+                    section.instructors.add(removeSecurityProxy(teacher))
+                if teacher not in teachers.members:
+                    teachers.members.add(removeSecurityProxy(teacher))
+
+            for resource_id in data['resources']:
+                resource = resources[resource_id]
+                if resource not in section.resources:
+                    section.resources.add(removeSecurityProxy(resource))
+
+        self.import_section_links(prev_links, next_links)
+
+
+class SectionMixin(object):
+
+    def get_sections(self, sh, row):
+        schoolyears = ISchoolYearContainer(self.context)
+
+        sections = []
+        current_year_id = None
+        for row in range(row + 1, sh.nrows):
+            if self.isEmptyRow(sh, row):
+                break
+
+            num_errors = len(self.errors)
+            year_id = self.getRequiredIdFromCell(sh, row, 0)
+            term_id = self.getRequiredIdFromCell(sh, row, 1)
+            section_id = self.getRequiredIdFromCell(sh, row, 2)
+            if num_errors < len(self.errors):
+                continue
+
+            if year_id not in schoolyears:
+                self.error(row, 0, ERROR_INVALID_SCHOOL_YEAR)
+                continue
+            if current_year_id is not None and year_id != current_year_id:
+                self.error(row, 0, ERROR_INCONSISTENT_SCHOOL_YEAR)
+                continue
+            current_year_id = year_id
+            year = schoolyears[year_id]
+
+            if term_id not in year:
+                self.error(row, 1, ERROR_INVALID_TERM_ID)
+                continue
+            term = year[term_id]
+            section_container = ISectionContainer(term)
+
+            if section_id not in section_container:
+                self.error(row, 2, ERROR_TERM_SECTION_ID)
+                continue
+            sections.append(section_container[section_id])
+
+        return sections
+
+
+class SectionEnrollmentImporter(ImporterBase, SectionMixin):
+
+    sheet_name = 'SectionEnrollment'
+
+    def get_students(self, sh, row):
+        persons = self.context['persons']
+        for row in range(row + 1, sh.nrows):
+            if sh.cell_value(rowx=row, colx=0) == 'Students':
+                break
+        else:
+            return []
+
+        students = []
+        for row in range(row + 1, sh.nrows):
+            if self.isEmptyRow(sh, row):
+                break
+
+            student_id = self.getRequiredIdFromCell(sh, row, 0)
+            if student_id is None:
+                continue
+
+            if student_id not in persons:
+                self.error(row, 0, ERROR_INVALID_PERSON_ID)
+            else:
+                students.append(persons[student_id])
+
+        return students
+
+    def process(self):
+        sh = self.sheet
+
+        for row in range(0, sh.nrows):
+            if sh.cell_value(rowx=row, colx=0) != 'School Year':
+                continue
+
+            num_errors = len(self.errors)
+            sections = self.get_sections(sh, row)
+            students = self.get_students(sh, row)
+            if num_errors < len(self.errors):
+                continue
+            if not sections or not students:
+                continue
+
+            year = ISchoolYear(sections[0])
+            students_group = self.ensure_students_group(year)
+
+            for section in sections:
+                for student in students:
+                    if student not in section.members:
+                        section.members.add(removeSecurityProxy(student))
+                    if student not in students_group.members:
+                        students_group.members.add(removeSecurityProxy(student))
+
+
+class SectionTimetablesImporter(ImporterBase, SectionMixin):
+
+    sheet_name = 'SectionTimetables'
+
+    def import_timetable(self, sh, row, sections):
+        year = ISchoolYear(sections[0])
+        timetables = ITimetableContainer(year)
+
+        for row in range(row + 1, sh.nrows):
+            if sh.cell_value(rowx=row, colx=0) == 'Timetable':
+                break
+        else:
+            return
+
+        num_errors = len(self.errors)
+        timetable_id = self.getRequiredIdFromCell(sh, row, 1)
+        consecutive = self.getBoolFromCell(sh, row, 3)
+        if num_errors < len(self.errors):
+            return
+
+        if timetable_id not in timetables:
+            self.error(row, 3, ERROR_INVALID_SCHEMA_ID)
+            return
+        timetable = timetables[timetable_id]
+
+        for row in range(row + 1, sh.nrows):
+            if sh.cell_value(rowx=row, colx=0) == 'Day':
+                break
+        else:
+            return
+
+        schedules = []
+        for section in sections:
+            term = ITerm(section)
+            schedule = SelectedPeriodsSchedule(
+                timetable, term.first, term.last,
+                title=timetable.title, timezone=timetable.timezone)
+            schedule.consecutive_periods_as_one = bool(consecutive)
+            schedules.append(schedule)
+
+        for row in range(row + 1, sh.nrows):
+            if self.isEmptyRow(sh, row):
+                break
+
+            day_title = self.getIdFromCell(sh, row, 0)
+            period_title = self.getRequiredIdFromCell(sh, row, 1)
+            if period_title is None:
+                continue
+
+            for tt_day in timetable.periods.templates.values():
+                if tt_day.title == day_title:
+                    day = tt_day
+                    break
+            else:
+                self.error(row, 0, ERROR_INVALID_DAY_ID)
+                continue
+
+            for tt_period in day.values():
+                if tt_period.title == period_title:
+                    period = tt_period
+                    break
+            else:
+                self.error(row, 1, ERROR_INVALID_PERIOD_ID)
+                continue
+
+            for schedule in schedules:
+                schedule.addPeriod(period)
+
+        for index, section in enumerate(sections):
+            term = ITerm(section)
+            schedule_container = IScheduleContainer(section)
+            schedule = schedules[index]
+            s_chooser = INameChooser(schedule_container)
+            name = s_chooser.chooseName('', schedule)
+            schedule_container[name] = schedule
+
+    def process(self):
+        sh = self.sheet
+
+        for row in range(0, sh.nrows):
+            if sh.cell_value(rowx=row, colx=0) != 'School Year':
+                continue
+
+            num_errors = len(self.errors)
+            sections = self.get_sections(sh, row)
+            if num_errors < len(self.errors):
+                continue
+
+            self.import_timetable(sh, row, sections)
+
+
+class LinkedSectionImporter(ImporterBase):
+
+    sheet_name = 'LinkedSectionImport'
+
+    def validateStartEndTerms(self, year, data, row, col):
+        if data['start_term'] not in year:
+            self.error(row, col, ERROR_INVALID_TERM_ID)
+        if data['end_term'] and data['end_term'] not in year:
+            self.error(row, col + 1, ERROR_INVALID_TERM_ID)
+            return []
+        if data['start_term'] not in year:
+            return []
+
+        start_term = year[data['start_term']]
+        if data['end_term']:
+            end_term = year[data['end_term']]
+        else:
+            end_term = start_term
+
+        if start_term.first > end_term.first:
+            self.error(row, col + 1, ERROR_END_TERM_BEFORE_START)
+            return []
+        return [term for term in year.values()
+                if term.first >= start_term.first and
+                   term.first <= end_term.first]
+
+    def createSectionsByTerm(self, data, terms, courses):
+        sections_by_term = []
+        previous_section = None
+        for term in terms:
+            section = self.createSection(data, term, courses)
+            if previous_section is not None:
+                previous_section.next = section
+            previous_section = section
+            sections_by_term.append(section)
+        return sections_by_term
+
+    def process(self):
+        sh = self.sheet
+        schoolyears = ISchoolYearContainer(self.context)
+        persons = self.context['persons']
+        resources = self.context['resources']
+
+        for row in range(1, sh.nrows):
+            if self.isEmptyRow(sh, row):
+                continue
+
+            data = {}
+            num_errors = len(self.errors)
+            data['year'] = self.getRequiredIdFromCell(sh, row, 0)
+            data['courses'] = self.getRequiredIdsFromCell(sh, row, 1)
+            data['start_term'] = self.getRequiredIdFromCell(sh, row, 2)
+            data['end_term'] = self.getIdFromCell(sh, row, 3)
+            data['__name__'] = self.getRequiredIdFromCell(sh, row, 4)
+            data['title'] = self.getRequiredTextFromCell(sh, row, 5)
+            data['description'] = self.getTextFromCell(sh, row, 6)
+            data['instructors'] = self.getIdsFromCell(sh, row, 7)
+            data['resources'] = self.getIdsFromCell(sh, row, 8)
+            if num_errors < len(self.errors):
+                continue
+
+            for person_id in data['instructors']:
+                if person_id not in persons:
+                    self.error(row, 6, ERROR_INVALID_PERSON_ID_LIST)
+                    break
+
+            for resource_id in data['resources']:
+                if resource_id not in resources:
+                    self.error(row, 8, ERROR_INVALID_RESOURCE_ID_LIST)
+                    break
+
+            if data['year'] not in schoolyears:
+                self.error(row, 0, ERROR_INVALID_SCHOOL_YEAR)
+                continue
+
+            year = schoolyears[data['year']]
+            teachers = self.ensure_teachers_group(year)
+            course_container = ICourseContainer(year)
+
+            courses = []
+            for course_id in data['courses']:
+                if course_id not in course_container:
+                    self.error(row, 1, ERROR_INVALID_COURSE_ID_LIST)
+                    break
+                else:
+                    course = course_container[course_id]
+                    courses.append(removeSecurityProxy(course))
+
+            terms = self.validateStartEndTerms(year, data, row, 2)
+            if num_errors < len(self.errors):
+                continue
+
+            sections = self.createSectionsByTerm(data, terms, courses)
+
+            for person_id in data['instructors']:
+                teacher = persons[person_id]
+                for section in sections:
+                    if teacher not in section.instructors:
+                        section.instructors.add(removeSecurityProxy(teacher))
+                    if teacher not in teachers.members:
+                        teachers.members.add(removeSecurityProxy(teacher))
+
+            for resource_id in data['resources']:
+                resource = resources[resource_id]
+                for section in sections:
+                    if resource not in section.resources:
+                        section.resources.add(removeSecurityProxy(resource))
 
 
 class GroupImporter(ImporterBase):
@@ -1295,13 +1719,13 @@ class GroupImporter(ImporterBase):
         num_errors = len(self.errors)
         data = {}
         data['title'] = self.getRequiredTextFromCell(sh, row, 1)
-        data['__name__'] = self.getRequiredTextFromCell(sh, row+1, 1)
-        data['school_year'] = self.getRequiredTextFromCell(sh, row+2, 1)
+        data['__name__'] = self.getRequiredIdFromCell(sh, row+1, 1)
+        data['school_year'] = self.getRequiredIdFromCell(sh, row+2, 1)
         data['description'] = self.getTextFromCell(sh, row+3, 1)
         if num_errors < len(self.errors):
             return
         if data['school_year'] not in ISchoolYearContainer(self.context):
-            self.error(row, 0, ERROR_INVALID_SCHOOL_YEAR)
+            self.error(row+2, 1, ERROR_INVALID_SCHOOL_YEAR)
             return
 
         group = self.createGroup(data)
@@ -1312,10 +1736,10 @@ class GroupImporter(ImporterBase):
         if self.getCellValue(sh, row, 0, '') == 'Members':
             row += 1
             for row in range(row, sh.nrows):
-                if sh.cell_value(rowx=row, colx=0) == '':
+                if self.isEmptyRow(sh, row):
                     break
                 num_errors = len(self.errors)
-                username = self.getRequiredTextFromCell(sh, row, 0)
+                username = self.getRequiredIdFromCell(sh, row, 0)
                 if num_errors < len(self.errors):
                     continue
                 if username not in pc:
@@ -1336,6 +1760,7 @@ class MegaImporter(BrowserView):
 
     def __init__(self, context, request):
         BrowserView.__init__(self, context, request)
+        self.data_provided = False
         self.errors = []
         self.success = []
 
@@ -1352,7 +1777,12 @@ class MegaImporter(BrowserView):
                 ContactRelationshipImporter,
                 CourseImporter,
                 GroupImporter,
-                SectionImporter]
+                SectionImporter,
+                SectionsImporter,
+                SectionEnrollmentImporter,
+                SectionTimetablesImporter,
+                LinkedSectionImporter,
+                ]
 
     def update(self):
         if "UPDATE_SUBMIT" not in self.request:
@@ -1360,8 +1790,8 @@ class MegaImporter(BrowserView):
 
         xlsfile = self.request.get('xlsfile', '')
         if not xlsfile:
-            self.errors.append(_('No data provided'))
             return
+        self.data_provided = True
 
         wb = xlrd.open_workbook(file_contents=xlsfile.read())
 
@@ -1386,8 +1816,65 @@ class MegaImporter(BrowserView):
     def nextURL(self):
         return self.request.URL
 
+    def hasErrors(self):
+        if "UPDATE_SUBMIT" not in self.request:
+            return False
+        return not self.data_provided or self.errors
+
     def displayErrors(self):
-        return self.errors[:25]
+        if not self.data_provided:
+            return [self.errorSummary()]
+        ERROR_FMT = _('${sheet_name} ${column}${row} ${message}')
+        errors = []
+        for sheet_name, row, col, message in self.errors[:25]:
+            full_message = format_message(
+                ERROR_FMT,
+                {'sheet_name': sheet_name,
+                 'column': chr(col + ord('A')),
+                 'row': row + 1,
+                 'message': message}
+                )
+            errors.append(full_message)
+        return errors
+
+    def errorSummary(self):
+        if not self.data_provided:
+            return _('No data provided')
+        return _('The following errors occurred while importing:')
+
+    def textareaErrors(self):
+        errors = {}
+        for sheet_name, row, col, message in self.errors:
+            sheet_errors = errors.setdefault(sheet_name, {})
+            sheet_errors.setdefault(message, []).append((col, row))
+        error_lines = []
+        for sheet_name, message_errors in sorted(errors.items()):
+            if error_lines:
+                error_lines.append('')
+            error_lines.append(sheet_name)
+            error_lines.append('-' * len(sheet_name))
+            for message, cells in sorted(message_errors.items()):
+                col_rows = []
+                current_col, start, end = -1, 0, 0
+                for col, row in sorted(cells):
+                    if col != current_col or row > end + 1:
+                        if current_col > -1:
+                            col_rows.append((current_col, start, end))
+                        current_col, start = col, row
+                    end = row
+                col_rows.append((current_col, start, end))
+                error_lines.append('')
+                error_lines.append(translate(message) + ':')
+                error_cells = []
+                for col, start, end in col_rows:
+                    cell = chr(col + ord('A'))
+                    if start == end:
+                        cell += '%s' % (start + 1)
+                    else:
+                        cell += '%s-%s' % (start + 1, end + 1)
+                    error_cells.append(cell)
+                error_lines.append(', '.join(error_cells))
+        return '\n'.join(error_lines)
 
 
 

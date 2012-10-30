@@ -1,3 +1,14 @@
+schooltool (1:2.3.0-0ubuntu2) raring; urgency=low
+
+  * New upstream release (LP: #1064716).
+  * debian/control:
+    - Breaks gradebook and journal (<< 2.2), incompatible gradebook css/js
+      changes
+    - Recommends python-schooltool.cando
+  * debian/copyright: add section about included jquery.scrollto.min.js
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Tue, 30 Oct 2012 18:42:36 +0200
+
 schooltool (1:2.1.1-0ubuntu3) quantal; urgency=low
 
   * debian/copyright: add MIT license, change all GPL references to GPL-2.

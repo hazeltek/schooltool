@@ -24,6 +24,10 @@ Files: src/schooltool/skin/resources/jstree/jquery.tree.js
 Copyright: (c) 2009 Ivan Bozhanov (vakata.com)
 License: MIT or GPL-2
 
+Files: src/schooltool/skin/flourish/resources/jquery.scrollto.min.js
+Copyright: (c) 2007-2009 Ariel Flesler <aflesler@gmail.com>
+License: MIT or GPL-2
+
 Files: src/schooltool/app/browser/resources/calwidget/*
 Copyright: (c) 2004, Tribador Mediaworks, Brian Munroe <bmunroe@tribador.net>
 Comment: Looks like a MIT license

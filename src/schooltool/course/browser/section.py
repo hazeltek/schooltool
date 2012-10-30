@@ -25,8 +25,8 @@ from urllib import urlencode
 
 import zc.table.table
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
-from zope.component import adapts
-from zope.component import getMultiAdapter
+from zope.component import adapts, adapter
+from zope.component import getMultiAdapter, getAdapter
 from zope.component import getUtility
 from zope.container.contained import NameChooser
 from zope.container.interfaces import INameChooser
@@ -34,6 +34,7 @@ from zope.event import notify
 from zope.i18n import translate
 from zope.i18n.interfaces.locales import ICollator
 from zope.interface import implements, Invalid, directlyProvides
+from zope.interface import implementer, Interface
 from zope.intid.interfaces import IIntIds
 from zope.publisher.browser import BrowserView
 from zope.publisher.interfaces.browser import IBrowserRequest
@@ -962,9 +963,18 @@ def get_courses_titles(section, formatter):
     return ', '.join([course.title for course in section.courses])
 
 
+def get_section_instructors(section, formatter):
+    return ', '.join([person.title for person in section.instructors])
+
+
+def section_instructors_formatter(value, section, formatter):
+    return '<br />'.join([person.title for person in section.instructors])
+
+
 class FlourishSectionsView(flourish.page.Page,
                            SectionsActiveTabMixin):
 
+    container_class = 'container widecontainer'
     content_template = InlineViewPageTemplate('''
       <div tal:content="structure context/schooltool:content/ajax/view/schoolyear/sections_table" />
     ''')
@@ -976,7 +986,7 @@ class FlourishSectionsView(flourish.page.Page,
                  mapping={'schoolyear': schoolyear.title})
 
 
-class SectionsTable(table.ajax.Table):
+class SectionsTableBase(table.ajax.Table):
 
     def columns(self):
         default = table.ajax.Table.columns(self)
@@ -992,15 +1002,53 @@ class SectionsTable(table.ajax.Table):
             subsort=True)
         size = GetterColumn(
             name='size',
-            title=_('Size'),
+            title=_('Students'),
             getter=lambda i, f: i.size,
             subsort=True)
+        instructors = table.column.LocaleAwareGetterColumn(
+            name='instructors',
+            title=_('Teachers'),
+            getter=get_section_instructors,
+            cell_formatter=section_instructors_formatter)
         directlyProvides(term, ISortableColumn)
         directlyProvides(courses, ISortableColumn)
-        return default + [term, courses, size]
+        directlyProvides(instructors, ISortableColumn)
+        return default + [term, courses, instructors, size]
 
     def sortOn(self):
         return (('term', True), ('courses', False), ('title', False))
+
+
+class SectionsTable(SectionsTableBase):
+
+    pass
+
+
+class SectionListTable(SectionsTableBase):
+
+    def columns(self):
+        default = super(SectionListTable, self).columns()
+        title, term, courses, instructors, size = default
+        return [title, term, instructors]
+
+    def sortOn(self):
+        return (('term', True), ('title', False))
+
+    @Lazy
+    def source(self):
+        sections = {}
+        schoolyear = ISchoolYear(self.context)
+        for term in schoolyear.values():
+            term_section_container = ISectionContainer(term)
+            for section in term_section_container.values():
+                name = '%s.%s.%s' % (
+                    schoolyear.__name__, term.__name__, section.__name__
+                    )
+                sections[name] = section
+        return sections
+
+    def items(self):
+        return self.context.sections
 
 
 class SchoolYearSectionsTable(SectionsTable):
@@ -1025,12 +1073,115 @@ class SchoolYearSectionsTable(SectionsTable):
 
 class SectionsTableFilter(table.ajax.TableFilter, FlourishSectionFilterWidget):
 
+    multiple_terms = True
+    template = ViewPageTemplateFile('templates/f_section_table_filter.pt')
     title = _("Section title")
 
-    def filter(self, results):
+    @property
+    def search_id(self):
+        return self.manager.html_id+'-search'
+
+    @property
+    def search_title_id(self):
+        return self.manager.html_id+"-title"
+
+    @property
+    def search_course_id(self):
+        return self.manager.html_id+"-course"
+
+    @property
+    def search_term_ids(self):
+        return self.manager.html_id+"-terms"
+
+    @Lazy
+    def schoolyear(self):
+        app = ISchoolToolApplication(None)
+        schoolyears = ISchoolYearContainer(app)
+        result = schoolyears.getActiveSchoolYear()
+        if 'schoolyear_id' in self.request:
+            schoolyear_id = self.request['schoolyear_id']
+            result = schoolyears.get(schoolyear_id, result)
+        return result
+
+    def termContainer(self):
+        return self.schoolyear
+
+    def courseContainer(self):
+        return ICourseContainer(self.schoolyear)
+
+    def terms(self):
+        result = []
+        container = self.termContainer()
+        items = sorted(container.items(),
+                       key=lambda (tid, term):term.first)
+        for id, term in items:
+            checked = not self.manager.fromPublication
+            if self.search_term_ids in self.request:
+                term_ids = self.request[self.search_term_ids]
+                if not isinstance(term_ids, list):
+                    term_ids = [term_ids]
+                checked = id in term_ids
+            result.append({'id': id,
+                           'title': term.title,
+                           'checked': checked,
+                           'obj': term})
+        return result
+
+    def courses(self):
+        result = []
+        container = self.courseContainer()
+        collator = ICollator(self.request.locale)
+        items = sorted(container.items(),
+                       cmp=collator.cmp,
+                       key=lambda (cid, c): c.title)
+        for id, course in items:
+            result.append({'id': id,
+                           'title': course.title})
+        return result
+
+    def filter(self, items):
+        if len(self.termContainer()) < 2:
+            self.multiple_terms = False
         if self.ignoreRequest:
-            return results
-        return FlourishSectionFilterWidget.filter(self, results)
+            return items
+        if self.search_term_ids in self.request:
+            term_ids = self.request[self.search_term_ids]
+            if not isinstance(term_ids, list):
+                term_ids = [term_ids]
+            terms = []
+            for term_id in term_ids:
+                term = self.termContainer().get(term_id)
+                if term is not None:
+                    terms.append(term)
+            if terms:
+                items = [item for item in items
+                         if ITerm(item) in terms]
+        elif self.multiple_terms:
+            return []
+        if self.search_course_id in self.request:
+            course_id = self.request[self.search_course_id]
+            course = self.courseContainer().get(course_id)
+            if course:
+                items = [item for item in items
+                         if item in course.sections]
+        if self.search_title_id in self.request:
+            searchstr = self.request[self.search_title_id].lower()
+            items = [item for item in items
+                     if searchstr in item.title.lower()]
+        return items
+
+
+class SectionListTableFilter(SectionsTableFilter):
+
+    template = ViewPageTemplateFile('templates/f_section_list_table_filter.pt')
+
+    @Lazy
+    def schoolyear(self):
+        return ISchoolYear(self.context)
+
+    def getSectionCount(self, term):
+        return len([section for section in ISectionContainer(term).values()
+                    if section in self.context.sections])
 
 
 class SectionsTableSchoolYear(flourish.viewlet.Viewlet):
@@ -1126,11 +1277,24 @@ class FlourishSectionView(DisplayForm):
                      if IEquipment(r, None) is not None])
 
 
+class ISectionAddTitleHint(Interface):
+    """Section add optional title hint text."""
+
+
+@adapter(ISchoolYear)
+@implementer(ISectionAddTitleHint)
+def getSectionAddTitleHint(context):
+    return _(u"If no title is specified, one will be created based on the "
+              "course title.")
+
+
 class FlourishSectionAddView(Form, SectionAddView):
 
     template = InheritTemplate(Page.template)
     label = None
     legend = _('Section Information')
+
+    fields = field.Fields(ISection).select('title', 'description')
 
     @property
     def title(self):
@@ -1138,8 +1302,15 @@ class FlourishSectionAddView(Form, SectionAddView):
         return _('Sections for ${schoolyear}',
                  mapping={'schoolyear': schoolyear.title})
 
+    def updateWidgets(self):
+        super(FlourishSectionAddView, self).updateWidgets()
+        self.widgets['title'].required = False
+        self.widgets['title'].field.required = False
+        self.widgets['title'].field.description = getAdapter(self.context,
+            ISectionAddTitleHint)
+
     def update(self):
-        super(FlourishSectionAddView, self).update()
+        super(SectionAddView, self).update()
         self._finishedAdd = False
 
         self.course_subform = FlourishNewSectionCoursesSubform(
@@ -1148,15 +1319,20 @@ class FlourishSectionAddView(Form, SectionAddView):
         self.term_subform = FlourishNewSectionTermsSubform(
             self.context, self.request, self,
             default_term=self.default_term)
+        self.location_subform = FlourishNewSectionLocationSubform(
+            self.context, self.request, self)
 
         self.course_subform.update()
         self.term_subform.update()
+        self.location_subform.update()
 
         if (self.course_subform.errors or
             self.term_subform.errors or
+            self.location_subform.errors or
             self.widgets.errors):
             self.errors = self.course_subform.errors  + \
                           self.term_subform.errors + \
+                          self.location_subform.errors + \
                           self.widgets.errors
             self.status = self.formErrorsMessage
         elif self._created_obj:
@@ -1166,6 +1342,7 @@ class FlourishSectionAddView(Form, SectionAddView):
     def add(self, section):
         course = self.course_subform.course
         terms = self.term_subform.terms
+        location = self.location_subform.location
         if course is None or not terms:
             return None
 
@@ -1176,14 +1353,21 @@ class FlourishSectionAddView(Form, SectionAddView):
         self._section = section
         section.courses.add(removeSecurityProxy(course))
 
-        # overwrite section title.
-        section.title = u"%s (%s)" % (course.title, section.__name__)
+        # if user provides no title, set it to default
+        if not section.title:
+            section.title = u"%s (%s)" % (course.title, section.__name__)
 
         # copy and link section in other selected terms
         for term in terms[1:]:
             new_section = copySection(section, term)
             new_section.previous = section
             section = new_section
+
+        # if the user provides a location, add it
+        if location is not None:
+            for section in self._section.linked_sections:
+                section.resources.add(removeSecurityProxy(location))
+
         self._finishedAdd = False
 
     def nextURL(self):
@@ -1268,6 +1452,56 @@ class FlourishNewSectionCoursesSubform(NewSectionCoursesSubform):
         super(FlourishNewSectionCoursesSubform, self).updateWidgets()
         self.widgets['course'].prompt = True
         self.widgets['course'].promptMessage = _('Select a course')
+
+    @button.handler(FlourishSectionAddView.buttons['add'])
+    def handleAdd(self, action):
+        data, self.errors = self.widgets.extract()
+        if self.errors:
+            return
+        changed = form.applyChanges(self, self.getContent(), data)
+
+
+class ISectionAddLocationHint(Interface):
+    """Section add optional location hint text."""
+
+
+@adapter(ISchoolYear)
+@implementer(ISectionAddLocationHint)
+def getSectionAddLocationHint(context):
+    return _(u"Additional locations can be added via the section view.")
+
+
+class FlourishNewSectionLocationSubform(subform.EditSubForm):
+
+    template = ViewPageTemplateFile('templates/section_add_location_subform.pt')
+    prefix = 'location'
+    errors = None
+
+    def __init__(self, *args, **kw):
+        super(FlourishNewSectionLocationSubform, self).__init__(*args, **kw)
+        self.values = {'location': None}
+
+        # add location field with titled lacation resources vocabulary
+        app = ISchoolToolApplication(None)
+        resources = [r for r in app['resources'].values()
+                     if ILocation(r, None) is not None]
+        schema_field = Choice(
+            __name__='location', title= _("Location"),
+            required=False, vocabulary=vocabulary_titled(resources))
+        self.fields += field.Fields(schema_field)
+        datamanager.DictionaryField(self.values, schema_field)
+
+    def updateWidgets(self):
+        super(FlourishNewSectionLocationSubform, self).updateWidgets()
+        self.widgets['location'].field.description = getAdapter(self.context,
+            ISectionAddLocationHint)
+
+    def getContent(self):
+        return self.values
+
+    @property
+    def location(self):
+        return self.values.get('location')
 
     @button.handler(FlourishSectionAddView.buttons['add'])
     def handleAdd(self, action):

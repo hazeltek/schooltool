@@ -37,6 +37,16 @@
       />
 
   <flourish:viewlet
+      name="filter"
+      before="batch table"
+      class=".person.PersonContainerViewTableFilter"
+      view=".person.FlourishBasicPersonContainerView"
+      render="template"
+      manager=".person.BasicPersonTable"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
       name="person_container"
       manager="schooltool.skin.flourish.page.IPageRefineManager"
       class="schooltool.basicperson.browser.person.PersonContainerLinks"
@@ -211,6 +221,14 @@
       permission="schooltool.view"
       manager="schooltool.skin.flourish.page.IPageContentManager"
       class=".person.FlourishPersonInfo"
+      />
+
+  <flourish:viewlet
+      name="jstree-resources"
+      view=".person.FlourishPersonView"
+      permission="schooltool.view"
+      manager="schooltool.skin.flourish.page.IPageContentManager"
+      template="templates/f_person_view_jstree.pt"
       />
 
   <!-- Edit person page -->
@@ -602,8 +620,7 @@
 
   <flourish:viewlet
       name="done"
-      before="table batch"
-      after="filter"
+      after="*"
       manager=".person.BasicPersonTable"
       view=".person.FlourishBasicPersonContainerView"
       class="schooltool.app.browser.app.ManageItemDoneLink"

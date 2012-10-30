@@ -435,7 +435,7 @@ def getCoursesTable(context, request, view, manager):
     return table
 
 
-class CoursesTable(table.ajax.Table):
+class CoursesTableBase(table.ajax.Table):
 
     def columns(self):
         title = table.table.LocaleAwareGetterColumn(
@@ -453,6 +453,22 @@ class CoursesTable(table.ajax.Table):
         return [title, course_id]
 
 
+class CoursesTable(CoursesTableBase):
+
+    pass
+
+
+class CourseListTable(CoursesTableBase):
+
+    @property
+    def source(self):
+        schoolyear = ISchoolYear(self.context)
+        return ICourseContainer(schoolyear)
+
+    def items(self):
+        return self.context.courses
+
+
 class CourseTableSchoolYear(flourish.viewlet.Viewlet):
     template = InlineViewPageTemplate('''
       <input type="hidden" name="schoolyear_id"
@@ -464,7 +480,8 @@ class CourseTableSchoolYear(flourish.viewlet.Viewlet):
 
 class CourseTableDoneLink(flourish.viewlet.Viewlet):
     template = InlineViewPageTemplate('''
-      <h3 tal:define="can_manage context/schooltool:app/schooltool:can_edit">
+      <h3 tal:define="can_manage context/schooltool:app/schooltool:can_edit"
+          class="done-link" i18n:domain="schooltool">
         <tal:block condition="can_manage">
           <a tal:attributes="href string:${context/schooltool:app/@@absolute_url}/manage"
              i18n:translate="">Done</a>
@@ -507,6 +524,10 @@ class FlourishCourseView(DisplayForm):
     fields = fields.select('__name__', 'title', 'description', 'course_id', 'government_id', 'credits')
 
     @property
+    def sections(self):
+        return list(self.context.sections)
+
+    @property
     def canModify(self):
         return checkPermission('schooltool.edit', self.context)
 
@@ -536,6 +557,16 @@ class FlourishCourseView(DisplayForm):
 
     def has_leaders(self):
         return bool(list(self.context.leaders))
+
+
+class FlourishCourseViewDoneLink(flourish.viewlet.Viewlet):
+
+    template = InlineViewPageTemplate('''
+    <h3 class="done-link" i18n:domain="schooltool">
+      <a tal:attributes="href view/view/done_link"
+         i18n:translate="">Done</a>
+    </h3>
+    ''')
 
 
 class FlourishCourseAddView(AddForm):

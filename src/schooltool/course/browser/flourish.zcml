@@ -33,8 +33,7 @@
 
   <flourish:viewlet
       name="done"
-      before="table batch"
-      after="filter"
+      after="*"
       manager=".course.CoursesTable"
       class=".course.CourseTableDoneLink"
       render="template"
@@ -60,6 +59,37 @@
       provides="schooltool.skin.flourish.interfaces.IViewlet"
       name="table"
       permission="zope.Public"
+      />
+
+  <flourish:viewlet
+      name="courses_table"
+      for="schooltool.course.interfaces.ISection"
+      class=".course.CourseListTable"
+      manager="schooltool.skin.flourish.interfaces.IAJAXParts"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="filter"
+      class="schooltool.table.table.DoNotFilter"
+      manager=".course.CourseListTable"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="sections_table"
+      for="schooltool.course.interfaces.ICourse"
+      class=".section.SectionListTable"
+      manager="schooltool.skin.flourish.interfaces.IAJAXParts"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="filter"
+      class=".section.SectionListTableFilter"
+      manager=".section.SectionListTable"
+      render="template"
+      permission="schooltool.view"
       />
 
   <!-- adapters -->
@@ -228,15 +258,6 @@
       permission="schooltool.edit"
       />
 
-  <flourish:viewlet
-      name="what-is-this"
-      class="schooltool.skin.flourish.page.Related"
-      template="templates/f_sections_related.pt"
-      view=".section.FlourishSectionsView"
-      manager="schooltool.skin.flourish.page.IPageRelatedManager"
-      permission="schooltool.edit"
-      />
-
   <!-- pages -->
 
   <flourish:page
@@ -260,6 +281,16 @@
       for="schooltool.course.interfaces.ICourse"
       class=".course.FlourishCourseView"
       permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="done"
+      after="*"
+      view=".course.FlourishCourseView"
+      permission="schooltool.view"
+      manager="schooltool.skin.flourish.page.IPageContentManager"
+      render="template"
+      class=".course.FlourishCourseViewDoneLink"
       />
 
   <flourish:page
@@ -368,6 +399,12 @@
       permission="schooltool.edit"
       subtitle="Add Section"
       />
+
+  <zope:adapter
+      factory=".section.getSectionAddTitleHint" />
+
+  <zope:adapter
+      factory=".section.getSectionAddLocationHint" />
 
   <flourish:page
       name="index.html"

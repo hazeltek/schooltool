@@ -381,6 +381,7 @@ src/schooltool/course/browser/ftests/section_linkage.txt
 src/schooltool/course/browser/ftests/sections_and_courses.txt
 src/schooltool/course/browser/ftests/test_all.py
 src/schooltool/course/browser/stests/__init__.py
+src/schooltool/course/browser/stests/course_delete.txt
 src/schooltool/course/browser/stests/multi_term_initial_location.txt
 src/schooltool/course/browser/stests/section_delete.txt
 src/schooltool/course/browser/stests/section_locations.txt

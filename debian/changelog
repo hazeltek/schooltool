@@ -1,3 +1,10 @@
+schooltool (1:2.3.1-0ubuntu2) raring; urgency=low
+
+  * debian/patches/include-plugins-overrides.patch: add to fix loading of
+    one custom plugin.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Tue, 27 Nov 2012 13:59:19 +0200
+
 schooltool (1:2.3.1-0ubuntu1) raring; urgency=low
 
   * New upstream release.

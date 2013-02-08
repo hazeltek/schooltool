@@ -1,3 +1,13 @@
+schooltool (1:2.4~a1-0ubuntu1) raring; urgency=low
+
+  * New upstream release.
+  * debian/patches/include-plugins-overrides.patch: remove, fixed upstream.
+  * debian/copyright: add section for included qunit.js
+  * debian/paste.ini: add 'threads' option with its default value (4).
+  * debian/site.zcml: remove a comment about old skin.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Fri, 08 Feb 2013 14:29:04 +0200
+
 schooltool (1:2.3.1-0ubuntu2) raring; urgency=low
 
   * debian/patches/include-plugins-overrides.patch: add to fix loading of

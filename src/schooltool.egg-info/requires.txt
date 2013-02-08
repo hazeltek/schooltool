@@ -27,7 +27,6 @@ zope.app.basicskin
 zope.app.broken
 zope.app.component
 zope.app.container
-zope.app.content
 zope.app.dependable
 zope.app.error
 zope.app.exception
@@ -99,4 +98,3 @@ Sphinx
 z3c.recipe.sphinxdoc
 
 [apidoc]
-zope.app.apidoc

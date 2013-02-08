@@ -2,6 +2,26 @@
 CHANGES
 =======
 
+2.4a1 (2013-01-23)
+------------------
+
+- Javascript for entering comments in gradebook cells.
+- Support table grouping by column.
+- Updated translations.
+
+Reports
++++++++
+
+- New PDF page design and implementation.
+- Render forms, tables, and grids to RML (PDF).
+- Add section roster, person profile, and resources reports.
+
+Development tools
++++++++++++++++++
+
+- Removed API Docs and Introspector
+
+
 2.3.1 (2012-11-27)
 ------------------
 

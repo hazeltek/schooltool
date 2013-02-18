@@ -1,3 +1,9 @@
+schooltool (1:2.4~a2-0ubuntu1) raring; urgency=low
+
+  * New upstream release.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Tue, 19 Feb 2013 00:00:22 +0200
+
 schooltool (1:2.4~a1-0ubuntu1) raring; urgency=low
 
   * New upstream release.

@@ -120,6 +120,19 @@ class FlatRMLTable(flourish.content.ContentProvider):
                      [prefix])
         return flourish.page.sanitize_id('-'.join(reversed(name_list)))
 
+    def getColumnWidths(self, rml_columns):
+        n_cols = len(rml_columns)
+        col_width = max(int(100./n_cols), 1)
+        result = ' '.join(
+            ['%d%%' % col_width] * (n_cols-1) +
+            ['%d%%' % max(100-col_width*(n_cols-1), 1)])
+        return result
+
+    def getHeaders(self, rml_columns):
+        result = [[column.renderHeader(self.formatter)
+                   for column in rml_columns]]
+        return result
+
     def render(self):
         columns = self.getColumns()
         rml_columns = self.getRMLColumns(columns)
@@ -129,13 +142,8 @@ class FlatRMLTable(flourish.content.ContentProvider):
 
         items = self.getItems()
 
-        n_cols = len(rml_columns)
-        col_width = max(int(100./n_cols), 1)
-        widths_string = ' '.join(
-            ['%d%%' % col_width] * (n_cols-1) +
-            ['%d%%' % max(100-col_width*(n_cols-1), 1)])
-        headers = [[column.renderHeader(self.formatter)
-                    for column in rml_columns]]
+        widths_string = self.getColumnWidths(rml_columns)
+        headers = self.getHeaders(rml_columns)
         tables = [
             {'rows': [[column.renderCell(item, self.formatter)
                        for column in rml_columns]
@@ -168,15 +176,8 @@ class RMLTable(FlatRMLTable):
 
         items = self.getItems()
 
-        n_cols = len(rml_columns)
-        col_width = max(int(100./n_cols), 1)
-        widths_string = ' '.join(
-            ['%d%%' % col_width] * (n_cols-1) +
-            ['%d%%' % max(100-col_width*(n_cols-1), 1)])
-
-        headers = [[column.renderHeader(self.formatter)
-                 for column in rml_columns]]
-
+        widths_string = self.getColumnWidths(rml_columns)
+        headers = self.getHeaders(rml_columns)
         tables = []
         rows = []
         current_group = None
@@ -388,7 +389,7 @@ class Grid(object):
 
     config = Config(
         table_style_name = "grade.table.grades",
-        title_column_width = 4 * units.cm,
+        title_column_width = 7 * units.cm,
         header_font = 'Ubuntu_Regular',
         header_font_size = 12,
         column_padding = 4,
@@ -430,6 +431,8 @@ class Grid(object):
         return GridCell(unicode(cell), item=cell)
 
     def getMaxTextSize(self, columns, default_font, default_font_size):
+        if not columns:
+            return 0, 0
         max_text_length = max([
             pdfmetrics.stringWidth(
                     unicode(column.text),

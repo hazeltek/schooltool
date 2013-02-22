@@ -1,3 +1,10 @@
+schooltool (1:2.4~a2-0ubuntu2) raring; urgency=low
+
+  * debian/patches/python-imaging.patch: remove, Ubuntu has also switched to
+    Pillow.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Fri, 22 Feb 2013 19:40:22 +0200
+
 schooltool (1:2.4~a2-0ubuntu1) raring; urgency=low
 
   * New upstream release.

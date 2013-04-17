@@ -1,4 +1,3 @@
-hurry.query
 PasteDeploy
 PasteScript
 Pillow
@@ -90,6 +89,7 @@ zope.copypastemove
 zope.exceptions
 zope.principalregistry
 zope.testbrowser
+z3c.form>=2.6
 schooltool.devtools>=0.7.1
 selenium
 

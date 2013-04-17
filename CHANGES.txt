@@ -2,6 +2,23 @@
 CHANGES
 =======
 
+2.4b1 (2013-04-17)
+------------------
+
+Bugfixes
+++++++++
+
+- Fixed setting up section schedules for multiple terms
+- Home and Calendar tabs work incorrectly when looking at other persons (https://launchpad.net/bugs/1166925)
+- Prevented XLS importer from crashing with non-xls files (https://launchpad.net/bugs/904968)
+
+Translations
+++++++++++++
+
+- Updated translations, added Thai. Special thanks to Vitali Oleshkevich, who
+  has completed both Russian and Ukrainian translations!
+
+
 2.4a2 (2013-02-18)
 ------------------
 

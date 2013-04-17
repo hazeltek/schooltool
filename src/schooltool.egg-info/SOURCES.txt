@@ -6,6 +6,8 @@ README.txt
 base.cfg
 bootstrap.py
 buildout.cfg
+deploy.cfg
+develop.cfg
 setup.py
 version.txt.in
 src/schooltool/__init__.py
@@ -218,6 +220,8 @@ src/schooltool/basicperson/browser/ftests/person_info.txt
 src/schooltool/basicperson/browser/ftests/setup.py
 src/schooltool/basicperson/browser/ftests/test_all.py
 src/schooltool/basicperson/browser/stests/__init__.py
+src/schooltool/basicperson/browser/stests/calendar_tab.txt
+src/schooltool/basicperson/browser/stests/home_tab.txt
 src/schooltool/basicperson/browser/stests/person_view_advisory.txt
 src/schooltool/basicperson/browser/stests/person_view_demographics.txt
 src/schooltool/basicperson/browser/stests/person_view_demographics.xls
@@ -674,6 +678,7 @@ src/schooltool/locales/sk.po
 src/schooltool/locales/sl.po
 src/schooltool/locales/sr.po
 src/schooltool/locales/sv.po
+src/schooltool/locales/th.po
 src/schooltool/locales/tr.po
 src/schooltool/locales/uk.po
 src/schooltool/locales/vi.po
@@ -722,6 +727,7 @@ src/schooltool/locales/sk/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/sl/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/sr/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/sv/LC_MESSAGES/schooltool.mo
+src/schooltool/locales/th/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/tr/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/uk/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/vi/LC_MESSAGES/schooltool.mo
@@ -1400,6 +1406,8 @@ src/schooltool/timetable/interfaces.py
 src/schooltool/timetable/schedule.py
 src/schooltool/timetable/schedule.zcml
 src/schooltool/timetable/security.zcml
+src/schooltool/timetable/stesting.py
+src/schooltool/timetable/stesting.zcml
 src/schooltool/timetable/timetable.py
 src/schooltool/timetable/timetable.zcml
 src/schooltool/timetable/browser/__init__.py
@@ -1419,6 +1427,9 @@ src/schooltool/timetable/browser/ftests/timetable-events.txt
 src/schooltool/timetable/browser/ftests/timetabling.txt
 src/schooltool/timetable/browser/resources/error-icon.png
 src/schooltool/timetable/browser/resources/timetable.css
+src/schooltool/timetable/browser/stests/__init__.py
+src/schooltool/timetable/browser/stests/schedule_multi_terms.txt
+src/schooltool/timetable/browser/stests/test_selenium.py
 src/schooltool/timetable/browser/templates/calendar_yearly.pt
 src/schooltool/timetable/browser/templates/calendar_yearly_legend.pt
 src/schooltool/timetable/browser/templates/confirm_schedule_delete.pt

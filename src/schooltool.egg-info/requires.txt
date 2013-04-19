@@ -3,7 +3,6 @@ PasteScript
 Pillow
 pytz
 reportlab
-rwproperty
 setuptools
 xlrd
 xlwt
@@ -37,7 +36,6 @@ zope.app.principalannotation
 zope.app.publication
 zope.app.schema
 zope.app.security
-zope.app.server
 zope.app.wsgi
 zope.browser
 zope.browsermenu

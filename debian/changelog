@@ -1,3 +1,16 @@
+schooltool (1:2.4.0-0ubuntu1) raring; urgency=low
+
+  * New upstream release.
+    - Fix PDF reports crashing with z3c.rml in raring (LP: #1169723)
+    - Fix previous release crashing on startup
+  * debian/control:
+    - Breaks cando (<< 0.7) because it implicitly depends on rwproperty
+      that we no longer depend on.
+  * debian/paste.ini: remove the 'threads' option to ease upgrades from 2.3
+    or older releases.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Fri, 19 Apr 2013 21:18:54 +0300
+
 schooltool (1:2.4~b1-0ubuntu1) raring; urgency=low
 
   * New upstream release

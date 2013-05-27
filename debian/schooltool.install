@@ -1,0 +1,3 @@
+debian/schooltool.conf etc/schooltool/standard
+debian/paste.ini etc/schooltool/standard
+debian/site.zcml etc/schooltool/standard

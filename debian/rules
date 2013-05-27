@@ -1,0 +1,17 @@
+#!/usr/bin/make -f
+
+export PYDEB_SUGGESTS_EXTRAS=test docs apidoc
+
+%:
+	dh $@ -Spython_distutils --with pydeb --with python2
+
+override_dh_auto_build:
+	rm -f src/schooltool/skin/resources/jquery.min.js
+	rm -rf src/schooltool/skin/flourish/resources/jquery/development-bundle/
+	rm -rf src/schooltool/skin/flourish/resources/jquery/js/
+	rm -f src/schooltool/locales/*.po
+	rm -f src/schooltool/locales/*.pot
+	dh_auto_build
+
+override_dh_installchangelogs:
+	dh_installchangelogs CHANGES.txt

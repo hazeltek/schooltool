@@ -1,0 +1,2 @@
+Tests: all
+Depends: @, python-zope.testrunner, python-lxml, python-zope.app.testing, python-zope.copypastemove, python-zope.exceptions, python-zope.principalregistry, python-zope.testbrowser

@@ -1,0 +1,50 @@
+Use system jQuery
+Index: schooltool/src/schooltool/skin/configure.zcml
+===================================================================
+--- schooltool.orig/src/schooltool/skin/configure.zcml
++++ schooltool/src/schooltool/skin/configure.zcml
+@@ -157,7 +157,7 @@
+ 	    layer="schooltool.skin.ISchoolToolLayer" />
+ 
+   <resource name="jquery.js"
+-            file="resources/jquery.min.js"
++            file="/usr/share/javascript/jquery/jquery.min.js"
+ 	    layer="schooltool.skin.ISchoolToolLayer" />
+   <resourceDirectory
+             name="jstree"
+Index: schooltool/src/schooltool/skin/flourish/configure.zcml
+===================================================================
+--- schooltool.orig/src/schooltool/skin/flourish/configure.zcml
++++ schooltool/src/schooltool/skin/flourish/configure.zcml
+@@ -27,7 +27,7 @@
+         name="jquery"
+         layer="schooltool.skin.flourish.IFlourishLayer">
+       <directory
+-          source="resources"
++          source="/usr/share/javascript/jquery"
+           include="jquery.min.js"
+           />
+     </zope:resourceLibrary>
+@@ -39,7 +39,7 @@
+                schooltool.skin.flourish-jquery-theme"
+       layer="schooltool.skin.flourish.IFlourishLayer">
+     <directory
+-        source="resources/jquery/js"
++        source="/usr/share/javascript/jquery-ui"
+         include="jquery-ui.min.js"
+         />
+   </zope:resourceLibrary>
+@@ -49,11 +49,11 @@
+       require=""
+       layer="schooltool.skin.flourish.IFlourishLayer">
+     <directory
+-        source="resources/jquery/development-bundle/ui/i18n"
++        source="/usr/share/javascript/jquery-ui/ui/i18n"
+         />
+     <library
+         class=".widgets.JQueryI18nLibrary"
+-        source="resources/jquery/development-bundle/ui/i18n"
++        source="/usr/share/javascript/jquery-ui/ui/i18n"
+         />
+   </flourish:resourceLibrary>
+ 

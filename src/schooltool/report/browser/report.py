@@ -20,25 +20,42 @@
 Report browser views.
 
 """
-from urllib import urlencode, unquote_plus
+from urllib import quote, urlencode, unquote_plus
+
+import z3c.form
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
-from zope.component import queryMultiAdapter
+from zope.component import adapts, queryMultiAdapter
 from zope.i18n import translate
 from zope.i18n.interfaces.locales import ICollator
+from zope.interface import Interface
 from zope.publisher.browser import BrowserView
+from zope.publisher.interfaces.browser import IBrowserRequest
+from zope.publisher.interfaces import NotFound
+from zope.publisher.interfaces import IPublishTraverse
+from zope.traversing.browser.absoluteurl import AbsoluteURL
+from zope.traversing.browser.interfaces import IAbsoluteURL
 from zope.traversing.browser.absoluteurl import absoluteURL
 from zope.interface import implements
 from zope.cachedescriptors.property import Lazy
+from zope.proxy import getProxiedObject
 from z3c.form import button
 
+import schooltool.traverser.traverser
+from schooltool.person.interfaces import IPerson
 from schooltool.report.interfaces import IReportLinksURL
+from schooltool.report.interfaces import IReportLinkViewlet
+from schooltool.report.interfaces import IReportFile
 from schooltool.report.report import IFlourishReportLinkViewletManager
 from schooltool.report.report import getReportRegistrationUtility
+from schooltool.report.report import ReportTask
 from schooltool.skin import flourish
 from schooltool.skin.flourish.page import WideContainerPage
 from schooltool.skin.flourish.page import RefineLinksViewlet
 from schooltool.skin.flourish import IFlourishLayer
 from schooltool.skin.flourish.form import DialogForm
+from schooltool.task.tasks import query_message
+from schooltool.task.interfaces import IRemoteTask
+from schooltool.task.browser.task import MessageDialog
 
 from schooltool.common import SchoolToolMessage as _
 
@@ -176,7 +193,7 @@ class ReportsLinks(RefineLinksViewlet):
                 querystring = urlencode({
                         'file_type': file_type.encode('utf-8').upper(),
                         'description': description.encode('utf-8')})
-                url = '%s?%s' % (viewlet.link, querystring)
+                url = '%s?%s' % (viewlet.report_link, querystring)
             result.append({
                     'class': item['class'],
                     'viewlet': viewlet,
@@ -190,7 +207,21 @@ class ReportsLinks(RefineLinksViewlet):
         return result
 
 
-class RequestReportDownloadDialog(DialogForm):
+class ReportLinkViewletProxy(flourish.viewlet.ViewletProxy):
+
+    adapts(IReportLinkViewlet)
+
+    def __init__(self, *args, **kw):
+        super(ReportLinkViewletProxy, self).__init__(*args, **kw)
+        self.restoreSortingAttrs()
+
+    def restoreSortingAttrs(self):
+        unproxied = getProxiedObject(self)
+        self.before = getattr(unproxied, 'before', ())
+        self.after = getattr(unproxied, 'after', ())
+
+
+class RequestReportDownloadDialog(DialogForm, z3c.form.form.EditForm):
 
     template = ViewPageTemplateFile('templates/f_request_report_download.pt')
 
@@ -225,3 +256,170 @@ class RequestReportDownloadDialog(DialogForm):
     def description(self):
         if 'description' in self.request:
             return unquote_plus(self.request['description'])
+
+
+class RequestRemoteReportDialog(RequestReportDownloadDialog):
+
+    template = ViewPageTemplateFile('templates/f_request_report_download.pt')
+
+    dialog_submit_actions = ('download',)
+    dialog_close_actions = ('cancel',)
+    label = None
+
+    report_builder = None # report generating class or view name
+
+    task_factory = ReportTask
+
+    report_task = None
+    replace_dialog = None
+
+    fields = z3c.form.field.Fields(Interface)
+    form_params = None
+
+    def update(self):
+        self.form_params = {}
+        RequestReportDownloadDialog.update(self)
+
+    def getContent(self):
+        return self.form_params
+
+    @button.buttonAndHandler(_("Generate"), name='download')
+    def handleDownload(self, action):
+        data, errors = self.extractData()
+        if errors:
+            self.status = self.formErrorsMessage
+            return
+        changes = self.applyChanges(data)
+        if changes:
+            self.status = self.successMessage
+        else:
+            self.status = self.noChangesMessage
+        task = self.task_factory(self.report_builder, self.target)
+        self.schedule(task)
+        self.report_task = task
+        message = query_message(task)
+        if message is None:
+            self.ajax_settings['dialog'] = 'close'
+            return
+        content = queryMultiAdapter(
+            (message, self.request), name='dialog')
+        if content is None:
+            self.ajax_settings['dialog'] = 'close'
+            return
+        self.replace_dialog = content
+
+    @button.buttonAndHandler(_("Cancel"))
+    def handle_cancel_action(self, action):
+        pass
+
+    def updateActions(self):
+        super(RequestReportDownloadDialog, self).updateActions()
+        self.actions['download'].addClass('button-ok')
+        self.actions['cancel'].addClass('button-cancel')
+
+    @property
+    def target(self):
+        return self.context
+
+    def updateTaskParams(self, task):
+        """Subclasses should update task.request_params dict here."""
+        task.request_params.update(self.form_params)
+
+    def schedule(self, task):
+        self.updateTaskParams(task)
+        task.schedule(self.request)
+
+    def render(self, *args, **kw):
+        if self.replace_dialog is not None:
+            return self.replace_dialog.render(*args, **kw)
+        return super(RequestRemoteReportDialog, self).render(*args, **kw)
+
+
+class ReportAbsoluteURLAdapter(AbsoluteURL):
+    adapts(IReportFile, IBrowserRequest)
+    implements(IAbsoluteURL)
+
+    def __str__(self):
+        base = absoluteURL(self.context.__parent__, self.request)
+        filename = quote(unicode(self.context.__name__).encode('UTF-8'))
+        url = base + '/download/' + filename
+        return url
+
+    __call__ = __str__
+
+
+class ReportMessageDownloads(object):
+    implements(IPublishTraverse)
+    file_attrs = ('report',)
+    files = None
+
+    def __init__(self, context, request, name='download'):
+        self.__name__ = name
+        self.__parent__ = context
+        self.context = context
+        self.request = request
+        self.collectFiles()
+
+    def collectFiles(self):
+        self.files = {}
+        for attr in self.file_attrs:
+            value = getattr(self.context, attr, None)
+            if value is None:
+                continue
+            self.files[value.__name__] = value
+
+    def publishTraverse(self, request, name):
+        if name not in self.files:
+            raise NotFound(self.context, name, self.request)
+        return self.files[name]
+
+
+class ReportMessageDownloadsPlugin(schooltool.traverser.traverser.TraverserPlugin):
+
+    def traverse(self, name):
+        return ReportMessageDownloads(self.context, self.request)
+
+
+class DownloadReportDialog(MessageDialog):
+
+    template = flourish.templates.File('templates/f_download_report_dialog.pt')
+
+    @property
+    def report(self):
+        return getattr(self.context, 'report', None)
+
+    @property
+    def report_generated(self):
+        return bool(self.report)
+
+    @property
+    def main_recipient(self):
+        person = IPerson(self.request, None)
+        if self.context.recipients is None:
+            return None
+        recipients = sorted(self.context.recipients, key=lambda r: r.__name__)
+        if person in recipients:
+            return person
+        for recipient in recipients:
+            if flourish.canView(recipient):
+                return recipient
+        return None
+
+    @Lazy
+    def failure_ticket_id(self):
+        sender = self.context.sender
+        if (IRemoteTask.providedBy(sender) and
+            sender.failed):
+            return sender.__name__
+        return None
+
+
+class ShortReportMessage(flourish.content.ContentProvider):
+
+    @Lazy
+    def failure_ticket_id(self):
+        sender = self.context.sender
+        if (IRemoteTask.providedBy(sender) and
+            sender.failed):
+            return sender.__name__
+        return None

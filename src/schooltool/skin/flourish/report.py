@@ -22,7 +22,6 @@ SchoolTool report pages.
 import cgi
 import datetime
 import re
-import urllib
 
 try:
     import Image
@@ -32,7 +31,7 @@ except ImportError:
 from reportlab.lib import units, pagesizes
 
 import zope.schema
-from zope.component import adapts, queryMultiAdapter
+from zope.component import adapts, queryMultiAdapter, getMultiAdapter
 from zope.cachedescriptors.property import Lazy
 from zope.interface import implements, Interface
 from zope.i18n import translate
@@ -44,6 +43,7 @@ from schooltool.app import pdf
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.app.interfaces import IApplicationPreferences
 from schooltool.common import getResourceURL
+from schooltool.skin.flourish.helpers import quoteFilename
 from schooltool.skin.flourish import content
 from schooltool.skin.flourish import interfaces
 from schooltool.skin.flourish import form
@@ -76,16 +76,6 @@ class Box(object):
             self.bottom = bottom
 
 
-def quoteFilename(filename):
-    if not filename:
-        return filename
-    if type(filename) is unicode:
-        encoded = filename.encode('UTF-8')
-    else:
-        encoded = str(filename)
-    return urllib.quote(encoded)
-
-
 class PDFPage(page.PageBase):
     implements(interfaces.IPDFPage)
 
@@ -104,6 +94,11 @@ class PDFPage(page.PageBase):
 
     pdf_disabled_text = _("PDF support is disabled."
                           "  It can be enabled by your administrator.")
+
+    # TODO: Should return True when running tests
+    render_invariant = False
+    # TODO: Should return True when devmode enabled
+    render_debug = False
 
     def renderPDF(self, xml):
         filename = self.filename
@@ -139,16 +134,6 @@ class PDFPage(page.PageBase):
     def filename(self):
         return self.makeFileName(self.base_filename)
 
-    @property
-    def render_debug(self):
-        # TODO: Should return True when devmode enabled
-        return False
-
-    @property
-    def render_invariant(self):
-        # TODO: Should return True when running tests
-        return False
-
     def __call__(self):
         if not pdf.isEnabled():
             return translate(self.pdf_disabled_text, context=self.request)
@@ -164,6 +149,9 @@ class PDFPage(page.PageBase):
 
 
 class IPlainPDFPage(interfaces.IPDFPage):
+
+    message_title = zope.schema.TextLine(
+        title=u"Short report description", required=False)
 
     name = zope.schema.TextLine(
         title=u"Report name", required=False)
@@ -189,6 +177,7 @@ class PlainPDFPage(PDFPage):
     title = None
     subtitles_left = None
     subtitles_right = None
+    message_title = _('report')
 
 
 class PDFInitSection(viewlet.ViewletManager):
@@ -392,11 +381,13 @@ class PlainPageTemplate(PageTemplate):
              extra_subtitles['margin'].bottom) * self.min_header_lines)
         height += self.header_padding_top + self.header_padding_bottom
         height -= extra_subtitles['height'] + padding.top + padding.bottom
-        ratio = image.size and image.size[0]/image.size[1] or 1
+        ratio = image.size and float(image.size[0])/image.size[1] or 1
         width = height*ratio
 
         # XXX: hard-coded logo url
         url = absoluteURL(ISchoolToolApplication(None), self.request)+'/logo'
+        logo_data = getMultiAdapter((prefs.logo, self.request),
+                                    name='data_uri')
 
         logo = {
             'x': right - width - padding.right,
@@ -404,6 +395,7 @@ class PlainPageTemplate(PageTemplate):
             'width': width,
             'height': height,
             'url': url,
+            'logo_data': logo_data,
             }
         return logo
 

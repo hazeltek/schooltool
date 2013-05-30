@@ -32,18 +32,16 @@ except ImportError:
 from reportlab.lib import units, pagesizes
 
 import zope.schema
-from zope.component import adapts, queryMultiAdapter
+from zope.component import adapts, queryMultiAdapter, getMultiAdapter
 from zope.cachedescriptors.property import Lazy
 from zope.interface import implements, Interface
 from zope.i18n import translate
 from zope.publisher.browser import BrowserView
-from zope.traversing.browser.absoluteurl import absoluteURL
 from z3c.rml import rml2pdf
 
 from schooltool.app import pdf
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.app.interfaces import IApplicationPreferences
-from schooltool.common import getResourceURL
 from schooltool.skin.flourish import content
 from schooltool.skin.flourish import interfaces
 from schooltool.skin.flourish import form
@@ -392,18 +390,18 @@ class PlainPageTemplate(PageTemplate):
              extra_subtitles['margin'].bottom) * self.min_header_lines)
         height += self.header_padding_top + self.header_padding_bottom
         height -= extra_subtitles['height'] + padding.top + padding.bottom
-        ratio = image.size and image.size[0]/image.size[1] or 1
+        ratio = image.size and float(image.size[0])/image.size[1] or 1
         width = height*ratio
 
-        # XXX: hard-coded logo url
-        url = absoluteURL(ISchoolToolApplication(None), self.request)+'/logo'
+        logo_data = getMultiAdapter((prefs.logo, self.request),
+                                    name='data_uri')
 
         logo = {
             'x': right - width - padding.right,
             'y': top - extra_subtitles['height'] - height - padding.top,
             'width': width,
             'height': height,
-            'url': url,
+            'logo_data': logo_data,
             }
         return logo
 
@@ -483,11 +481,7 @@ class PlainPageTemplate(PageTemplate):
         x = self.manager.margin.left
         y = self.manager.margin.bottom
         slot_y = y + padding.bottom
-        url = getResourceURL('schooltool.skin.flourish',
-                             'logo_bw.png',
-                             self.request)
         return {
-            'logo_url': url,
             'fontSize': fontSize,
             'height': height,
             'width': width,

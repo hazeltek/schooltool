@@ -30,6 +30,10 @@ class IReportLinkViewletManager(IViewletManager):
    """The manager for report links."""
 
 
+class IReportLinkViewlet(Interface):
+   """A report link viewlet"""
+
+
 class IRegisteredReportsUtility(Interface):
 
     reports_by_group = Dict(

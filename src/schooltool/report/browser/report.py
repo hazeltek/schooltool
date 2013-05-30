@@ -23,15 +23,18 @@ Report browser views.
 from urllib import urlencode, unquote_plus
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from zope.component import queryMultiAdapter
+from zope.component import adapts
 from zope.i18n import translate
 from zope.i18n.interfaces.locales import ICollator
 from zope.publisher.browser import BrowserView
 from zope.traversing.browser.absoluteurl import absoluteURL
 from zope.interface import implements
 from zope.cachedescriptors.property import Lazy
+from zope.proxy import getProxiedObject
 from z3c.form import button
 
 from schooltool.report.interfaces import IReportLinksURL
+from schooltool.report.interfaces import IReportLinkViewlet
 from schooltool.report.report import IFlourishReportLinkViewletManager
 from schooltool.report.report import getReportRegistrationUtility
 from schooltool.skin import flourish
@@ -188,6 +191,20 @@ class ReportsLinks(RefineLinksViewlet):
                     'url': url,
                     })
         return result
+
+
+class ReportLinkViewletProxy(flourish.viewlet.ViewletProxy):
+
+    adapts(IReportLinkViewlet)
+
+    def __init__(self, *args, **kw):
+        super(ReportLinkViewletProxy, self).__init__(*args, **kw)
+        self.restoreSortingAttrs()
+
+    def restoreSortingAttrs(self):
+        unproxied = getProxiedObject(self)
+        self.before = getattr(unproxied, 'before', ())
+        self.after = getattr(unproxied, 'after', ())
 
 
 class RequestReportDownloadDialog(DialogForm):

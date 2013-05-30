@@ -1,3 +1,10 @@
+schooltool (1:2.4.1-0ubuntu1) saucy; urgency=low
+
+  * New upstream bugfix release.
+    - Fixed report generation to not do network requests (LP: #1185418).
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 30 May 2013 19:41:52 +0300
+
 schooltool (1:2.4.0-0ubuntu1) raring; urgency=low
 
   * New upstream release.

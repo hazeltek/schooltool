@@ -1,3 +1,11 @@
+schooltool (1:2.5.0~r3586-1) raring; urgency=low
+
+  * Snapshot of trunk.
+    - new conffiles: zeo.conf, redis.conf, supervisord.conf
+  * debian/schooltool.init: control supervisor instead of paster.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Wed, 05 Jun 2013 17:57:01 +0300
+
 schooltool (1:2.4.0-0ubuntu1) raring; urgency=low
 
   * New upstream release.

@@ -1,3 +1,8 @@
-debian/schooltool.conf etc/schooltool/standard
 debian/paste.ini etc/schooltool/standard
+debian/redis.conf etc/schooltool/standard
+debian/report-server.zcml etc/schooltool/standard
+debian/result-server.zcml etc/schooltool/standard
+debian/schooltool.conf etc/schooltool/standard
 debian/site.zcml etc/schooltool/standard
+debian/supervisord.conf etc/schooltool/standard
+debian/zeo.conf etc/schooltool/standard

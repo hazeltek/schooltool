@@ -15,16 +15,14 @@ INSTANCE=standard
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 NAME=$SERVER
 DESC="$SERVER_DESC"
-PIDFILE=/var/run/schooltool/$SERVER.pid
+PIDFILE=/var/run/schooltool/supervisord.pid
 SCRIPTNAME=/etc/init.d/$SERVER
 CONFIGFILE=/etc/schooltool/$INSTANCE/paste.ini
 LOGFILE=/var/log/schooltool/paste.log
 
-PASTER=/usr/bin/paster
-PASTER_ARGS="--user=schooltool --group=schooltool --daemon --pid-file=$PIDFILE --log-file=$LOGFILE --quiet"
+SUPERVISOR_ARGS="-c /etc/schooltool/$INSTANCE/supervisord.conf"
 
 # Gracefully exit if the package has been removed or is not configured.
-test -x $PASTER || exit 0
 test -f $CONFIGFILE || exit 0
 
 . /lib/lsb/init-functions
@@ -36,13 +34,13 @@ case "$1" in
             || install --group schooltool --owner schooltool -d /var/run/schooltool
 
         log_begin_msg "Starting $DESC..."
-        $PASTER serve $PASTER_ARGS $CONFIGFILE start || log_end_msg 1
+        /usr/bin/supervisord --user schooltool $SUPERVISOR_ARGS || log_end_msg 1
 	log_end_msg 0
 	;;
   stop)
 	log_begin_msg "Stopping $DESC..."
         if [ -f $PIDFILE ] ; then
-            $PASTER serve $PASTER_ARGS $CONFIGFILE stop || log_end_msg 1
+            /usr/bin/supervisorctl $SUPERVISOR_ARGS shutdown || log_end_msg 1
         fi
 	log_end_msg 0
 	;;
@@ -53,14 +51,14 @@ case "$1" in
 
  	log_begin_msg "Restarting $DESC..."
         if [ -f $PIDFILE ] ; then
-            $PASTER serve $PASTER_ARGS $CONFIGFILE restart || log_end_msg 1
+            /usr/bin/supervisorctl $SUPERVISOR_ARGS restart || log_end_msg 1
         else
-            $PASTER serve $PASTER_ARGS $CONFIGFILE start || log_end_msg 1
+            /usr/bin/supervisord --user schooltool $SUPERVISOR_ARGS || log_end_msg 1
         fi
  	log_end_msg 0
 	;;
   status)
-        $PASTER serve --pid-file=$PIDFILE $CONFIGFILE status || exit 1
+        /usr/bin/supervisorctl $SUPERVISOR_ARGS status || exit 1
         exit 0
         ;;
   *)

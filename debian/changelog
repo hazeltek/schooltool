@@ -1,4 +1,4 @@
-schooltool (1:2.5.0~r3586-2) raring; urgency=low
+schooltool (1:2.5.0~dev-0ubuntu1) raring; urgency=low
 
   * Snapshot of trunk.
     - new conffiles: zeo.conf, redis.conf, supervisord.conf

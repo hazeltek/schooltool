@@ -8,22 +8,23 @@
 # Short-Description: SchoolTool server
 ### END INIT INFO
 
-SERVER_DESC="SchoolTool"
-SERVER=schooltool
-INSTANCE=standard
-
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-NAME=$SERVER
-DESC="$SERVER_DESC"
-PIDFILE=/var/run/schooltool/supervisord.pid
-SCRIPTNAME=/etc/init.d/$SERVER
-CONFIGFILE=/etc/schooltool/$INSTANCE/paste.ini
-LOGFILE=/var/log/schooltool/paste.log
+DAEMON=/usr/bin/supervisord
+NAME=schooltool
+DESC="SchoolTool"
 
-SUPERVISOR_ARGS="-c /etc/schooltool/$INSTANCE/supervisord.conf"
+INSTANCE=standard
+CONFIGFILE=/etc/schooltool/$INSTANCE/supervisord.conf
+DAEMON_OPTS="-c $CONFIGFILE"
+PIDFILE=/var/run/schooltool/supervisord.pid
+DODTIME=5                   # Time to wait for the server to die, in seconds
+                            # If this value is set too low you might not
+                            # let some servers to die gracefully and
+                            # 'restart' will not work
 
 # Gracefully exit if the package has been removed or is not configured.
 test -f $CONFIGFILE || exit 0
+test -x $DAEMON || exit 0
 
 . /lib/lsb/init-functions
 
@@ -33,36 +34,39 @@ case "$1" in
         [ -d /var/run/schooltool ] \
             || install --group schooltool --owner schooltool -d /var/run/schooltool
 
-        log_begin_msg "Starting $DESC..."
-        /usr/bin/supervisord --user schooltool $SUPERVISOR_ARGS || log_end_msg 1
-	log_end_msg 0
+	log_begin_msg "Starting $DESC..."
+	start-stop-daemon --start --quiet --pidfile $PIDFILE \
+		--startas $DAEMON -- $DAEMON_OPTS --user schooltool
+	log_end_msg $?
 	;;
   stop)
 	log_begin_msg "Stopping $DESC..."
-        if [ -f $PIDFILE ] ; then
-            /usr/bin/supervisorctl $SUPERVISOR_ARGS shutdown || log_end_msg 1
-        fi
-	log_end_msg 0
+	start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE
+	log_end_msg $?
 	;;
   restart|force-reload)
 	# Make sure we have a /var/run sub-directory
         [ -d /var/run/schooltool ] \
             || install --group schooltool --owner schooltool -d /var/run/schooltool
 
- 	log_begin_msg "Restarting $DESC..."
-        if [ -f $PIDFILE ] ; then
-            /usr/bin/supervisorctl $SUPERVISOR_ARGS restart || log_end_msg 1
-        else
-            /usr/bin/supervisord --user schooltool $SUPERVISOR_ARGS || log_end_msg 1
-        fi
- 	log_end_msg 0
+	log_begin_msg "Restarting $DESC..."
+	start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE
+	[ -n "$DODTIME" ] && sleep $DODTIME
+	start-stop-daemon --start --quiet --pidfile $PIDFILE\
+		--startas $DAEMON -- $DAEMON_OPTS --user schooltool
+	log_end_msg $?
 	;;
   status)
-        /usr/bin/supervisorctl $SUPERVISOR_ARGS status || exit 1
-        exit 0
-        ;;
+	if [ ! -f "$PIDFILE" ] ; then
+		echo "SchoolTool is not running."
+		exit 1
+	fi
+	/usr/bin/supervisorctl $DAEMON_OPTS status
+	exit 0
+	;;
   *)
- 	log_success_msg "Usage: $SCRIPTNAME {start|stop|restart|force-reload|status}" \
+	SCRIPTNAME=/etc/init.d/$NAME
+	log_success_msg "Usage: $SCRIPTNAME {start|stop|restart|force-reload|status}" \
                 >&2
         exit 1
 	;;

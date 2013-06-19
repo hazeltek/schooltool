@@ -1,3 +1,9 @@
+schooltool (1:2.5.0~dev-0ubuntu3) raring; urgency=low
+
+  * Compile translations.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Wed, 19 Jun 2013 19:54:48 +0300
+
 schooltool (1:2.5.0~dev-0ubuntu2) raring; urgency=low
 
   * Snapshot of trunk.

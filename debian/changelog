@@ -1,3 +1,9 @@
+schooltool (1:2.5.0~dev-0ubuntu4) raring; urgency=low
+
+  * Revert deletion of schooltool/locales/__init__.py
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 20 Jun 2013 16:07:57 +0300
+
 schooltool (1:2.5.0~dev-0ubuntu3) raring; urgency=low
 
   * Compile translations.

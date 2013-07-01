@@ -1,3 +1,9 @@
+schooltool (1:2.4.2-0ubuntu1) saucy; urgency=low
+
+  * New upstream bugfix release.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Mon, 01 Jul 2013 17:35:03 +0300
+
 schooltool (1:2.4.1-0ubuntu1) saucy; urgency=low
 
   * New upstream bugfix release.

@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+2.4.2 (2013-07-01)
+------------------
+
+- Small fixes for other plugins.
+- Updated translations
+
+
 2.4.1 (2013-05-30)
 ------------------
 
@@ -9,7 +16,6 @@ Reports
 +++++++
 
 - Fixed report generation to not do network requests (https://launchpad.net/bugs/1185418).
-- Fixed ratio of school logo in reports
 - Fixed ratio of school logo.
 - Fixed rendering of "&" in headers.
 

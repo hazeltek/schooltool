@@ -236,12 +236,12 @@ h3.done-link a:active {
     background-color: #f7f7f7;
 }
 
-.page > .body > .sidebar > .content > .header {
+.page > .body > .sidebar .content > .header {
     border-bottom-color: #00abb3;
     color: #333333;
 }
 
-.page > .body > .sidebar > .content > .body > ul.filter > li.active > a {
+.page > .body > .sidebar .content > .body > ul.filter > li.active > a {
     color: #00abb3;
 }
 
@@ -561,6 +561,24 @@ table.schooltool-tasks-status td .success {
 
 .gradebook-part tbody tr.odd {
     background-color: #f0efee;
+}
+
+.gradebook-part tbody tr.single-odd,
+.gradebook-part tbody tr.double-odd {
+    background-color: #f0efee;
+}
+
+.gradebook-part tbody tr.single-even,
+.gradebook-part tbody tr.double-even {
+    background-color: #f7f7f7;
+}
+
+.gradebook-part tbody tr.grade-hint.double-odd td:not(.placeholder) {
+    background-color: #d0efee;
+}
+
+.gradebook-part tbody tr.grade-hint.double-even td:not(.placeholder) {
+    background-color: #d0f7f7;
 }
 
 .gradebook-part th, .gradebook-part td {

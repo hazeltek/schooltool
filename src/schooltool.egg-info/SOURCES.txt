@@ -563,6 +563,7 @@ src/schooltool/generations/evolve35.py
 src/schooltool/generations/evolve37.py
 src/schooltool/generations/evolve38.py
 src/schooltool/generations/evolve39.py
+src/schooltool/generations/evolve40.py
 src/schooltool/generations/evolve36/__init__.py
 src/schooltool/generations/evolve36/calendar_builders.py
 src/schooltool/generations/evolve36/evolve.py
@@ -1011,14 +1012,11 @@ src/schooltool/securitypolicy/tests/test_metaconfigure.py
 src/schooltool/securitypolicy/tests/test_policy.py
 src/schooltool/securitypolicy/tests/test_txt.py
 src/schooltool/skin/__init__.py
-src/schooltool/skin/breadcrumbs.py
 src/schooltool/skin/configure.zcml
 src/schooltool/skin/containers.py
 src/schooltool/skin/date-input.pt
 src/schooltool/skin/dateformatter.py
 src/schooltool/skin/error.py
-src/schooltool/skin/form.py
-src/schooltool/skin/interfaces.py
 src/schooltool/skin/macros.py
 src/schooltool/skin/meta.zcml
 src/schooltool/skin/skin.py
@@ -1264,12 +1262,10 @@ src/schooltool/skin/resources/jstree/themes/classic/dot_for_ie.gif
 src/schooltool/skin/resources/jstree/themes/classic/icons.png
 src/schooltool/skin/resources/jstree/themes/classic/style.css
 src/schooltool/skin/resources/jstree/themes/classic/throbber.gif
-src/schooltool/skin/templates/actions.pt
 src/schooltool/skin/templates/actionsViewlet.pt
 src/schooltool/skin/templates/actionsbar.pt
 src/schooltool/skin/templates/container.pt
 src/schooltool/skin/templates/container_delete.pt
-src/schooltool/skin/templates/edit_form.pt
 src/schooltool/skin/templates/error.pt
 src/schooltool/skin/templates/f_error.pt
 src/schooltool/skin/templates/f_notfound.pt
@@ -1296,7 +1292,6 @@ src/schooltool/skin/templates/widget_macros.pt
 src/schooltool/skin/templates/z3c-schooltool-display.pt
 src/schooltool/skin/templates/z3c-schooltool-form.pt
 src/schooltool/skin/tests/__init__.py
-src/schooltool/skin/tests/test_breadcrumbs.py
 src/schooltool/skin/tests/test_containers.py
 src/schooltool/skin/tests/test_dateformatter.py
 src/schooltool/skin/tests/test_error.py
@@ -1311,8 +1306,6 @@ src/schooltool/standard/skin.py
 src/schooltool/standard/ftests/__init__.py
 src/schooltool/standard/ftests/standard.txt
 src/schooltool/standard/ftests/test_all.py
-src/schooltool/stapp2007/__init__.py
-src/schooltool/stapp2007/configure.zcml
 src/schooltool/table/__init__.py
 src/schooltool/table/ajax.py
 src/schooltool/table/batch.py

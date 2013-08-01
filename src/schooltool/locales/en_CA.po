@@ -8,17 +8,17 @@ msgstr ""
 "Project-Id-Version: schooltool\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2013-05-27 19:54+0300\n"
-"PO-Revision-Date: 2013-06-09 06:55+0000\n"
+"PO-Revision-Date: 2013-05-22 08:17+0000\n"
 "Last-Translator: Francois Thunus <Unknown>\n"
 "Language-Team: English (Canada) <en_CA@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2013-06-11 06:06+0000\n"
-"X-Generator: Launchpad (build 16667)\n"
+"X-Launchpad-Export-Date: 2013-05-28 05:49+0000\n"
+"X-Generator: Launchpad (build 16640)\n"
 "Language: \n"
 
-#: /src/schooltool/app/app.py:193
+#: /src/schooltool/app/app.py:197
 msgid "Your School"
 msgstr "Your School"
 
@@ -3477,12 +3477,12 @@ msgstr "ID Card: ${person}"
 
 #: /src/schooltool/basicperson/browser/person.py:1385
 msgid "Username: ${username}"
-msgstr "Username: ${username}"
+msgstr ""
 
 #: /src/schooltool/basicperson/browser/person.py:1404
 #: /src/schooltool/basicperson/browser/templates/f_generalViewlet.pt:2
 msgid "General Information"
-msgstr "General Information"
+msgstr ""
 
 #: /src/schooltool/basicperson/browser/templates/container.pt:18
 msgid ""
@@ -3622,29 +3622,29 @@ msgstr "Required"
 
 #: /src/schooltool/basicperson/browser/templates/f_demographics_view.pt:9
 msgid "Limited"
-msgstr "Limited"
+msgstr ""
 
 #: /src/schooltool/basicperson/browser/templates/f_generalViewlet.pt:10
 #: /src/schooltool/basicperson/browser/templates/f_generalViewlet.pt:29
 msgid "Edit this person's information"
-msgstr "Edit this person's information"
+msgstr ""
 
 #: /src/schooltool/basicperson/browser/templates/f_generalViewlet.pt:24
 msgid "Demographics and other personal data"
-msgstr "Demographics and other personal data"
+msgstr ""
 
 #: /src/schooltool/basicperson/browser/templates/f_manage_people_overview.pt:4
 msgid "Manage people"
-msgstr "Manage people"
+msgstr ""
 
 #: /src/schooltool/basicperson/browser/templates/f_manage_people_overview.pt:14
 msgid "There are ${count} people defined in ${school}."
-msgstr "There are ${count} people defined in ${school}."
+msgstr ""
 
 #: /src/schooltool/basicperson/browser/templates/f_person_add_multiple.pt:10
 #: /src/schooltool/basicperson/browser/templates/person_add_multiple.pt:13
 msgid "Added persons"
-msgstr "Added persons"
+msgstr ""
 
 #: /src/schooltool/basicperson/browser/templates/f_person_add_subform.pt:3
 #: /src/schooltool/basicperson/browser/templates/person_add_subform.pt:2
@@ -3658,23 +3658,23 @@ msgstr "New person"
 #: /src/schooltool/skin/flourish/templates/z3c-schooltool-form.pt:51
 #: /src/schooltool/timetable/browser/templates/f_specialday_select.pt:12
 msgid "signifies a required field"
-msgstr "signifies a required field"
+msgstr ""
 
 #: /src/schooltool/basicperson/browser/templates/f_person_id_cards.pt:90
 msgid "ID:"
-msgstr "ID:"
+msgstr ""
 
 #: /src/schooltool/basicperson/browser/templates/f_person_id_cards.pt:95
 msgid "Birth date:"
-msgstr "Birth date:"
+msgstr ""
 
 #: /src/schooltool/basicperson/browser/templates/f_person_id_cards.pt:99
 msgid "Contact"
-msgstr "Contact"
+msgstr ""
 
 #: /src/schooltool/basicperson/browser/templates/f_person_id_cards.pt:111
 msgid "Contact's Phone"
-msgstr "Contact's Phone"
+msgstr ""
 
 #: /src/schooltool/basicperson/browser/templates/person-csvimport.pt:4
 #: /src/schooltool/person/browser/person-csvimport.pt:4
@@ -3818,31 +3818,29 @@ msgstr "(yyyy-mm-dd)"
 
 #: /src/schooltool/basicperson/interfaces.py:133
 msgid "As it should appear on forms and reports."
-msgstr "As it should appear on forms and reports."
+msgstr ""
 
 #: /src/schooltool/basicperson/interfaces.py:138
 msgid "A unique one word alphanumeric identifier."
-msgstr "A unique one word alphanumeric identifier."
+msgstr ""
 
 #: /src/schooltool/basicperson/interfaces.py:163
 msgid "Selection list"
-msgstr "Selection list"
+msgstr ""
 
 #: /src/schooltool/basicperson/interfaces.py:163
 msgid ""
 "Enter the valid values for the field below.  One value per line.  These "
 "values will be displayed as a menu in forms."
 msgstr ""
-"Enter the valid values for the field below.  One value per line.  These "
-"values will be displayed as a menu in forms."
 
 #: /src/schooltool/basicperson/interfaces.py:173
 msgid "Minimum value"
-msgstr "Minimum value"
+msgstr ""
 
 #: /src/schooltool/basicperson/interfaces.py:177
 msgid "Maximum value"
-msgstr "Maximum value"
+msgstr ""
 
 #: /src/schooltool/basicperson/person.py:75
 #: /src/schooltool/contact/browser/contact.py:503
@@ -3906,7 +3904,7 @@ msgstr "Administrators"
 
 #: /src/schooltool/calendar/browser/calendar.py:173
 msgid "Tomorrow"
-msgstr "Tomorrow"
+msgstr ""
 
 #: /src/schooltool/calendar/browser/calendar.py:175
 msgid "Yesterday"

@@ -1,6 +1,7 @@
 
     [paste.app_factory]
     main = schooltool.paste.main:schooltool_app_factory
+    task_results = schooltool.paste.main:task_result_app_factory
 
     [console_scripts]
     start-schooltool-instance = schooltool.paste.run:main
@@ -11,8 +12,10 @@
     schooltool_deploy = schooltool.paste.templates:SchoolToolDeploy
 
     [schooltool.instance_type]
-    flourish = schooltool.skin.flourish.instance
     standard = schooltool.standard
     schooltool = schooltool.skin.flourish.instance
+
+    [schooltool.tasks]
+    schooltool.export.importer = schooltool.export.importer
 
     

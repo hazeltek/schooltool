@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<configure xmlns="http://schooltool.org/securitypolicy"
+           xmlns:zope="http://namespaces.zope.org/zope">
+
+  <allow
+      interface="schooltool.task.interfaces.IRemoteTask"
+      crowds="administration"
+      permission="schooltool.view" />
+
+  <allow
+      interface="schooltool.task.interfaces.IRemoteTask"
+      crowds="administration"
+      permission="schooltool.edit" />
+
+</configure>

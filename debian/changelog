@@ -1,3 +1,15 @@
+schooltool (1:2.5.0-0ubuntu1) saucy; urgency=low
+
+  * New upstream release.
+  * debian/control:
+    - add python-redis to python-schooltool Depends.
+    - add redis-server and supervisor to schooltool Depends.
+  * Add new conffiles: zeo.conf, redis.conf, supervisord.conf
+  * debian/schooltool.init: control supervisor instead of paster.
+  * debian/watch: change series to trunk
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 01 Aug 2013 21:23:22 +0300
+
 schooltool (1:2.4.2-0ubuntu1) saucy; urgency=low
 
   * New upstream bugfix release.

@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: schooltool\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2013-05-27 19:54+0300\n"
-"PO-Revision-Date: 2013-06-15 10:29+0000\n"
-"Last-Translator: Yves MATHIEU <MisterY_vonvon@hotmail.com>\n"
+"PO-Revision-Date: 2013-05-25 07:05+0000\n"
+"Last-Translator: GHOSTnew <ghostnew@team-mondial.net>\n"
 "Language-Team: French <fr@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2013-06-16 04:54+0000\n"
-"X-Generator: Launchpad (build 16667)\n"
+"X-Launchpad-Export-Date: 2013-05-28 05:43+0000\n"
+"X-Generator: Launchpad (build 16640)\n"
 "Language: fr\n"
 "X-Rosetta-Version: 0.1\n"
 
@@ -4689,7 +4689,7 @@ msgstr "Importer les Étudiants"
 
 #: /src/schooltool/course/browser/flourish.zcml:644
 msgid "Roster"
-msgstr "Liste"
+msgstr ""
 
 #: /src/schooltool/course/browser/flourish.zcml:644
 msgid "Students and instructors of a section"
@@ -4843,7 +4843,7 @@ msgstr "Lier ${section} à une Section dans une Autre Période"
 
 #: /src/schooltool/course/browser/section.py:1833
 msgid "Section Roster"
-msgstr "Liste des Sections"
+msgstr ""
 
 #: /src/schooltool/course/browser/section.py:1853
 msgid "Instructors: ${instructors}"
@@ -8316,7 +8316,7 @@ msgstr "Planifier les Grilles-Horaires"
 
 #: /src/schooltool/timetable/browser/flourish.zcml:549
 msgid "Custom date range"
-msgstr "Période de date personnalisée"
+msgstr ""
 
 #: /src/schooltool/timetable/browser/flourish.zcml:563
 msgid "Term(s)"
@@ -8696,11 +8696,11 @@ msgstr "Planifier une calendrier scolaire"
 
 #: /src/schooltool/timetable/browser/timetable.py:521
 msgid "First term"
-msgstr "Première période"
+msgstr ""
 
 #: /src/schooltool/timetable/browser/timetable.py:526
 msgid "Last term"
-msgstr "Dernière période"
+msgstr ""
 
 #: /src/schooltool/timetable/browser/timetable.py:678
 #: /src/schooltool/timetable/browser/timetable.py:821

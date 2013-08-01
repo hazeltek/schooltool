@@ -1,3 +1,5 @@
+celery
+bottle
 PasteDeploy
 PasteScript
 Pillow

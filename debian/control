@@ -15,6 +15,7 @@ Package: python-schooltool
 Architecture: all
 Depends: ${pydeb:Depends}, ${python:Depends}, ${misc:Depends},
          libjs-jquery, libjs-jquery-ui,
+         python-redis,
 Breaks: python-schooltool.gradebook (<< 2.2),
         python-schooltool.lyceum.journal (<< 2.2),
         python-schooltool.cando (<< 0.7),
@@ -29,6 +30,8 @@ Architecture: all
 Pre-Depends: python-pastescript
 Depends: ${misc:Depends}, adduser, lsb-base,
          python-schooltool,
+         redis-server,
+         supervisor,
 Recommends: python-schooltool.gradebook,
             python-schooltool.lyceum.journal,
             python-schooltool.intervention,

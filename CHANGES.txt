@@ -2,6 +2,14 @@
 CHANGES
 =======
 
+2.5.1 (2013-08-01)
+------------------
+
+- Differentiate permissions of administrators, clerks, and managers.
+- Scripts and styles for the new attendance features.
+- Updated translations
+
+
 2.5.0 (2013-06-03)
 ------------------
 

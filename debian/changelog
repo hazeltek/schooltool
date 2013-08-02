@@ -1,3 +1,16 @@
+schooltool (1:2.5.1-0ubuntu1) saucy; urgency=low
+
+  * New upstream release
+    - differeniate administrative permissions
+    - improvements for journal and gradebook
+  * debian/control:
+    - remove python-redis from Depends, added upstream
+  * debian/schooltool.postinst:
+    - fix restart on upgrade
+    - remove copying of schooltool-2009 database
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Fri, 02 Aug 2013 13:02:14 +0300
+
 schooltool (1:2.5.0-0ubuntu1) saucy; urgency=low
 
   * New upstream release.

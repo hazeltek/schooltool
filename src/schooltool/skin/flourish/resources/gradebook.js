@@ -85,8 +85,9 @@ function cellInputName(td) {
 }
 
 function findRowHeader(td) {
-    var rowIndex = td.parent().index();
-    return $('#students-part').find('td').eq(rowIndex);
+    var parent = td.parent();
+    var rowIndex = (parent.prevUntil("tbody").filter(":not('.grade-hint')")).length;
+    return $('#students-part tbody').find('tr').eq(rowIndex).find('td');
 }
 
 function findColumnHeader(td) {
@@ -96,7 +97,22 @@ function findColumnHeader(td) {
 
 function isScorable(td) {
     var columnHeader = findColumnHeader(td);
-    return columnHeader.hasClass('scorable');
+    var rowHeader = td.parent();
+    return columnHeader.hasClass('scorable') && (!rowHeader.hasClass('grade-hint'));
+}
+
+function getScorableInput(td) {
+    var columnHeader = findColumnHeader(td);
+    var rowHeader = td.parent();
+    if (!columnHeader.hasClass('scorable')) {
+        return null;
+    }
+    if (rowHeader.hasClass('grade-hint')) {
+        var scoreHeader = rowHeader.next();
+        td = scoreHeader.find('td').eq(td.index());
+    }
+    var input = getInput(td);
+    return input;
 }
 
 function getInput(td) {
@@ -179,6 +195,9 @@ function fillPopupMenu(link) {
     var data = link.data('popup-menu-data');
     var popup = link.prev();
     popup.empty();
+    if (!data) {
+        return;
+    }
     var header = $('<li class="header"></li>');
     header.text(data.header);
     popup.append(header);
@@ -331,7 +350,7 @@ function removeSavingWarning() {
     window.onbeforeunload = null;
 }
 
-$(document).ready(function() {
+function initGradebook() {
     var form = $('#grid-form');
     form.data('base-font-size', parseInt(form.css('fontSize')));
     // gradebook-part width calculation
@@ -378,10 +397,10 @@ $(document).ready(function() {
     grades.on('click', 'td', function() {
         var td = $(this);
         makeGradeCellVisible(td);
-        if (isScorable(td)) {
-            var input = getInput(td);
+        var input = getScorableInput(td);
+        if (input !== null) {
             input[0].select();
-            input.focus();
+            input.focus()
         }
     });
     grades.on('click', 'input', function() {
@@ -470,7 +489,9 @@ $(document).ready(function() {
         var cells = [];
         rows.each(function(i, row) {
             var cell = $(row).children()[idx];
-            cells.push(cell);
+            if (isScorable($(cell))) {
+                cells.push(cell);
+            }
         });
         container.data('schooltool.gradebook-filldown-dialog-cells', cells);
         var filldown_title = container.find('.filldown-dialog-title').text();
@@ -498,7 +519,8 @@ $(document).ready(function() {
             $(cells).each(function(i, cell) {
                 var cell = $(cell);
                 if (cell.is(':empty')) {
-                    var input = getInput(cell);
+                    cellInputName(cell);
+                    var input = getScorableInput(cell);
                     input.val(fillval);
                     input.trigger('keyup');
                     input.blur();
@@ -677,10 +699,13 @@ $(document).ready(function() {
     form.on('click', 'input[type="submit"]', function() {
         removeSavingWarning();
     });
-});
+}
+
+$(document).ready(initGradebook);
+
 // warning dialog for unsaved changes
 window.onbeforeunload = function() {
-    if ($('#grid-form input[type="text"]').length > 0) {
+    if ($('#grades-part input[type="text"]').length > 0) {
         return $('#unsaved-changes-warning').text();
     }
 };

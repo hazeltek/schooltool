@@ -1,36 +1,48 @@
-schooltool (1:2.5.1~dev-0ubuntu1) raring; urgency=low
+schooltool (1:2.5.2~dev-0ubuntu1) saucy; urgency=low
 
-  * Bump upstream version.
-  * debian/supervisord.conf: workaround bug #700370 in supervisor 3.0a8.
+  * Snapshot of trunk:
+    - Bump version
+    - Compile translations
 
- -- Gediminas Paulauskas <menesis@pov.lt>  Wed, 31 Jul 2013 11:08:59 +0300
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 02 Aug 2013 12:44:26 +0300
 
-schooltool (1:2.5.0~dev-0ubuntu5) raring; urgency=low
+schooltool (1:2.5.1-0ubuntu1) saucy; urgency=low
 
-  * debian/control: add python-redis to python-schooltool Depends.
+  * New upstream release
+    - differeniate administrative permissions
+    - improvements for journal and gradebook
+  * debian/control:
+    - remove python-redis from Depends, added upstream
+  * debian/schooltool.postinst:
+    - fix restart on upgrade
+    - remove copying of schooltool-2009 database
 
- -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 27 Jun 2013 16:41:43 +0300
+ -- Gediminas Paulauskas <menesis@pov.lt>  Fri, 02 Aug 2013 13:02:14 +0300
 
-schooltool (1:2.5.0~dev-0ubuntu4) raring; urgency=low
+schooltool (1:2.5.0-0ubuntu1) saucy; urgency=low
 
-  * Revert deletion of schooltool/locales/__init__.py
-
- -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 20 Jun 2013 16:07:57 +0300
-
-schooltool (1:2.5.0~dev-0ubuntu3) raring; urgency=low
-
-  * Compile translations.
-
- -- Gediminas Paulauskas <menesis@pov.lt>  Wed, 19 Jun 2013 19:54:48 +0300
-
-schooltool (1:2.5.0~dev-0ubuntu2) raring; urgency=low
-
-  * Snapshot of trunk.
-    - new conffiles: zeo.conf, redis.conf, supervisord.conf
+  * New upstream release.
+  * debian/control:
+    - add python-redis to python-schooltool Depends.
+    - add redis-server and supervisor to schooltool Depends.
+  * Add new conffiles: zeo.conf, redis.conf, supervisord.conf
   * debian/schooltool.init: control supervisor instead of paster.
   * debian/watch: change series to trunk
 
- -- Gediminas Paulauskas <menesis@pov.lt>  Wed, 05 Jun 2013 17:57:01 +0300
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 01 Aug 2013 21:23:22 +0300
+
+schooltool (1:2.4.2-0ubuntu1) saucy; urgency=low
+
+  * New upstream bugfix release.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Mon, 01 Jul 2013 17:35:03 +0300
+
+schooltool (1:2.4.1-0ubuntu1) saucy; urgency=low
+
+  * New upstream bugfix release.
+    - Fixed report generation to not do network requests (LP: #1185418).
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 30 May 2013 19:41:52 +0300
 
 schooltool (1:2.4.0-0ubuntu1) raring; urgency=low
 

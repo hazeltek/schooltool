@@ -7,7 +7,7 @@ INSTANCE=standard
 
 CONFIGFILE=/etc/schooltool/$INSTANCE/paste.ini
 DBFILE=/var/lib/schooltool/Data.fs
-PIDFILE=/var/run/schooltool/$SERVER.pid
+PIDFILE=/var/run/schooltool/supervisord.pid
 
 backup_database () {
     # Gracefully exit if the package has been removed or is not configured.
@@ -20,9 +20,6 @@ backup_database () {
     if [ -f $DBFILE ] ; then
         # Backup the database
         savelog $DBFILE && cp -a $DBFILE.0 $DBFILE
-    elif [ -f /var/lib/schooltool/schooltool-2009-Data.fs ] ; then
-        # If there is a schooltool-2009 database, copy it
-        cp -a /var/lib/schooltool/schooltool-2009-Data.fs $DBFILE
     fi
 }
 

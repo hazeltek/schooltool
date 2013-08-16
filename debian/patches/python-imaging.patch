@@ -1,0 +1,21 @@
+Description: python-imaging provides a PIL egg
+ When building from source, Pillow is a better package of the same.
+Forwarded: not-needed
+Index: schooltool/setup.py
+===================================================================
+--- schooltool.orig/setup.py
++++ schooltool/setup.py
+@@ -66,3 +66,3 @@ Javascript will be usable, although perh
+                       'PasteScript',
+-                      'Pillow',
++                      'PIL',
+                       'pytz',
+Index: schooltool/src/schooltool.egg-info/requires.txt
+===================================================================
+--- schooltool.orig/src/schooltool.egg-info/requires.txt
++++ schooltool/src/schooltool.egg-info/requires.txt
+@@ -5,3 +5,3 @@ PasteDeploy
+ PasteScript
+-Pillow
++PIL
+ pytz

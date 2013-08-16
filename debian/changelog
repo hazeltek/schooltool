@@ -1,10 +1,17 @@
-schooltool (1:2.5.2~dev-0ubuntu1) saucy; urgency=low
+schooltool (1:2.5.2~dev-0ubuntu2) saucy; urgency=low
 
   * Snapshot of trunk:
     - Bump version
     - Compile translations
 
- -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 02 Aug 2013 12:44:26 +0300
+ -- Gediminas Paulauskas <menesis@pov.lt>  Fri, 16 Aug 2013 20:29:51 +0300
+
+schooltool (1:2.5.1-0ubuntu2) saucy; urgency=low
+
+  * debian/patches/python-imaging.patch: re-add the patch to avoid dependency
+    on python-pillow.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Fri, 16 Aug 2013 15:57:20 +0300
 
 schooltool (1:2.5.1-0ubuntu1) saucy; urgency=low
 

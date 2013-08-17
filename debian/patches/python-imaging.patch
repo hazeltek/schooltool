@@ -5,8 +5,7 @@ Index: schooltool/setup.py
 ===================================================================
 --- schooltool.orig/setup.py
 +++ schooltool/setup.py
-@@ -66,3 +66,3 @@ Javascript will be usable, although perh
+@@ -66,3 +66,2 @@ Javascript will be usable, although perh
                        'PasteScript',
 -                      'Pillow',
-+                      'PIL',
                        'pytz',

@@ -1,3 +1,11 @@
+schooltool (1:2.5.2~dev-0ubuntu4) saucy; urgency=low
+
+  * Fix to work both on precise and raring (and later):
+    - debian/patches/python-imaging.patch: remove Pillow altogether
+    - debian/control: add python-imaging to Depends
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Sat, 17 Aug 2013 19:20:07 +0300
+
 schooltool (1:2.5.2~dev-0ubuntu3) saucy; urgency=low
 
   * Snapshot of trunk:

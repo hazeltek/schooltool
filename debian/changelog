@@ -1,3 +1,10 @@
+schooltool (1:2.5.1-0ubuntu3) saucy; urgency=low
+
+  * debian/patches/python-imaging.patch: remove again, the egg is named
+    Pillow.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Sat, 17 Aug 2013 19:18:00 +0300
+
 schooltool (1:2.5.1-0ubuntu2) saucy; urgency=low
 
   * debian/patches/python-imaging.patch: re-add the patch to avoid dependency

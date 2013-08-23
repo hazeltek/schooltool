@@ -1,5 +1,9 @@
 // Changes made for flourish
 
+ST.gradebook = {};
+ST.gradebook.readonly = false;
+
+
 function makeGradeCellVisible(element) {
     var cell = $(element);
     var cell_left_border = cell.position().left;
@@ -115,6 +119,34 @@ function getScorableInput(td) {
     return input;
 }
 
+function setAutoComplete(input, scores) {
+    input.autocomplete({
+        appendTo: input.parent(),
+        delay: 0,
+        minLength: 1,
+        search: function(e, ui) {
+            // ignore navigation keys
+            switch(e.keyCode) {
+            case 27: // escape
+            case 37: // left
+            case 39: // right
+            case 38: // up
+            case 9: // tab
+            case 13: // enter
+            case 40: // down
+                return false;
+            }
+        },
+	source: function(request, response) {
+            // match only the beginning of the label
+	    var matcher = new RegExp("^"+$.ui.autocomplete.escapeRegex(request.term), 'i');
+	    response($.grep(scores, function(item) {
+		return matcher.test(item.label);
+	    }));
+	}
+    });
+}
+
 function getInput(td) {
     if (td.find('input').length < 1) {
         var new_input = $('<input type="text" />');
@@ -125,7 +157,13 @@ function getInput(td) {
         td.attr('original', value);
         td.html($('<div>').append(new_input).html());
     }
-    return td.find('input');
+    var input = td.find('input');
+    var columnHeader = findColumnHeader(td);
+    var scores = columnHeader.data('scores');
+    if (scores) {
+        setAutoComplete(input, scores);
+    }
+    return input;
 }
 
 function removeInput(td) {
@@ -350,50 +388,11 @@ function removeSavingWarning() {
     window.onbeforeunload = null;
 }
 
-function initGradebook() {
-    var form = $('#grid-form');
-    form.data('base-font-size', parseInt(form.css('fontSize')));
-    // gradebook-part width calculation
-    updateGradebookPartsWidths(form);
-    // row colors
-    $('.gradebook-part').find('tbody').find('tr:odd').addClass('odd');
-    // fill down
-    preloadFilldown(form);
-    // comment cell
-    preloadCommentCell(form);
-    // popup menus
-    preloadPopups(form);
-    var gradebook = form.find('#gradebook');
-    gradebook.on('click', '.popup_link', function(e) {
-        var link = $(this);
-        var popup = link.prev();
-        if (link.parent().is('th')) {
-            var popup = link.prev();
-            var left = calculatePopupLeft(popup);
-            popup.css('left', left);
-        }
-        hidePopup(form);
-        popup.addClass('popup_active').show();
-        e.preventDefault();
-    });
-    var grades = form.find('#grades-part');
-    grades.scroll(function() {
-        hidePopup(form);
-    });
-    $(document).click(function(e) {
-        if (!$(e.target).hasClass('popup_link')) {
-            hidePopup(form);
-        }
-        if (!$(e.target).hasClass('navbar-list-worksheets')) {
-            var list = $('#worksheets-list');
-            if (list.is(':visible')) {
-                list.slideUp('fast');
-                $('#navbar-list-worksheets').toggleClass(
-                    'navbar-list-worksheets-active');
-            }
-        }
-    });
-    // cell navigation
+function autoCompleteDisplayed() {
+    return $('.ui-autocomplete:visible').length
+}
+
+function initGrading(grades) {
     grades.on('click', 'td', function() {
         var td = $(this);
         makeGradeCellVisible(td);
@@ -457,25 +456,42 @@ function initGradebook() {
             e.preventDefault();
             break;
         case 37: // left
-            focusInputHorizontally(td.prevUntil('tr'));
-            e.preventDefault();
+            if (!autoCompleteDisplayed()) {
+                focusInputHorizontally(td.prevUntil('tr'));
+                e.preventDefault();
+            }
             break;
         case 39: // right
+            if (!autoCompleteDisplayed()) {
+                focusInputHorizontally(td.nextAll());
+                e.preventDefault();
+            }
+            break;
+        case 38: // up
+            if (!autoCompleteDisplayed()) {
+                focusInputVertically(tr.prevUntil('tbody'), td.index());
+                e.preventDefault();
+            }
+            break;
+        case 9: // tab
             focusInputHorizontally(td.nextAll());
             e.preventDefault();
             break;
-        case 38: // up
-            focusInputVertically(tr.prevUntil('tbody'), td.index());
-            e.preventDefault();
-            break;
         case 13: // enter
-        case 40: // down
             focusInputVertically(tr.nextAll(), td.index());
             e.preventDefault();
             break;
+        case 40: // down
+            if (!autoCompleteDisplayed()) {
+                focusInputVertically(tr.nextAll(), td.index());
+                e.preventDefault();
+            }
+            break;
         }
     });
-    // filldown
+}
+
+function initFillDown(form) {
     form.on('click', '.filldown', function() {
         hidePopup(form);
         var container = $('#filldown-dialog-container');
@@ -531,6 +547,9 @@ function initGradebook() {
         container.dialog('close');
         return false;
     });
+}
+
+function initComments(form) {
     // comment-cell
     form.on('click', '.comment-cell', function() {
         hidePopup(form);
@@ -584,6 +603,64 @@ function initGradebook() {
         form.submit();
         return false;
     });
+}
+
+function initGradebook() {
+    var form = $('#grid-form');
+    form.data('base-font-size', parseInt(form.css('fontSize')));
+
+    updateGradebookPartsWidths(form);
+
+    // row colors
+    $('.gradebook-part').find('tbody').find('tr:odd').addClass('odd');
+
+    if (!ST.gradebook.readonly) {
+        preloadFilldown(form);
+        preloadCommentCell(form);
+    }
+
+    preloadPopups(form);
+
+    var gradebook = form.find('#gradebook');
+    gradebook.on('click', '.popup_link', function(e) {
+        var link = $(this);
+        var popup = link.prev();
+        if (link.parent().is('th')) {
+            var popup = link.prev();
+            var left = calculatePopupLeft(popup);
+            popup.css('left', left);
+        }
+        hidePopup(form);
+        popup.addClass('popup_active').show();
+        e.preventDefault();
+    });
+
+    var grades = form.find('#grades-part');
+
+    grades.scroll(function() {
+        hidePopup(form);
+    });
+
+    $(document).click(function(e) {
+        if (!$(e.target).hasClass('popup_link')) {
+            hidePopup(form);
+        }
+        if (!$(e.target).hasClass('navbar-list-worksheets')) {
+            var list = $('#worksheets-list');
+            if (list.is(':visible')) {
+                list.slideUp('fast');
+                $('#navbar-list-worksheets').toggleClass(
+                    'navbar-list-worksheets-active');
+            }
+        }
+    });
+
+    if (!ST.gradebook.readonly) {
+        initGrading(grades);
+        initFillDown(form);
+        initComments(form);
+    }
+
     // Zoom buttons
     var normal_width = 752;
     var wide_width = 944;
@@ -648,6 +725,7 @@ function initGradebook() {
         $(this).hide();
         $('.expand').show();
     });
+
     // tertiary navigation
     var third_nav_container = $('#third-nav-container');
     var third_nav = third_nav_container.find('.third-nav');
@@ -695,6 +773,7 @@ function initGradebook() {
         }
         e.preventDefault();
     });
+
     // ignore warning dialog when clicking save button
     form.on('click', 'input[type="submit"]', function() {
         removeSavingWarning();

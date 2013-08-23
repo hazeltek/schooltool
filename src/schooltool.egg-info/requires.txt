@@ -1,4 +1,4 @@
-celery
+celery>=2.5
 redis
 bottle
 PasteDeploy

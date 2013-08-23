@@ -35,8 +35,13 @@ case "$1" in
             || install --group schooltool --owner schooltool -d /var/run/schooltool
 
 	log_begin_msg "Starting $DESC..."
-	start-stop-daemon --start --quiet --pidfile $PIDFILE \
-		--startas $DAEMON -- $DAEMON_OPTS --user schooltool
+	if [ -f "$PIDFILE" ] ; then
+            echo -n "already running."
+            /usr/bin/supervisorctl $DAEMON_OPTS start all
+        else
+            start-stop-daemon --start --quiet --pidfile $PIDFILE \
+                    --startas $DAEMON -- $DAEMON_OPTS --user schooltool
+	fi
 	log_end_msg $?
 	;;
   stop)
@@ -52,7 +57,7 @@ case "$1" in
 	log_begin_msg "Restarting $DESC..."
 	start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE
 	[ -n "$DODTIME" ] && sleep $DODTIME
-	start-stop-daemon --start --quiet --pidfile $PIDFILE\
+	start-stop-daemon --start --quiet --pidfile $PIDFILE \
 		--startas $DAEMON -- $DAEMON_OPTS --user schooltool
 	log_end_msg $?
 	;;

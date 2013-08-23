@@ -1,28 +1,21 @@
-schooltool (1:2.5.2~dev-0ubuntu4) saucy; urgency=low
-
-  * Fix to work both on precise and raring (and later):
-    - debian/patches/python-imaging.patch: remove Pillow altogether
-    - debian/control: add python-imaging to Depends
-
- -- Gediminas Paulauskas <menesis@pov.lt>  Sat, 17 Aug 2013 19:20:07 +0300
-
-schooltool (1:2.5.2~dev-0ubuntu3) saucy; urgency=low
+schooltool (1:2.5.3~dev-0ubuntu1) saucy; urgency=low
 
   * Snapshot of trunk:
     - debian/changelog: bump version
     - debian/control: add gettext to Build-Depends
     - debian/rules: compile translations
-    - debian/patches/python-imaging.patch: drop part of the patch that
-      modifies .egg-info
+    - debian/patches/python-imaging.patch: remove Pillow from .egg-info
+    - debian/control: add python-imaging to Depends
 
  -- Gediminas Paulauskas <menesis@pov.lt>  Fri, 16 Aug 2013 20:29:51 +0300
 
-schooltool (1:2.5.1-0ubuntu2) saucy; urgency=low
+schooltool (1:2.5.2.1-0ubuntu1) saucy; urgency=low
 
-  * debian/patches/python-imaging.patch: re-add the patch to avoid dependency
-    on python-pillow.
+  * New upstream release.
+  * debian/schooltool.init: start all processes if supervisord is already
+    running.
 
- -- Gediminas Paulauskas <menesis@pov.lt>  Fri, 16 Aug 2013 15:57:20 +0300
+ -- Gediminas Paulauskas <menesis@pov.lt>  Fri, 23 Aug 2013 12:40:58 +0300
 
 schooltool (1:2.5.1-0ubuntu1) saucy; urgency=low
 

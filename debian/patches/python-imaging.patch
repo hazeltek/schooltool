@@ -1,5 +1,5 @@
-Description: python-imaging provides a PIL egg
- When building from source, Pillow is a better package of the same.
+Description: python-imaging provides a Pillow egg
+ On older Ubuntu series, the egg is named PIL.
 Forwarded: not-needed
 Index: schooltool/setup.py
 ===================================================================

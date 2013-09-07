@@ -1,3 +1,9 @@
+schooltool (1:2.5.2.1-0ubuntu2) saucy; urgency=low
+
+  * Recommend fonts-liberation instead of transitional ttf-liberation
+
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Sat, 07 Sep 2013 09:55:29 -0400
+
 schooltool (1:2.5.2.1-0ubuntu1) saucy; urgency=low
 
   * New upstream release.

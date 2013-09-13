@@ -1,3 +1,10 @@
+schooltool (1:2.5.3-0ubuntu2) saucy; urgency=low
+
+  * debian/schooltool.init: on start when running, wait maybe supervisor will die
+    before starting.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Sat, 14 Sep 2013 00:03:09 +0300
+
 schooltool (1:2.5.3-0ubuntu1) saucy; urgency=low
 
   * New upstream release.

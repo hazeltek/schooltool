@@ -42,6 +42,7 @@ case "$1" in
 
 	log_begin_msg "Starting $DESC..."
 	if running ; then
+	    [ -n "$DODTIME" ] && sleep $DODTIME
 	    $CONTROL $DAEMON_OPTS start all >/dev/null || true
 	fi
 	start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE \

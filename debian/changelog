@@ -1,3 +1,16 @@
+schooltool (1:2.5.3-0ubuntu1) saucy; urgency=low
+
+  * New upstream release.
+  * debian/schooltool.init:
+    - ignore the error on start if supervisor is no longer running but pidfile
+      still exists, and start as normal (LP: #1215174)
+    - shutdown the supervisor on stop/restart.
+  * debian/schooltool.postrm: remove the correct pidfile
+  * debian/supervisor.conf: add REDIS_PORT to the environment of schooltool.
+  * debian/rules: remove apidoc from extras
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 13 Sep 2013 22:58:37 +0300
+
 schooltool (1:2.5.2.1-0ubuntu2) saucy; urgency=low
 
   * Recommend fonts-liberation instead of transitional ttf-liberation

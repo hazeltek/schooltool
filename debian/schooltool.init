@@ -10,6 +10,7 @@
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DAEMON=/usr/bin/supervisord
+CONTROL=/usr/bin/supervisorctl
 NAME=schooltool
 DESC="SchoolTool"
 
@@ -28,6 +29,11 @@ test -x $DAEMON || exit 0
 
 . /lib/lsb/init-functions
 
+running () {
+    pidofproc -p $PIDFILE $DAEMON >/dev/null
+    return $?
+}
+
 case "$1" in
   start)
 	# Make sure we have a /var/run sub-directory
@@ -35,17 +41,19 @@ case "$1" in
             || install --group schooltool --owner schooltool -d /var/run/schooltool
 
 	log_begin_msg "Starting $DESC..."
-	if [ -f "$PIDFILE" ] ; then
-            echo -n "already running."
-            /usr/bin/supervisorctl $DAEMON_OPTS start all
-        else
-            start-stop-daemon --start --quiet --pidfile $PIDFILE \
-                    --startas $DAEMON -- $DAEMON_OPTS --user schooltool
+	if running ; then
+	    [ -n "$DODTIME" ] && sleep $DODTIME
+	    $CONTROL $DAEMON_OPTS start all >/dev/null || true
 	fi
+	start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE \
+	    --startas $DAEMON -- $DAEMON_OPTS --user schooltool
 	log_end_msg $?
 	;;
   stop)
 	log_begin_msg "Stopping $DESC..."
+	if running ; then
+	    $CONTROL $DAEMON_OPTS shutdown >/dev/null
+	fi
 	start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE
 	log_end_msg $?
 	;;
@@ -55,10 +63,13 @@ case "$1" in
             || install --group schooltool --owner schooltool -d /var/run/schooltool
 
 	log_begin_msg "Restarting $DESC..."
+	if running ; then
+	    $CONTROL $DAEMON_OPTS shutdown >/dev/null
+	fi
 	start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE
 	[ -n "$DODTIME" ] && sleep $DODTIME
 	start-stop-daemon --start --quiet --pidfile $PIDFILE \
-		--startas $DAEMON -- $DAEMON_OPTS --user schooltool
+	    --startas $DAEMON -- $DAEMON_OPTS --user schooltool
 	log_end_msg $?
 	;;
   status)

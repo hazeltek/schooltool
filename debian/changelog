@@ -1,4 +1,4 @@
-schooltool (1:2.5.3~dev-0ubuntu1) saucy; urgency=low
+schooltool (1:2.5.4~dev-0ubuntu1) saucy; urgency=low
 
   * Snapshot of trunk:
     - debian/changelog: bump version
@@ -7,7 +7,33 @@ schooltool (1:2.5.3~dev-0ubuntu1) saucy; urgency=low
     - debian/patches/python-imaging.patch: remove Pillow from .egg-info
     - debian/control: add python-imaging to Depends
 
- -- Gediminas Paulauskas <menesis@pov.lt>  Fri, 16 Aug 2013 20:29:51 +0300
+ -- Gediminas Paulauskas <menesis@pov.lt>  Fri, 14 Sep 2013 02:57:51 +0300
+
+schooltool (1:2.5.3-0ubuntu2) saucy; urgency=low
+
+  * debian/schooltool.init: on start when running, wait maybe supervisor will die
+    before starting.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Sat, 14 Sep 2013 00:03:09 +0300
+
+schooltool (1:2.5.3-0ubuntu1) saucy; urgency=low
+
+  * New upstream release.
+  * debian/schooltool.init:
+    - ignore the error on start if supervisor is no longer running but pidfile
+      still exists, and start as normal (LP: #1215174)
+    - shutdown the supervisor on stop/restart.
+  * debian/schooltool.postrm: remove the correct pidfile
+  * debian/supervisor.conf: add REDIS_PORT to the environment of schooltool.
+  * debian/rules: remove apidoc from extras
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 13 Sep 2013 22:58:37 +0300
+
+schooltool (1:2.5.2.1-0ubuntu2) saucy; urgency=low
+
+  * Recommend fonts-liberation instead of transitional ttf-liberation
+
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Sat, 07 Sep 2013 09:55:29 -0400
 
 schooltool (1:2.5.2.1-0ubuntu1) saucy; urgency=low
 

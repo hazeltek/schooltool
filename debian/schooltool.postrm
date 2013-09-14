@@ -5,6 +5,8 @@ set -e
 SERVER=schooltool
 INSTANCE=standard
 
+PIDFILE=/var/run/schooltool/supervisord.pid
+
 case "$1" in
     purge)
         # Clean up configuration
@@ -22,7 +24,7 @@ case "$1" in
         done
         rmdir /var/lib/schooltool || true
         # Clean up /var/run
-        rm -f /var/run/schooltool/$SERVER.pid
+        rm -f $PIDFILE
         rmdir /var/run/schooltool || true
     ;;
 

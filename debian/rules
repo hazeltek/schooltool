@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-export PYDEB_SUGGESTS_EXTRAS=test docs apidoc
+export PYDEB_SUGGESTS_EXTRAS=test docs
 
 %:
 	dh $@ -Spython_distutils --with pydeb --with python2

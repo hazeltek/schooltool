@@ -1,3 +1,10 @@
+schooltool (1:2.5.3-0ubuntu3) saucy; urgency=low
+
+  * debian/patches/python-imaging.patch: remove Pillow from .egg-info
+  * debian/control: add python-imaging to Depends
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Sat, 14 Sep 2013 03:02:58 +0300
+
 schooltool (1:2.5.3-0ubuntu2) saucy; urgency=low
 
   * debian/schooltool.init: on start when running, wait maybe supervisor will die

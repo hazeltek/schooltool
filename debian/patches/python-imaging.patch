@@ -1,0 +1,27 @@
+Description: python-imaging provides a Pillow egg
+ On older Ubuntu series, the egg is named PIL.
+Forwarded: not-needed
+Index: schooltool/setup.py
+===================================================================
+--- schooltool.orig/setup.py
++++ schooltool/setup.py
+@@ -63,7 +63,6 @@ Javascript will be usable, although perh
+                       'bottle',
+                       'PasteDeploy',
+                       'PasteScript',
+-                      'Pillow',
+                       'pytz',
+                       'reportlab',
+                       'setuptools',
+Index: schooltool/src/schooltool.egg-info/requires.txt
+===================================================================
+--- schooltool.orig/src/schooltool.egg-info/requires.txt
++++ schooltool/src/schooltool.egg-info/requires.txt
+@@ -3,7 +3,6 @@ redis
+ bottle
+ PasteDeploy
+ PasteScript
+-Pillow
+ pytz
+ reportlab
+ setuptools

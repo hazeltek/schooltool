@@ -345,6 +345,7 @@ src/schooltool/contact/browser/templates/contactperson_subform.pt
 src/schooltool/contact/browser/templates/contacts_delete.pt
 src/schooltool/contact/browser/templates/email_form.pt
 src/schooltool/contact/browser/templates/f_confirm_delete_contact.pt
+src/schooltool/contact/browser/templates/f_contact_details.pt
 src/schooltool/contact/browser/templates/f_contact_filter.pt
 src/schooltool/contact/browser/templates/f_contact_form.pt
 src/schooltool/contact/browser/templates/f_contact_table_filter.pt
@@ -564,6 +565,7 @@ src/schooltool/generations/evolve37.py
 src/schooltool/generations/evolve38.py
 src/schooltool/generations/evolve39.py
 src/schooltool/generations/evolve40.py
+src/schooltool/generations/evolve41.py
 src/schooltool/generations/evolve36/__init__.py
 src/schooltool/generations/evolve36/calendar_builders.py
 src/schooltool/generations/evolve36/evolve.py

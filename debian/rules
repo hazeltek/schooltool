@@ -10,7 +10,7 @@ locales=src/schooltool/locales
 override_dh_auto_build:
 	rm -f src/schooltool/skin/resources/jquery.min.js
 	rm -rf src/schooltool/skin/flourish/resources/jquery/development-bundle/
-	rm -rf src/schooltool/skin/flourish/resources/jquery/js/
+	#rm -rf src/schooltool/skin/flourish/resources/jquery/js/
 	rm -f $(locales)/*.po
 	rm -f $(locales)/*.pot
 	dh_auto_build

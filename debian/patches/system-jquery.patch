@@ -25,15 +25,6 @@ Index: schooltool/src/schooltool/skin/flourish/configure.zcml
            include="jquery.min.js"
            />
      </zope:resourceLibrary>
-@@ -39,7 +39,7 @@
-                schooltool.skin.flourish-jquery-theme"
-       layer="schooltool.skin.flourish.IFlourishLayer">
-     <directory
--        source="resources/jquery/js"
-+        source="/usr/share/javascript/jquery-ui"
-         include="jquery-ui.min.js"
-         />
-   </zope:resourceLibrary>
 @@ -49,11 +49,11 @@
        require=""
        layer="schooltool.skin.flourish.IFlourishLayer">

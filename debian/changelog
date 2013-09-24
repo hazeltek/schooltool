@@ -1,3 +1,11 @@
+schooltool (1:2.5.3.1-0ubuntu2) saucy; urgency=low
+
+  * debian/patches/system-jquery.patch, debian/rules: temporarily use the
+    included jqueryui because our themed css no longer matches the newer
+    javascript in saucy (LP: #1228856)
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Tue, 24 Sep 2013 19:41:34 +0300
+
 schooltool (1:2.5.3.1-0ubuntu1) saucy; urgency=low
 
   * New upstream bugfix release.

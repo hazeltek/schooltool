@@ -11,7 +11,7 @@ domain=schooltool
 override_dh_auto_build:
 	rm -f src/schooltool/skin/resources/jquery.min.js
 	rm -rf src/schooltool/skin/flourish/resources/jquery/development-bundle/
-	rm -rf src/schooltool/skin/flourish/resources/jquery/js/
+	#rm -rf src/schooltool/skin/flourish/resources/jquery/js/
 	
 	for f in $(locales)/*.po; do \
 	    mkdir -p $${f%.po}/LC_MESSAGES; \

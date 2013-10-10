@@ -70,7 +70,6 @@ src/schooltool/app/browser/ftests/cal-recurrence.txt
 src/schooltool/app/browser/ftests/cal-security.txt
 src/schooltool/app/browser/ftests/cal.txt
 src/schooltool/app/browser/ftests/calendar-overlays.txt
-src/schooltool/app/browser/ftests/delete_schoolyear_groups.txt
 src/schooltool/app/browser/ftests/deletion.txt
 src/schooltool/app/browser/ftests/errors.txt
 src/schooltool/app/browser/ftests/login.txt
@@ -191,6 +190,7 @@ src/schooltool/basicperson/__init__.py
 src/schooltool/basicperson/advisor.py
 src/schooltool/basicperson/configure.zcml
 src/schooltool/basicperson/demographics.py
+src/schooltool/basicperson/event_titles.txt
 src/schooltool/basicperson/ftesting.py
 src/schooltool/basicperson/ftesting.zcml
 src/schooltool/basicperson/interfaces.py
@@ -261,6 +261,7 @@ src/schooltool/basicperson/browser/tests/test_person.py
 src/schooltool/basicperson/tests/__init__.py
 src/schooltool/basicperson/tests/test_demographics.py
 src/schooltool/basicperson/tests/test_person.py
+src/schooltool/basicperson/tests/test_sampledata.py
 src/schooltool/basicperson/tests/test_security.py
 src/schooltool/basicperson/tests/test_vocabularies.py
 src/schooltool/calendar/README.txt
@@ -643,9 +644,6 @@ src/schooltool/level/tests/level-integration.txt
 src/schooltool/level/tests/test_level.py
 src/schooltool/locales/__init__.py
 src/schooltool/locales/ar.po
-src/schooltool/locales/ast.po
-src/schooltool/locales/bg.po
-src/schooltool/locales/bs.po
 src/schooltool/locales/ca.po
 src/schooltool/locales/cs.po
 src/schooltool/locales/da.po
@@ -661,9 +659,6 @@ src/schooltool/locales/eu.po
 src/schooltool/locales/fi.po
 src/schooltool/locales/fr.po
 src/schooltool/locales/fr_BE.po
-src/schooltool/locales/gl.po
-src/schooltool/locales/he.po
-src/schooltool/locales/hr.po
 src/schooltool/locales/id.po
 src/schooltool/locales/it.po
 src/schooltool/locales/ja.po
@@ -683,7 +678,6 @@ src/schooltool/locales/ru.po
 src/schooltool/locales/schooltool.pot
 src/schooltool/locales/si.po
 src/schooltool/locales/sk.po
-src/schooltool/locales/sl.po
 src/schooltool/locales/sr.po
 src/schooltool/locales/sv.po
 src/schooltool/locales/th.po
@@ -769,17 +763,14 @@ src/schooltool/paste/schooltool_template/zeo.conf_tmpl
 src/schooltool/paste/schooltool_template/plugins/README.txt
 src/schooltool/person/__init__.py
 src/schooltool/person/configure.zcml
-src/schooltool/person/event_titles.txt
 src/schooltool/person/ftesting.py
 src/schooltool/person/ftesting.zcml
 src/schooltool/person/interfaces.py
 src/schooltool/person/person.py
 src/schooltool/person/preference.py
-src/schooltool/person/sampledata.py
 src/schooltool/person/security.zcml
 src/schooltool/person/stesting.py
 src/schooltool/person/stesting.zcml
-src/schooltool/person/utility.py
 src/schooltool/person/browser/__init__.py
 src/schooltool/person/browser/configure.zcml
 src/schooltool/person/browser/csvimport.py
@@ -795,14 +786,7 @@ src/schooltool/person/browser/home.pt
 src/schooltool/person/browser/home_tab_viewlet.pt
 src/schooltool/person/browser/password.txt
 src/schooltool/person/browser/password_form.pt
-src/schooltool/person/browser/person-csvimport.pt
-src/schooltool/person/browser/person.pt
 src/schooltool/person/browser/person.py
-src/schooltool/person/browser/person_add.pt
-src/schooltool/person/browser/person_add.txt
-src/schooltool/person/browser/person_add_person_viewlet.pt
-src/schooltool/person/browser/person_container_delete.pt
-src/schooltool/person/browser/person_edit.pt
 src/schooltool/person/browser/person_filter.pt
 src/schooltool/person/browser/person_preferences.pt
 src/schooltool/person/browser/tests.py
@@ -811,8 +795,6 @@ src/schooltool/person/browser/stests/password_edit.txt
 src/schooltool/person/browser/stests/test_selenium.py
 src/schooltool/person/tests/__init__.py
 src/schooltool/person/tests/test_person.py
-src/schooltool/person/tests/test_sampledata.py
-src/schooltool/person/tests/test_utility.py
 src/schooltool/relationship/README.txt
 src/schooltool/relationship/__init__.py
 src/schooltool/relationship/annotatable.py

@@ -1,3 +1,10 @@
+schooltool (1:2.6.0-0ubuntu1) saucy; urgency=low
+
+  * New upstream release.
+  * debian/redis.conf: save redis databases less often.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 10 Oct 2013 19:46:04 +0300
+
 schooltool (1:2.5.3.1-0ubuntu2) saucy; urgency=low
 
   * debian/patches/system-jquery.patch, debian/rules: temporarily use the

@@ -1,13 +1,19 @@
-schooltool (1:2.5.4~dev-0ubuntu2) saucy; urgency=low
+schooltool (1:2.6.1~dev-0ubuntu1) saucy; urgency=low
 
   * Snapshot of trunk:
     - debian/changelog: bump version
     - debian/control: add gettext to Build-Depends
     - debian/rules: compile translations
-    - debian/patches/python-imaging.patch: remove Pillow from .egg-info
-    - debian/control: add python-imaging to Depends
+    - debian/patches/python-imaging.patch: remove Pillow only from setup.py
 
- -- Gediminas Paulauskas <menesis@pov.lt>  Sun, 29 Sep 2013 14:24:31 +0300
+ -- Gediminas Paulauskas <menesis@pov.lt>  Mon, 14 Oct 2013 16:38:38 +0300
+
+schooltool (1:2.6.0-0ubuntu1) saucy; urgency=low
+
+  * New upstream release.
+  * debian/redis.conf: save redis databases less often.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 10 Oct 2013 19:46:04 +0300
 
 schooltool (1:2.5.3.1-0ubuntu2) saucy; urgency=low
 

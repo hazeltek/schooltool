@@ -567,6 +567,7 @@ src/schooltool/generations/evolve38.py
 src/schooltool/generations/evolve39.py
 src/schooltool/generations/evolve40.py
 src/schooltool/generations/evolve41.py
+src/schooltool/generations/evolve42.py
 src/schooltool/generations/evolve36/__init__.py
 src/schooltool/generations/evolve36/calendar_builders.py
 src/schooltool/generations/evolve36/evolve.py

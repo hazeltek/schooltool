@@ -1,3 +1,12 @@
+schooltool (1:2.6.0.1-0ubuntu1) saucy; urgency=low
+
+  * New upstream micro release
+    - Synchronize timezone set in preferences with timetables and schedules
+      (LP: #1239468)
+    - Set initial timezone from /etc/timezone (LP: #1030211)
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 17 Oct 2013 17:06:42 +0300
+
 schooltool (1:2.6.0-0ubuntu1) saucy; urgency=low
 
   * New upstream release.

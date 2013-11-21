@@ -1,3 +1,10 @@
+schooltool (1:2.6.1.1-0ubuntu1) trusty; urgency=low
+
+  * New upstream bugfix release.
+  * debian/supervisord.conf: autorestart schooltool if it dies.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 21 Nov 2013 03:34:52 +0200
+
 schooltool (1:2.6.0.1-0ubuntu2) trusty; urgency=low
 
   * Upload to trusty.

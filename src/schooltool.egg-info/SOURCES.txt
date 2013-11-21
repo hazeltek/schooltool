@@ -156,6 +156,7 @@ src/schooltool/app/browser/templates/login.pt
 src/schooltool/app/browser/templates/manage_menu.pt
 src/schooltool/app/browser/templates/manage_menu_manager.pt
 src/schooltool/app/browser/templates/menu_view.pt
+src/schooltool/app/browser/templates/package_versions.pt
 src/schooltool/app/browser/templates/portlet_tomorrow_events.pt
 src/schooltool/app/browser/templates/print.pt
 src/schooltool/app/browser/templates/recevent_delete.pt
@@ -1340,6 +1341,7 @@ src/schooltool/task/browser/templates/task_container.pt
 src/schooltool/task/browser/templates/task_dialog.pt
 src/schooltool/task/browser/templates/task_status.pt
 src/schooltool/task/config/__init__.py
+src/schooltool/task/config/testing.py
 src/schooltool/task/config/worker_dbonly.py
 src/schooltool/task/config/worker_default.py
 src/schooltool/task/config/worker_import.py

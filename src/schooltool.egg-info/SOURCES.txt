@@ -1341,7 +1341,6 @@ src/schooltool/task/browser/templates/task_container.pt
 src/schooltool/task/browser/templates/task_dialog.pt
 src/schooltool/task/browser/templates/task_status.pt
 src/schooltool/task/config/__init__.py
-src/schooltool/task/config/testing.py
 src/schooltool/task/config/worker_dbonly.py
 src/schooltool/task/config/worker_default.py
 src/schooltool/task/config/worker_import.py

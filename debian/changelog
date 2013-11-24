@@ -1,3 +1,10 @@
+schooltool (1:2.6.1.2-0ubuntu1) trusty; urgency=low
+
+  * New upstream micro release
+    - Fix warning about unsaved changes in journal and cando (LP: #1253070)
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Sun, 24 Nov 2013 22:31:44 +0200
+
 schooltool (1:2.6.1.1-0ubuntu1) trusty; urgency=low
 
   * New upstream bugfix release.

@@ -1,4 +1,4 @@
-schooltool (1:2.6.2~dev-0ubuntu1) saucy; urgency=low
+schooltool (1:2.7.0~dev-0ubuntu1) saucy; urgency=low
 
   * Snapshot of trunk:
     - debian/changelog: bump version
@@ -6,7 +6,7 @@ schooltool (1:2.6.2~dev-0ubuntu1) saucy; urgency=low
     - debian/rules: compile translations
     - debian/patches/python-imaging.patch: remove Pillow only from setup.py
 
- -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 21 Nov 2013 04:20:00 +0200
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 23 Jan 2014 17:15:01 +0200
 
 schooltool (1:2.6.1.1-0ubuntu1) trusty; urgency=low
 

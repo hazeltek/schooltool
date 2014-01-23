@@ -231,6 +231,15 @@
       permission="schooltool.view"
       />
 
+  <flourish:viewlet
+      name="completedcoursesinfo"
+      after="coursesinfo"
+      for="schooltool.basicperson.interfaces.IBasicPerson"
+      manager="schooltool.basicperson.browser.person.IFlourishPersonInfoManager"
+      class="schooltool.course.browser.course.FlourishCompletedCoursesViewlet"
+      permission="schooltool.view"
+      />
+
   <flourish:viewletManager
       name="tertiary_navigation"
       provides="schooltool.skin.flourish.page.ITertiaryNavigationManager"
@@ -711,6 +720,22 @@
       for="schooltool.course.interfaces.ISection"
       class=".section.SectionRosterPDFView"
       permission="schooltool.edit"
+      />
+
+  <flourish:viewlet
+      name="section_membership_person_table"
+      for="*"
+      class=".section.SectionMembershipPersonListTable"
+      manager="schooltool.skin.flourish.interfaces.IAJAXParts"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="section_instruction_person_table"
+      for="*"
+      class=".section.SectionInstructionPersonListTable"
+      manager="schooltool.skin.flourish.interfaces.IAJAXParts"
+      permission="schooltool.view"
       />
 
 </configure>

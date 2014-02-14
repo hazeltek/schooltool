@@ -655,6 +655,7 @@ src/schooltool/locales/en_AU.po
 src/schooltool/locales/en_CA.po
 src/schooltool/locales/en_GB.po
 src/schooltool/locales/es.po
+src/schooltool/locales/es_AR.po
 src/schooltool/locales/es_CL.po
 src/schooltool/locales/es_SV.po
 src/schooltool/locales/eu.po
@@ -689,9 +690,6 @@ src/schooltool/locales/vi.po
 src/schooltool/locales/zh_CN.po
 src/schooltool/locales/zh_TW.po
 src/schooltool/locales/ar/LC_MESSAGES/schooltool.mo
-src/schooltool/locales/ast/LC_MESSAGES/schooltool.mo
-src/schooltool/locales/bg/LC_MESSAGES/schooltool.mo
-src/schooltool/locales/bs/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/ca/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/cs/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/da/LC_MESSAGES/schooltool.mo
@@ -701,15 +699,13 @@ src/schooltool/locales/en_AU/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/en_CA/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/en_GB/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/es/LC_MESSAGES/schooltool.mo
+src/schooltool/locales/es_AR/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/es_CL/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/es_SV/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/eu/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/fi/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/fr/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/fr_BE/LC_MESSAGES/schooltool.mo
-src/schooltool/locales/gl/LC_MESSAGES/schooltool.mo
-src/schooltool/locales/he/LC_MESSAGES/schooltool.mo
-src/schooltool/locales/hr/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/id/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/it/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/ja/LC_MESSAGES/schooltool.mo
@@ -728,7 +724,6 @@ src/schooltool/locales/ro/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/ru/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/si/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/sk/LC_MESSAGES/schooltool.mo
-src/schooltool/locales/sl/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/sr/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/sv/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/th/LC_MESSAGES/schooltool.mo

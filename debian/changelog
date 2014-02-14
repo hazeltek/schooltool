@@ -1,3 +1,10 @@
+schooltool (1:2.6.2-0ubuntu1) saucy; urgency=low
+
+  * New upstream bugfix release.
+  * debian/patches/evolve42.patch: remove, fixed upstream.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Sat, 15 Feb 2014 01:19:44 +0200
+
 schooltool (1:2.6.1.2-0ubuntu2) trusty; urgency=low
 
   * debian/patches/evolve42.patch: add to fix upgrade of an empty DB from

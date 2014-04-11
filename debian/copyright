@@ -1,10 +1,10 @@
-Format: http://dep.debian.net/deps/dep5/
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: SchoolTool
 Upstream-Contact: SchoolTool Developers <schooltool-developers@lists.launchpad.net>
 Source: https://launchpad.net/schooltool
 
 Files: *
-Copyright: 2003-2011 Shuttleworth Foundation
+Copyright: 2003-2014 Shuttleworth Foundation
 License: GPL-2
 
 Files: src/schooltool/skin/resources/jquery.min.js
@@ -50,7 +50,6 @@ Files: src/schooltool/skin/flourish/resources/jquery/js/*
        src/schooltool/skin/flourish/resources/jquery/development-budle/*
 Copyright: 2011, Paul Bakaus, http://jqueryui.com/
            2011, AUTHORS.txt (http://jqueryui.com/about)
-Comment: Removed from package, libjs-jquery-ui used instead
 License: MIT or GPL-2
 
 Files: src/schooltool/skin/resources/jstree/jquery.tree.js
@@ -60,18 +59,6 @@ License: MIT or GPL-2
 Files: src/schooltool/skin/flourish/resources/jquery.scrollto.min.js
 Copyright: (c) 2007-2009 Ariel Flesler <aflesler@gmail.com>
 License: MIT or GPL-2
-
-Files: src/schooltool/app/browser/resources/calwidget/*
-Copyright: (c) 2004, Tribador Mediaworks, Brian Munroe <bmunroe@tribador.net>
-Comment: Looks like a MIT license
-License:
- Permission to use, copy, modify, distribute, and sell this software and its
- documentation for any purpose is hereby granted without fee, provided that
- the above copyright notice appear in all copies and that both that
- copyright notice and this permission notice appear in supporting
- documentation.  No representations are made about the suitability of this
- software for any purpose.  It is provided "as is" without express or
- implied warranty.
 
 Files: bootstrap.py
 Comment: Not installed and not used for build

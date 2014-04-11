@@ -79,6 +79,8 @@ class IBasicPerson(Interface):
 
     advisees = Attribute("""Advisees of the person""")
 
+    levels = Attribute("""Levels of the student""")
+
 
 class IBasicPersonVocabulary(IVocabularyTokenized):
     """Marker interface for vocabularies that list basic persons."""
@@ -135,6 +137,11 @@ class IFieldDescription(Interface):
     name = PythonIdentifier(
         title = _(u"ID"),
         description = _(u"A unique one word alphanumeric identifier."))
+
+    description = TextLine(
+        title = _(u"Description"),
+        description = _(u"As it should appear on forms and reports."),
+        required=False)
 
     required = Bool(
         title = _(u"Required"))

@@ -1,4 +1,4 @@
-schooltool (1:2.7.0~dev-0ubuntu1) saucy; urgency=low
+schooltool (1:2.7.0~dev-0ubuntu2) trusty; urgency=low
 
   * Snapshot of trunk:
     - debian/changelog: bump version
@@ -6,7 +6,40 @@ schooltool (1:2.7.0~dev-0ubuntu1) saucy; urgency=low
     - debian/rules: compile translations
     - debian/patches/python-imaging.patch: remove Pillow only from setup.py
 
- -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 23 Jan 2014 17:15:01 +0200
+ -- Gediminas Paulauskas <menesis@pov.lt>  Sat, 12 Apr 2014 01:39:56 +0300
+
+schooltool (1:2.6.3-0ubuntu1) trusty; urgency=low
+
+  * New upstream release.
+    - Celery 3 support (LP: #1276384)
+    - Switch to CKEditor (LP: #485898)
+    - Fixed exception dates format in calendar widget of recurring events (LP: #372889)
+    - Fixed export of deleted timetables (LP: #1281335)
+    - Fixed term/section navigation in a different school year (LP: #1281050)
+  * debian/copyright: update, remove calwidget
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Sat, 12 Apr 2014 00:58:04 +0300
+
+schooltool (1:2.6.2-0ubuntu1) saucy; urgency=low
+
+  * New upstream bugfix release.
+  * debian/patches/evolve42.patch: remove, fixed upstream.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Sat, 15 Feb 2014 01:19:44 +0200
+
+schooltool (1:2.6.1.2-0ubuntu2) trusty; urgency=low
+
+  * debian/patches/evolve42.patch: add to fix upgrade of an empty DB from
+    2.6.0 to 2.6.1 (LP: #1258529)
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Wed, 11 Dec 2013 14:49:55 +0200
+
+schooltool (1:2.6.1.2-0ubuntu1) trusty; urgency=low
+
+  * New upstream micro release
+    - Fix warning about unsaved changes in journal and cando (LP: #1253070)
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Sun, 24 Nov 2013 22:31:44 +0200
 
 schooltool (1:2.6.1.1-0ubuntu1) trusty; urgency=low
 

@@ -40,6 +40,7 @@ from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from zope.proxy import sameProxiedObjects
 from zope.i18n import translate
 from zope.i18n.interfaces.locales import ICollator
+from zope.security.proxy import removeSecurityProxy
 from zope.security.checker import canAccess
 
 from z3c.form import form, field, button
@@ -249,7 +250,7 @@ class FlourishSchoolYearDeleteView(flourish.form.DialogForm, form.EditForm):
     def handleDelete(self, action):
         url = '%s/delete.html?delete.%s&CONFIRM' % (
             absoluteURL(self.context.__parent__, self.request),
-            self.context.__name__)
+            self.context.__name__.encode('utf-8'))
         self.request.response.redirect(url)
         # We never have errors, so just close the dialog.
         self.ajax_settings['dialog'] = 'close'
@@ -334,6 +335,8 @@ class ImportSchoolYearData(object):
             new_course.course_id = course.course_id
             new_course.government_id = course.government_id
             new_course.credits = course.credits
+            for level in course.levels:
+                new_course.levels.add(removeSecurityProxy(level))
 
     def copyTimetable(self, timetable):
         # XXX: copy-pasted old hack, would be nice

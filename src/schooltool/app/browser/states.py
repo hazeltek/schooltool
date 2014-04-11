@@ -19,6 +19,7 @@
 import urllib
 
 import zope.schema
+from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 import z3c.form.interfaces
 from zope.cachedescriptors.property import Lazy
 from zope.component import getMultiAdapter
@@ -27,6 +28,7 @@ from zope.interface import Interface
 from zope.traversing.browser.absoluteurl import absoluteURL
 from zope.security.proxy import removeSecurityProxy
 from z3c.form import button, field, form, widget
+from zc.table.column import GetterColumn
 
 from schooltool import table
 from schooltool.skin import flourish
@@ -34,11 +36,15 @@ from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.app.interfaces import IRelationshipStateContainer
 from schooltool.app.states import RelationshipStateChoice
 from schooltool.app.states import RelationshipState
+from schooltool.app.states import ACTIVE
+from schooltool.app.states import INACTIVE
 from schooltool.app.browser.app import EditRelationships
 from schooltool.app.browser.app import RelationshipAddTableMixin
 from schooltool.app.browser.app import RelationshipRemoveTableMixin
+from schooltool.app.browser.app import AddAllResultsButton
+from schooltool.app.browser.app import RemoveAllResultsButton
 
-from schooltool.common import format_message
+from schooltool.common import format_message, parse_date
 from schooltool.common import SchoolToolMessage as _
 
 
@@ -68,15 +74,15 @@ class EditTemporalRelationships(EditRelationships):
         container = IRelationshipStateContainer(app)
         return container.get(self.app_states_name, None)
 
-    def relate(self, item, code, date=None):
+    def add(self, item, state=None, code=None, date=None):
         collection = removeSecurityProxy(self.getCollection())
-        if item not in collection:
-            collection.add(item)
+        active = state.active if state is not None else ACTIVE
+        collection.on(date).relate(item, active, code)
 
-    def remove(self, item, code, date=None):
+    def remove(self, item, state=None, code=None, date=None):
         collection = removeSecurityProxy(self.getCollection())
-        if item in collection:
-            collection.remove(item)
+        active = state.active if state is not None else INACTIVE
+        collection.on(date).relate(item, active, code)
 
     def getSelectedItems(self):
         collection = self.getCollection()
@@ -92,9 +98,20 @@ class TemporalRelationshipAddTableMixin(RelationshipAddTableMixin):
     pass
 
 
+def get_state_column_formatter(table):
+    def cell_formatter(value, item, formatter):
+        params = {
+            'value': value,
+            'name': '%s.%s' % (table.button_prefix, table.view.getKey(item)),
+            'prefix': table.button_prefix,
+            }
+        return '<a class="%(prefix)s-action" name="%(name)s" href="#">%(value)s</a>' % params
+    return cell_formatter
+
+
 class TemporalRelationshipRemoveTableMixin(RelationshipRemoveTableMixin):
 
-    button_title = _('Status')
+    button_title = _('Update')
     button_image = 'edit-icon.png'
 
     def makeTextGetter(self):
@@ -102,7 +119,7 @@ class TemporalRelationshipRemoveTableMixin(RelationshipRemoveTableMixin):
         if settings is None:
             return None
         collection = self.view.getCollection()
-        def text(item):
+        def text(item, formatter=None):
             state = collection.state(removeSecurityProxy(item))
             if state is None:
                 return ''
@@ -115,6 +132,16 @@ class TemporalRelationshipRemoveTableMixin(RelationshipRemoveTableMixin):
                 return ''
             return description.title
         return text
+
+    def columns(self):
+        default = super(TemporalRelationshipRemoveTableMixin, self).columns()
+        state = GetterColumn(
+            name='state',
+            title=_('State'),
+            getter=self.makeTextGetter(),
+            cell_formatter=get_state_column_formatter(self),
+            )
+        return default + [state]
 
 
 class TemporalRelationshipTableEditDialog(flourish.ajax.AJAXDialogForm):
@@ -181,7 +208,7 @@ class StateActionDialog(DialogFormWithScript):
 
     @property
     def selector(self):
-        return 'button.%s' % (self.manager.button_prefix + '-action');
+        return 'a.%s' % (self.manager.button_prefix + '-action');
 
     def getContent(self):
         return self.settings
@@ -285,6 +312,8 @@ class StateActionDialog(DialogFormWithScript):
     def initDialog(self):
         self.settings = {}
         super(StateActionDialog, self).initDialog()
+        self.ajax_settings['dialog']['modal'] = False
+        self.ajax_settings['dialog']['draggable'] = True
 
     @property
     def target(self):
@@ -534,3 +563,93 @@ class RelationshipStatesEditView(flourish.page.Page):
 
     def createState(self, title, code, active, *values):
         return removeSecurityProxy(self.context).factory(title, active, code)
+
+
+class TemporalResultsButton(object):
+
+    states = ()
+    default_state = None
+
+    template = ViewPageTemplateFile('templates/f_temporal_results_button.pt')
+
+    @property
+    def state_name(self):
+        return self.manager.html_id + '-state'
+
+    @property
+    def date_name(self):
+        return self.manager.html_id + '-date'
+
+    @property
+    def date(self):
+        try:
+            return parse_date(self.request.get(self.date_name))
+        except (ValueError, AttributeError):
+            pass
+        return self.request.util.today
+
+    @property
+    def state(self):
+        if self.state_name not in self.request:
+            return self.default_state
+        for state in self.app_states:
+            if state.code ==self.request[self.state_name]:
+                return state
+
+    @Lazy
+    def app_states(self):
+        app = ISchoolToolApplication(None)
+        container = IRelationshipStateContainer(app)
+        states = container.get(self.view.app_states_name, None)
+        if states is None:
+            return {}
+        return states
+
+    @property
+    def states(self):
+        result = []
+        for state in self.app_states:
+            is_selected = state.code == self.request.get(self.state_name)
+            is_default = state == self.default_state
+            result.append({
+                    'title': state.title,
+                    'selected': is_selected or is_default,
+                    'value': state.code,
+                    })
+        return result
+
+
+class TemporalAddAllResultsButton(TemporalResultsButton,
+                                  AddAllResultsButton):
+
+    @property
+    def default_state(self):
+        app_states = self.app_states
+        for state in app_states.states.values():
+            if state.active == ACTIVE:
+                return state
+        if app_states.states:
+            return app_states.states.values()[0]
+
+    def process_item(self, relationship_view, item):
+        item = removeSecurityProxy(item)
+        relationship_view.add(item, self.state, self.state.code, self.date)
+
+
+class TemporalRemoveAllResultsButton(TemporalResultsButton,
+                                     RemoveAllResultsButton):
+
+    title = _('Update')
+
+    @property
+    def default_state(self):
+        app_states = self.app_states
+        for state in app_states.states.values():
+            if state.active == INACTIVE:
+                return state
+        if app_states.states:
+            return app_states.states.values()[0]
+
+    def process_item(self, relationship_view, item):
+        item = removeSecurityProxy(item)
+        relationship_view.remove(item, self.state, self.state.code, self.date)

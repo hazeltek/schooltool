@@ -61,6 +61,7 @@ from schooltool.term.interfaces import ITerm
 from schooltool.common import SchoolToolMessage as _
 
 
+SECTION_CONTAINERS_KEY = 'schooltool.course.section'
 COMPLETED = 'c'
 
 
@@ -211,9 +212,9 @@ def getSectionContainer(term):
     int_ids = getUtility(IIntIds)
     term_id = str(int_ids.getId(term))
     app = ISchoolToolApplication(None)
-    sc = app['schooltool.course.section'].get(term_id, None)
+    sc = app[SECTION_CONTAINERS_KEY].get(term_id, None)
     if sc is None:
-        sc = app['schooltool.course.section'][term_id] = SectionContainer()
+        sc = app[SECTION_CONTAINERS_KEY][term_id] = SectionContainer()
     return sc
 
 
@@ -271,7 +272,7 @@ class SectionContainer(BTreeContainer):
 class SectionInit(InitBase):
 
     def __call__(self):
-        self.app['schooltool.course.section'] = SectionContainerContainer()
+        self.app[SECTION_CONTAINERS_KEY] = SectionContainerContainer()
 
 
 class InstructorsCrowd(Crowd):
@@ -369,6 +370,7 @@ class RemoveSectionsWhenTermIsDeleted(ObjectEventAdapterSubscriber):
         section_container = interfaces.ISectionContainer(self.object)
         for section_id in list(section_container.keys()):
             del section_container[section_id]
+        del section_container.__parent__[section_container.__name__]
 
 
 class UnlinkSectionWhenDeleted(ObjectEventAdapterSubscriber):
@@ -404,51 +406,28 @@ class SectionLinkContinuinityValidationSubscriber(EventAdapterSubscriber):
                 _("Sections must be in consecutive terms"))
 
 
-def getSectionRosterEventParticipants(event, rel_type):
-    if rel_type != event.rel_type:
-        return None, None
-    if interfaces.ISection.providedBy(event.participant1):
-        return event.participant1, event.participant2
-    elif interfaces.ISection.providedBy(event.participant2):
-        return event.participant2, event.participant1
-    else:
-        return None, None
-
-
-def propagateSectionInstructorAdded(event):
-    section, teacher = getSectionRosterEventParticipants(event,
-        relationships.URIInstruction)
-    if section is None:
+def propagateSectionInstructorsChange(event):
+    link = event.link
+    if not (link.rel_type == relationships.URIInstruction and
+            interfaces.ISection.providedBy(event.this)):
         return
-    if section.next and teacher not in section.next.instructors:
-        section.next.instructors.add(teacher)
+    section = event.this
+    person = event.other
+    if section.next:
+        collection = section.next.instructors.all()
+        collection.on(event.date).relate(person, event.meaning, event.code)
 
 
-def propagateSectionInstructorRemoved(event):
-    section, teacher = getSectionRosterEventParticipants(event,
-        relationships.URIInstruction)
-    if section is None:
+def propagateSectionStudentsChange(event):
+    link = event.link
+    if not (link.rel_type == relationships.URIMembership and
+            interfaces.ISection.providedBy(event.this)):
         return
-    if section.next and teacher in section.next.instructors:
-        section.next.instructors.remove(teacher)
-
-
-def propagateSectionStudentAdded(event):
-    section, student = getSectionRosterEventParticipants(event,
-        relationships.URIMembership)
-    if section is None:
-        return
-    if section.next and student not in section.next.members:
-        section.next.members.add(student)
-
-
-def propagateSectionStudentRemoved(event):
-    section, student = getSectionRosterEventParticipants(event,
-        relationships.URIMembership)
-    if section is None:
-        return
-    if section.next and student in section.next.members:
-        section.next.members.remove(student)
+    section = event.this
+    person = event.other
+    if section.next:
+        collection = section.next.members.all()
+        collection.on(event.date).relate(person, event.meaning, event.code)
 
 
 def copySection(section, target_term):

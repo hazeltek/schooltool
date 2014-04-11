@@ -10,7 +10,7 @@
 
   <class
       class="schooltool.relationship.temporal.BoundTemporalRelationshipProperty">
-    <allow attributes="__iter__ __contains__ int_ids relationships any on all state states" />
+    <allow attributes="__iter__ __contains__ __len__ int_ids relationships any on all state states" />
   </class>
 
   <class
@@ -21,6 +21,16 @@
   <class
       class="schooltool.relationship.temporal.TemporalStateAccessor">
     <allow attributes="state all set get has latest today" />
+  </class>
+
+  <class
+      class="schooltool.relationship.relationship.CLink">
+    <require
+        permission="schooltool.edit"
+        set_schema=".interfaces.IRelationshipLink" />
+    <require
+        permission="schooltool.view"
+        interface=".interfaces.IRelationshipLink" />
   </class>
 
   <adapter

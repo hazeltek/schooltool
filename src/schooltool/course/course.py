@@ -27,9 +27,7 @@ from zope.component import adapts
 from zope.component import adapter
 from zope.component import getUtility
 from zope.annotation.interfaces import IAttributeAnnotatable
-from zope.intid import addIntIdSubscriber
 from zope.intid.interfaces import IIntIds
-from zope.lifecycleevent import ObjectAddedEvent
 from zope.lifecycleevent.interfaces import IObjectRemovedEvent
 from zope.container.contained import Contained
 from zope.container.btree import BTreeContainer
@@ -43,9 +41,13 @@ from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.app.app import InitBase
 from schooltool.app import relationships
 from schooltool.app.app import Asset
+from schooltool.level import level
 from schooltool.course.interfaces import ICourse
 from schooltool.course.interfaces import ICourseContainer
 from schooltool.course import interfaces
+
+
+COURSE_CONTAINER_KEY = 'schooltool.course.course'
 
 
 class CourseContainerContainer(BTreeContainer):
@@ -74,13 +76,12 @@ def getCourseContainerForApp(app):
 @adapter(ISchoolYear)
 @implementer(ICourseContainer)
 def getCourseContainer(sy):
-    addIntIdSubscriber(sy, ObjectAddedEvent(sy))
     int_ids = getUtility(IIntIds)
     sy_id = str(int_ids.getId(sy))
     app = ISchoolToolApplication(None)
-    cc = app['schooltool.course.course'].get(sy_id, None)
+    cc = app[COURSE_CONTAINER_KEY].get(sy_id, None)
     if cc is None:
-        cc = app['schooltool.course.course'][sy_id] = CourseContainer()
+        cc = app[COURSE_CONTAINER_KEY][sy_id] = CourseContainer()
     return cc
 
 
@@ -119,6 +120,10 @@ class Course(Persistent, Contained, Asset):
                                     relationships.URICourse,
                                     relationships.URISectionOfCourse)
 
+    levels = RelationshipProperty(level.URILevelCourses,
+                                  level.URICourse,
+                                  level.URILevel)
+
     course_id = None
     government_id = None
     credits = None
@@ -131,7 +136,7 @@ class Course(Persistent, Contained, Asset):
 class CourseInit(InitBase):
 
     def __call__(self):
-        self.app['schooltool.course.course'] = CourseContainerContainer()
+        self.app[COURSE_CONTAINER_KEY] = CourseContainerContainer()
 
 
 class RemoveCoursesWhenSchoolYearIsDeleted(ObjectEventAdapterSubscriber):
@@ -141,3 +146,4 @@ class RemoveCoursesWhenSchoolYearIsDeleted(ObjectEventAdapterSubscriber):
         course_container = ICourseContainer(self.object)
         for course_id in list(course_container.keys()):
             del course_container[course_id]
+        del course_container.__parent__[course_container.__name__]

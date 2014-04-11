@@ -1,3 +1,15 @@
+schooltool (1:2.6.3-0ubuntu1) trusty; urgency=low
+
+  * New upstream release.
+    - Celery 3 support (LP: #1276384)
+    - Switch to CKEditor (LP: #485898)
+    - Fixed exception dates format in calendar widget of recurring events (LP: #372889)
+    - Fixed export of deleted timetables (LP: #1281335)
+    - Fixed term/section navigation in a different school year (LP: #1281050)
+  * debian/copyright: update, remove calwidget
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Sat, 12 Apr 2014 00:58:04 +0300
+
 schooltool (1:2.6.2-0ubuntu1) saucy; urgency=low
 
   * New upstream bugfix release.

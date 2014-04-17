@@ -1,0 +1,45 @@
+Description: Support CKEditor 4.x as found in trusty
+Bug: https://bugs.launchpad.net/ubuntu/+source/schooltool/+bug/1309133
+Origin: https://bazaar.launchpad.net/~schooltool-owners/schooltool/2.6/revision/3744
+Index: schooltool/src/schooltool/skin/flourish/widgets.py
+===================================================================
+--- schooltool.orig/src/schooltool/skin/flourish/widgets.py
++++ schooltool/src/schooltool/skin/flourish/widgets.py
+@@ -131,12 +131,16 @@ class FlourishCkeditorScriptBase(object)
+         # XXX: using some values that may be not JS safe
+         return '''
+             <script type="text/javascript" language="JavaScript">
++                var skin = "v2,%(skinPath)s";
++                if (CKEDITOR.skins == undefined) {
++                    skin = "moono";
++                }
+                 var %(variable)s = new CKEDITOR.replace("%(id)s",
+                     {
+                         height: %(height)s,
+                         width: %(width)s,
+                         customConfig: "%(customConfigPath)s",
+-                        skin: "v2,%(skinPath)s",
++                        skin: skin,
+                         contentsCss: "%(contentsCss)s"
+                     }
+                 );
+Index: schooltool/src/schooltool/skin/flourish/resources/ckeditor/skin.js
+===================================================================
+--- schooltool.orig/src/schooltool/skin/flourish/resources/ckeditor/skin.js
++++ schooltool/src/schooltool/skin/flourish/resources/ckeditor/skin.js
+@@ -3,6 +3,7 @@ Copyright (c) 2003-2011, CKSource - Fred
+ For licensing, see LICENSE.html or http://ckeditor.com/license
+ */
+ 
++if (CKEDITOR.skins != undefined) {
+ CKEDITOR.skins.add( 'v2', (function()
+ {
+ 	return {
+@@ -13,6 +14,7 @@ CKEDITOR.skins.add( 'v2', (function()
+ 		margins		: [ 0, 14, 18, 14 ]
+ 	};
+ })() );
++}
+ 
+ (function()
+ {

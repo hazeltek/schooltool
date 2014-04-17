@@ -1,9 +1,17 @@
+schooltool (1:2.6.3-0ubuntu2) trusty; urgency=medium
+
+  * debian/patches/ckeditor4.patch: make compatible with CKEditor 4.x
+    (LP: #1309133)
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 17 Apr 2014 20:58:15 +0300
+
 schooltool (1:2.6.3-0ubuntu1) trusty; urgency=low
 
   * New upstream release.
     - Celery 3 support (LP: #1276384)
     - Switch to CKEditor (LP: #485898)
-    - Fixed exception dates format in calendar widget of recurring events (LP: #372889)
+    - Fixed exception dates format in calendar widget of recurring events
+      (LP: #372889)
     - Fixed export of deleted timetables (LP: #1281335)
     - Fixed term/section navigation in a different school year (LP: #1281050)
   * debian/copyright: update, remove calwidget

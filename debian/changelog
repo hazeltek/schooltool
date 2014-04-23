@@ -1,19 +1,34 @@
-schooltool (1:2.7.0~dev-0ubuntu2) trusty; urgency=low
+schooltool (1:2.7.1~dev-0ubuntu1) trusty; urgency=low
 
   * Snapshot of trunk:
     - debian/changelog: bump version
     - debian/control: add gettext to Build-Depends
     - debian/rules: compile translations
     - debian/patches/python-imaging.patch: remove Pillow only from setup.py
+  * debian/patches/ckeditor4.patch: remove, fix committed upstream
 
- -- Gediminas Paulauskas <menesis@pov.lt>  Sat, 12 Apr 2014 01:39:56 +0300
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 24 Apr 2014 00:31:57 +0300
+
+schooltool (1:2.7.0-0ubuntu1) trusty; urgency=low
+
+  * New upstream release.
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Fri, 18 Apr 2014 19:21:00 +0300
+
+schooltool (1:2.6.3-0ubuntu2) trusty; urgency=low
+
+  * debian/patches/ckeditor4.patch: make compatible with CKEditor 4.x
+    (LP: #1309133)
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 17 Apr 2014 20:58:15 +0300
 
 schooltool (1:2.6.3-0ubuntu1) trusty; urgency=low
 
   * New upstream release.
     - Celery 3 support (LP: #1276384)
     - Switch to CKEditor (LP: #485898)
-    - Fixed exception dates format in calendar widget of recurring events (LP: #372889)
+    - Fixed exception dates format in calendar widget of recurring events
+      (LP: #372889)
     - Fixed export of deleted timetables (LP: #1281335)
     - Fixed term/section navigation in a different school year (LP: #1281050)
   * debian/copyright: update, remove calwidget

@@ -928,6 +928,7 @@ src/schooltool/schoolyear/browser/ftests/schoolyear_activation.txt
 src/schooltool/schoolyear/browser/ftests/schoolyear_import.txt
 src/schooltool/schoolyear/browser/ftests/test_all.py
 src/schooltool/schoolyear/browser/stests/__init__.py
+src/schooltool/schoolyear/browser/stests/new_year_timetables.txt
 src/schooltool/schoolyear/browser/stests/selenium_extensions.txt
 src/schooltool/schoolyear/browser/stests/test_selenium.py
 src/schooltool/schoolyear/browser/templates/f_confirm_delete_schoolyear.pt

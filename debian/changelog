@@ -1,3 +1,19 @@
+schooltool (1:2.6.4-0ubuntu1) trusty; urgency=medium
+
+  * New upstream bugfix release.
+    - Delete schedules that reference a deleted timetable (LP: #1280528)
+    - Improve tab style to make active tab more clear (LP: #1023378)
+    - Timetables copied from active year retain old start/end dates (LP: #1005962)
+  * debian/patches/ckeditor4.patch: remove, fixed upstream.
+  * debian/copyright: add a section for included d3 javascript library.
+  * debian/missing-sources: add sources for included javascript libraries:
+    - d3 2.9.7
+    - jquery 1.7.1
+    - jquery-scrollto 1.4.2
+    - jquery-ui 1.8.18
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Mon, 05 May 2014 21:09:49 +0300
+
 schooltool (1:2.6.3-0ubuntu2) trusty; urgency=medium
 
   * debian/patches/ckeditor4.patch: make compatible with CKEditor 4.x

@@ -1195,7 +1195,7 @@ class FlourishManagePeopleOverview(flourish.page.Content,
         'templates/f_manage_people_overview.pt')
 
     built_in_groups = ('administrators', 'clerks', 'manager', 'teachers',
-                       'students')
+                       'substitute_teachers', 'students')
 
     @property
     def groups(self):

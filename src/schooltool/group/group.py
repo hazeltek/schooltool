@@ -58,11 +58,12 @@ from schooltool.securitypolicy.crowds import ClerksCrowd
 from schooltool.common import SchoolToolMessage as _
 
 
-defaultGroups =  {"manager"       : _("Site Managers"),
-                  "students"      : _("Students"),
-                  "teachers"      : _("Teachers"),
-                  "clerks"        : _("Clerks"),
-                  "administrators": _("School Administrators"),
+defaultGroups =  {"manager"            : _("Site Managers"),
+                  "students"           : _("Students"),
+                  "teachers"           : _("Teachers"),
+                  "substitute_teachers": _("Substitute Teachers"),
+                  "clerks"             : _("Clerks"),
+                  "administrators"     : _("School Administrators"),
                   }
 
 

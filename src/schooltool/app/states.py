@@ -288,3 +288,16 @@ class StudentLevelsStatesStartup(StateStartUpBase):
         states.add(_('Added in error'), INACTIVE, 'e')
         states.describe(INACTIVE+PREENROLLED, _('Pre-enrolled'))
         states.describe(INACTIVE+GRADUATED, _('Graduated'))
+
+
+class TeacheAttendanceStatesStartUp(StateStartUpBase):
+
+    states_name = 'teacher-attendance'
+    states_title = _('Teacher Attendance')
+
+    def populate(self, states):
+        super(TeacheAttendanceStatesStartUp, self).populate(states)
+        states.add(_('Present'), ACTIVE, 'a')
+        states.add(_('Absent'), INACTIVE, 'i')
+        states.add(_('Sick'), INACTIVE, 's')
+        states.add(_('Added in error'), INACTIVE, 'e')

@@ -60,8 +60,10 @@ from schooltool.app.browser.report import DefaultPageTemplate
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.app.interfaces import IApplicationPreferences
 from schooltool.app.interfaces import IRelationshipStateContainer
+from schooltool.app.states import INACTIVE
 from schooltool.common.inlinept import InlineViewPageTemplate
 from schooltool.common.inlinept import InheritTemplate
+from schooltool.basicperson.demographics import LEAVE_SCHOOL_FIELDS
 from schooltool.basicperson.interfaces import IDemographics
 from schooltool.basicperson.interfaces import IDemographicsFields
 from schooltool.basicperson.interfaces import IBasicPerson
@@ -90,7 +92,6 @@ from schooltool.task.browser.task import MessageColumn
 from schooltool.term.interfaces import IDateManager
 
 from schooltool.common import SchoolToolMessage as _
-
 
 
 class BasicPersonContainerView(TableContainerView):
@@ -1692,3 +1693,72 @@ class StatusPersonListTable(PersonListTable):
         app = ISchoolToolApplication(None)
         container = IRelationshipStateContainer(app)
         return container.get(self.app_states_name, None)
+
+
+from schooltool.course.interfaces import ILearner
+from schooltool.term.interfaces import ITerm
+from schooltool.schoolyear.interfaces import ISchoolYear
+
+
+class LeaveSchoolView(flourish.form.Form,
+                      form.EditForm,
+                      ActiveSchoolYearContentMixin):
+
+    template = InheritTemplate(flourish.page.Page.template)
+    label = None
+    legend = _('Leave Information')
+
+    @property
+    def fields(self):
+        field_descriptions = IDemographicsFields(ISchoolToolApplication(None))
+        fields = field.Fields()
+        for name in LEAVE_SCHOOL_FIELDS:
+            if name in field_descriptions:
+                fields += field_descriptions[name].makeField()
+        return fields
+
+    @property
+    def title(self):
+        return self.context.title
+
+    def update(self):
+        form.EditForm.update(self)
+
+    def updateActions(self):
+        super(LeaveSchoolView, self).updateActions()
+        self.actions['apply'].addClass('button-ok')
+        self.actions['cancel'].addClass('button-cancel')
+
+    def updateWidgets(self, *args, **kw):
+        super(LeaveSchoolView, self).updateWidgets(*args, **kw)
+        self.widgets['leave_date'].value = self.request.util.today
+
+    @button.buttonAndHandler(_('Submit'), name='apply')
+    def handleApply(self, action):
+        super(LeaveSchoolView, self).handleApply.func(self, action)
+        if (self.status == self.successMessage or
+            self.status == self.noChangesMessage):
+            data, errors = self.extractData()
+            person = removeSecurityProxy(self.context)
+            for section in ILearner(self.context).sections():
+                term = ITerm(section)
+                schoolyear = ISchoolYear(term)
+                if schoolyear is self.schoolyear:
+                    date = data['leave_date']
+                    collection = removeSecurityProxy(section.members)
+                    collection.on(date).relate(person, INACTIVE, 'i')
+            for group in self.context.groups:
+                schoolyear = ISchoolYear(group.__parent__)
+                if schoolyear is self.schoolyear:
+                    date = data['leave_date']
+                    collection = removeSecurityProxy(group.members)
+                    code = 'w' if group.__name__ == 'students' else 'i'
+                    collection.on(date).relate(person, INACTIVE, code)
+            self.request.response.redirect(self.nextURL())
+
+    @button.buttonAndHandler(_("Cancel"))
+    def handle_cancel_action(self, action):
+        self.request.response.redirect(self.nextURL())
+
+    def nextURL(self):
+        return absoluteURL(self.context, self.request)

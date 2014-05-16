@@ -21,6 +21,8 @@ Demographics fields and storage
 from persistent.dict import PersistentDict
 from persistent import Persistent
 
+from zope.annotation.interfaces import IAttributeAnnotatable
+from zope.app.dependable.interfaces import IDependable
 from zope.schema._field import Choice
 from zope.schema._field import Date
 from zope.schema import TextLine, Bool
@@ -51,6 +53,8 @@ from schooltool.basicperson.interfaces import IDemographics
 from schooltool.basicperson.interfaces import IFieldDescription
 from schooltool.common import SchoolToolMessage as _
 
+
+LEAVE_SCHOOL_FIELDS = ['leave_date', 'leave_reason', 'leave_destination']
 
 class IDemographicsForm(Interface):
     """Interface for fields that are supposed to get stored in person demographics."""
@@ -160,6 +164,15 @@ def setUpDefaultDemographics(app):
     dfs['language'] = TextFieldDescription('language', _('Language'))
     dfs['placeofbirth'] = TextFieldDescription('placeofbirth', _('Place of birth'))
     dfs['citizenship'] = TextFieldDescription('citizenship', _('Citizenship'))
+    dfs['leave_date'] = DateFieldDescription(
+        'leave_date', _('Date of leaving'))
+    dfs['leave_reason'] = EnumFieldDescription(
+        'leave_reason', _('Reason for leaving'))
+    dfs['leave_destination'] = EnumFieldDescription(
+        'leave_destination', _('Destination school'))
+    for name in LEAVE_SCHOOL_FIELDS:
+        if name in dfs:
+            IDependable(dfs[name]).addDependent('')
 
 
 class DemographicsAppStartup(StartUpBase):
@@ -183,7 +196,8 @@ def getDemographicsFields(app):
 
 
 class FieldDescription(Persistent, Location):
-    implements(IFieldDescription)
+    implements(IFieldDescription, IAttributeAnnotatable)
+
     limit_keys = []
     description = None
 

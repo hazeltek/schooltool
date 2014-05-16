@@ -889,4 +889,26 @@
       class=".person.NewMessageIndicatorViewlet"
       />
 
+  <flourish:viewlet
+      name="leave.html"
+      for="schooltool.basicperson.interfaces.IBasicPerson"
+      title="Leave School"
+      class="schooltool.skin.flourish.page.LinkViewlet"
+      manager="schooltool.basicperson.browser.person.PersonActionsLinks"
+      permission="schooltool.edit"
+      />
+
+  <configure package="schooltool.skin.flourish">
+
+    <flourish:page
+        name="leave.html"
+        for="schooltool.basicperson.interfaces.IBasicPerson"
+        class="schooltool.basicperson.browser.person.LeaveSchoolView"
+        content_template="templates/z3c_form_edit.pt"
+        subtitle="Leave School"
+        permission="schooltool.edit"
+        />
+
+  </configure>
+
 </configure>

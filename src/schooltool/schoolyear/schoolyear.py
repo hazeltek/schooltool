@@ -141,10 +141,11 @@ class SchoolYearContainer(BTreeContainer):
         if self.getActiveSchoolYear() is None:
             return None
 
-        this_schoolyear_index = self.sorted_schoolyears.index(self.getActiveSchoolYear())
+        years = self.sorted_schoolyears
+        this_schoolyear_index = years.index(self.getActiveSchoolYear())
         next_schoolyear_index = this_schoolyear_index + 1
-        if next_schoolyear_index < len(self.sorted_schoolyears):
-            return self.sorted_schoolyears[next_schoolyear_index]
+        if next_schoolyear_index < len(years):
+            return years[next_schoolyear_index]
 
         return None
 
@@ -288,7 +289,6 @@ class SchoolYearTermOverflowValidationSubscriber(EventAdapterSubscriber):
     implements(ISubscriber)
 
     def __call__(self):
-        overflowing_terms = []
         sy = self.event.schoolyear
         dr = DateRange(*self.event.new_dates)
         validateScholYearForOverflow(dr, sy)

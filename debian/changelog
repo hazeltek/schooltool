@@ -1,4 +1,4 @@
-schooltool (1:2.7.1~dev-0ubuntu1) trusty; urgency=low
+schooltool (1:2.8.1~dev-0ubuntu1) trusty; urgency=low
 
   * Snapshot of trunk:
     - debian/changelog: bump version
@@ -7,15 +7,28 @@ schooltool (1:2.7.1~dev-0ubuntu1) trusty; urgency=low
     - debian/patches/python-imaging.patch: remove Pillow only from setup.py
   * debian/patches/ckeditor4.patch: remove, fix committed upstream
 
- -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 24 Apr 2014 00:31:57 +0300
+ -- Gediminas Paulauskas <menesis@pov.lt>  Mon, 19 May 2014 17:39:19 +0300
 
-schooltool (1:2.7.0-0ubuntu1) trusty; urgency=low
+schooltool (1:2.8.0-0ubuntu1) trusty; urgency=medium
+
+  * New upstream release.
+  * debian/patches/ckeditor4.patch: remove, fixed upstream.
+  * debian/copyright: add a section for included d3 javascript library.
+  * debian/missing-sources: add sources for included javascript libraries:
+    - d3 2.9.7
+    - jquery 1.7.1
+    - jquery-scrollto 1.4.2
+    - jquery-ui 1.8.18
+
+ -- Gediminas Paulauskas <menesis@pov.lt>  Thu, 08 May 2014 18:11:18 +0300
+
+schooltool (1:2.7.0-0ubuntu1) trusty; urgency=medium
 
   * New upstream release.
 
  -- Gediminas Paulauskas <menesis@pov.lt>  Fri, 18 Apr 2014 19:21:00 +0300
 
-schooltool (1:2.6.3-0ubuntu2) trusty; urgency=low
+schooltool (1:2.6.3-0ubuntu2) trusty; urgency=medium
 
   * debian/patches/ckeditor4.patch: make compatible with CKEditor 4.x
     (LP: #1309133)

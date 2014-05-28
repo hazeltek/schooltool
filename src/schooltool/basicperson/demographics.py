@@ -168,8 +168,13 @@ def setUpDefaultDemographics(app):
         'leave_date', _('Date of leaving'))
     dfs['leave_reason'] = EnumFieldDescription(
         'leave_reason', _('Reason for leaving'))
+    dfs['leave_reason'].items = [_('Moved away'),
+                                 _('Expulsion'),
+                                 _('Local transfer')]
     dfs['leave_destination'] = EnumFieldDescription(
         'leave_destination', _('Destination school'))
+    dfs['leave_destination'].items = [_('Example School A'),
+                                      _('Example School B')]
     for name in LEAVE_SCHOOL_FIELDS:
         if name in dfs:
             IDependable(dfs[name]).addDependent('')

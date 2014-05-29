@@ -73,6 +73,7 @@ from schooltool.utility.utility import UtilitySpecification
 
 MANAGER_USERNAME = 'manager'
 MANAGER_PASSWORD = 'schooltool'
+PEAS_MANAGER_USERNAME = 'peas-manager'
 
 locale_charset = locale.getpreferredencoding()
 
@@ -620,6 +621,7 @@ class SchoolToolServer(SchoolToolMachinery):
             setSite(None)
 
             self.restoreManagerUser(app, MANAGER_PASSWORD)
+            self.restorePEASManagerUser(app)
             self.initializePreferences(app)
         transaction.commit()
         connection.close()
@@ -657,6 +659,16 @@ class SchoolToolServer(SchoolToolMachinery):
         manager = app['persons'][MANAGER_USERNAME]
         manager.setPassword(password)
         app['persons'].super_user = manager
+        setSite(None)
+
+    def restorePEASManagerUser(self, app):
+        setSite(app)
+        if PEAS_MANAGER_USERNAME not in app['persons']:
+            factory = getUtility(IPersonFactory)
+            peas_manager = factory(PEAS_MANAGER_USERNAME,
+                                   'Default', 'PEAS Manager')
+            app['persons'][PEAS_MANAGER_USERNAME] = peas_manager
+            IDependable(peas_manager).addDependent('')
         setSite(None)
 
     def setup(self, options):

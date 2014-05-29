@@ -2,10 +2,17 @@
 CHANGES
 =======
 
-2.8.1 (unreleased)
+2.8.1 (2014-05-29)
 ------------------
 
-- Nothing changed yet.
+Initial ARK release
++++++++++++++++++++
+
+- Added peas-manager user
+- Added leave school view
+- Added zc.zrs configuration templates
+- Added Substitute Teachers built-in group
+- Added Teacher Attendance states
 
 
 2.8.0 (2014-05-08)

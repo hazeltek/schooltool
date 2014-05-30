@@ -9,7 +9,8 @@
     <ul>
       <li tal:repeat="schoolyear schoolyears">
         <a tal:attributes="href schoolyear/obj/@@absolute_url;
-                           title schoolyear/obj/title"
+                           title schoolyear/obj/title;
+                           class schoolyear/css_class;"
            tal:content="schoolyear/obj/title"></a>
         <ul>
           <li tal:repeat="term schoolyear/terms">
@@ -22,6 +23,12 @@
                                    title section_data/title"
                    class="leaf_url"
                    tal:content="section_data/title"></a>
+                <ul>
+                  <li tal:repeat="state section_data/states">
+                    <tal:block replace="state/title" />
+                    (<tal:block replace="state/date/@@mediumDate" />)
+                  </li>
+                </ul>
               </li>
             </ul>
           </li>
@@ -39,7 +46,8 @@
     <ul>
       <li tal:repeat="schoolyear schoolyears">
         <a tal:attributes="href schoolyear/obj/@@absolute_url;
-                           title schoolyear/obj/title"
+                           title schoolyear/obj/title;
+                           class schoolyear/css_class"
            tal:content="schoolyear/obj/title"></a>
         <ul>
           <li tal:repeat="term schoolyear/terms">
@@ -52,6 +60,12 @@
                                    title section_data/title"
                    class="leaf_url"
                    tal:content="section_data/title"></a>
+                <ul>
+                  <li tal:repeat="state section_data/states">
+                    <tal:block replace="state/title" />
+                    (<tal:block replace="state/date/@@mediumDate" />)
+                  </li>
+                </ul>
               </li>
             </ul>
           </li>

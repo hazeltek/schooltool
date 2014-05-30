@@ -550,6 +550,10 @@ class Message(Persistent, Contained):
     def utcnow(self):
         return pytz.UTC.localize(datetime.datetime.utcnow())
 
+    @property
+    def id(self):
+        return self.__name__
+
     def send(self, sender=None, recipients=None):
         self.sender = sender
         if recipients is not None:
@@ -753,6 +757,12 @@ def query_message(sender, recipient=None):
     return None
 
 
+def get_message_by_id(message_id):
+    app = ISchoolToolApplication(None)
+    messages = IMessageContainer(app)
+    return messages.get(message_id)
+
+
 class MessageReaders(Crowd):
     """Crowd of instructors of a section."""
 
@@ -776,4 +786,8 @@ def load_plugin_tasks():
     for entry in task_entries:
         entry.load()
 
-load_plugin_tasks()
+# The only entry point was `schooltool.export.importer`
+# Now it is removed, but if .egg-info is not updated, the following call causes
+# test and startup to fail with
+# ImportError: cannot import name AbstractReportTask
+#load_plugin_tasks()

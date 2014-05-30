@@ -162,6 +162,30 @@ ST.table = function() {
           return false;
       },
 
+      on_form_submit_modal: function(container_id, button, extra_data,
+                                     url, dialog_container_id, title)
+      {
+          var container = $(ST.dialogs.jquery_id(container_id));
+          var form = container.find('form');
+          var data = form.serializeArray();
+          if (button) {
+              var element = $(button);
+              data.push({
+                  name: element.attr('name'),
+                  value: element.attr('value')});
+          }
+
+          if (extra_data) {
+              data.push.apply(data, extra_data);
+          }
+
+          if (!dialog_container_id) {
+              dialog_container_id = 'submit-modal-form';
+          }
+          ST.dialogs.open_modal_form(url, dialog_container_id, title, data);
+          return false;
+      },
+
       on_item_submit: function(container_id, button, extra_data) {
           var element = $(button);
           var item_value = element.attr('value');
@@ -241,6 +265,18 @@ ST.table = function() {
           var elements = $(element).closest('table').find('tbody input[type="checkbox"]')
           elements.attr('checked', value);
           return true;
+      },
+
+      select_all: function(event) {
+          var element = event.target;
+          $(element).closest('form').find('tbody input[type="checkbox"]').attr('checked', true);
+          event.preventDefault();
+      },
+
+      select_none: function(event) {
+          var element = event.target;
+          $(element).closest('form').find('tbody input[type="checkbox"]').attr('checked', false);
+          event.preventDefault();
       }
 
   };

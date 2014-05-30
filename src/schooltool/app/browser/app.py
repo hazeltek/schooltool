@@ -18,6 +18,7 @@
 """
 SchoolTool application views.
 """
+import re
 import urllib
 
 from zope.cachedescriptors.property import Lazy
@@ -225,22 +226,58 @@ class CSSFormatter(table.table.SortUIHeaderMixin, FormFullFormatter):
 
 class RelationshipButton(ImageInputColumn):
 
+    onclick = None
+    button_class = None
+    text_getter = None
+
+    def __init__(self, prefix, title=None, name=None,
+                 alt=None, library=None, image=None, id_getter=None,
+                 onclick=None, text_getter=None):
+        ImageInputColumn.__init__(self, prefix, title=title, name=name,
+                                  alt=alt, library=library, image=image,
+                                  id_getter=id_getter)
+        self.text_getter = text_getter
+        self.onclick = onclick
+        classname = '-'.join(filter(None, (prefix, name))).lower()
+        self.button_class = re.sub('[\W]+', '-', classname)
+
     def params(self, item, formatter):
         params = ImageInputColumn.params(self, item, formatter)
         params['tokens_name'] = ".".join(
             filter(None, ["displayed", self.prefix, "tokens"]))
         params['tokens_value'] = self.id_getter(item)
+        params['onclick'] = self.onclick or ''
+        params['css_class'] = self.button_class
+        if self.text_getter is not None:
+            params['text'] = self.text_getter(item)
         return params
 
     def template(self):
-        return '\n'.join([
+        template = '\n'.join([
                 '<input name="%(tokens_name)s" value="%(tokens_value)s"'
                 ' type="hidden" />',
-                '<button class="image" type="submit" name="%(name)s"'
+                '<button class="image %(css_class)s" type="submit" name="%(name)s"'
+                ' onclick="%(onclick)s"'
                 ' title="%(title)s" value="1">',
                 '<img src="%(src)s" alt="%(alt)s" />',
                 '</button>'
                 ])
+        if self.text_getter is not None:
+            template = '<span>%(text)s</span>\n' + template
+        return template
+
+
+class RelationshipCheckboxColumn(CheckboxColumn):
+
+    def template(self):
+        return '<input type="checkbox" name="%(tokens_name)s" value="%(tokens_value)s" />'
+
+    def params(self, item, formatter):
+        params = CheckboxColumn.params(self, item, formatter)
+        params['tokens_name'] = ".".join(
+            filter(None, ["displayed", self.prefix, "tokens"]))
+        params['tokens_value'] = self.id_getter(item)
+        return params
 
 
 class RelationshipButtonTableMixin(object):
@@ -249,6 +286,7 @@ class RelationshipButtonTableMixin(object):
     extras_prefix = ""
     button_title = u""
     button_image = ''
+    onclick = None
     empty_message = _('There are none.')
 
     ignoreRequest = False
@@ -279,16 +317,18 @@ class RelationshipButtonTableMixin(object):
     def source(self):
         return self.view.getAvailableItemsContainer()
 
+    def makeTextGetter(self):
+        return None
+
     def columns(self):
         # XXX: evil!
         default = super(RelationshipButtonTableMixin, self).columns()
 
-        action = RelationshipButton(
+        action = RelationshipCheckboxColumn(
             self.button_prefix, name='action',
-            title=self.button_title, alt=self.button_title,
-            library='schooltool.skin.flourish',
-            image=self.button_image, id_getter=self.view.getKey)
-        return default + [action]
+            title=self.button_title,
+            id_getter=self.view.getKey)
+        return [action] + default
 
     def update(self):
         super(RelationshipButtonTableMixin, self).update()
@@ -383,46 +423,80 @@ class RelationshipRemoveTableMixin(RelationshipButtonTableMixin):
                    css_classes={'table': 'data relationships-table'})
 
 
-class AddAllResultsButton(flourish.viewlet.Viewlet):
+class ResultsButton(flourish.viewlet.Viewlet):
 
     template = InlineViewPageTemplate('''
+      <div i18n:domain="schooltool">
+        <p>
+          <a href="#" onclick="return ST.table.select_all(event);" i18n:translate="" tal:attributes="id view/select_all_name">Select All</a> |
+          <a href="#" onclick="return ST.table.select_none(event);" i18n:translate="" tal:attributes="id view/select_none_name">Select None</a>
+        </p>
+      </div>
       <div class="buttons">
-        <input id="form-buttons-add" name="ADD_DISPLAYED_RESULTS"
-               class="submit-widget button-field button-ok"
-               value="Add all displayed" type="submit"
+        <input class="submit-widget button-field button-ok" type="submit"
                tal:attributes="name view/button_name;
                                value view/title" />
       </div>
     ''')
 
-    title = _('Add all displayed')
-    button_name = 'ADD_DISPLAYED_RESULTS'
-    token_key = 'displayed.add_item.tokens'
+    @property
+    def select_all_name(self):
+        return self.manager.html_id + '-select-all'
 
-    def addSearchResults(self):
+    @property
+    def select_none_name(self):
+        return self.manager.html_id + '-select-none'
+
+    def processSearchResults(self):
         if (self.button_name not in self.request or
             self.token_key not in self.request):
             return False
-        add_ids = self.request[self.token_key]
-        if not isinstance(add_ids, list):
-            add_ids = [add_ids]
+        item_ids = self.request[self.token_key]
+        if not isinstance(item_ids, list):
+            item_ids = [item_ids]
         changed = False
         relationship_view = self.manager.view
-        for item in relationship_view.getAvailableItems():
-            if relationship_view.getKey(item) in add_ids:
-                relationship_view.add(removeSecurityProxy(item))
+        for item in self.view_items(relationship_view):
+            if relationship_view.getKey(item) in item_ids:
+                self.process_item(relationship_view, item)
                 changed = True
         return changed
 
     def update(self):
-        changed = self.addSearchResults()
-        if changed:
+        self.processSearchResults()
+        if self.button_name in self.request:
             self.manager.changed = True
 
     def render(self, *args, **kw):
         if not self.manager._items:
             return ''
         return self.template(*args, **kw)
+
+
+class AddAllResultsButton(ResultsButton):
+
+    title = _('Add')
+    button_name = 'ADD_DISPLAYED_RESULTS'
+    token_key = 'displayed.add_item.tokens'
+
+    def view_items(self, relationship_view):
+        return relationship_view.getAvailableItems()
+
+    def process_item(self, relationship_view, item):
+        relationship_view.add(removeSecurityProxy(item))
+
+
+class RemoveAllResultsButton(ResultsButton):
+
+    title = _('Remove')
+    button_name = 'REMOVE_DISPLAYED_RESULTS'
+    token_key = 'displayed.remove_item.tokens'
+
+    def view_items(self, relationship_view):
+        return relationship_view.getSelectedItems()
+
+    def process_item(self, relationship_view, item):
+        relationship_view.remove(removeSecurityProxy(item))
 
 
 class EditRelationships(flourish.page.Page):
@@ -871,6 +945,7 @@ class ApplicationPreferencesView(BrowserView):
 
 class FlourishApplicationPreferencesView(Form, form.EditForm):
 
+    template = flourish.templates.Inherit(flourish.page.Page.template)
     fields = field.Fields(IApplicationPreferences)
     fields = fields.select('frontPageCalendar',
                            'timezone',
@@ -952,18 +1027,6 @@ class LeaderView(RelationshipViewBase):
     title = _("Leaders")
     current_title = _("Current leaders")
     available_title = _("Available leaders")
-
-    def getCollection(self):
-        return self.context.leaders
-
-    def getAvailableItemsContainer(self):
-        return ISchoolToolApplication(None)['persons']
-
-
-class FlourishLeaderView(EditRelationships):
-
-    current_title = _("Current responsible parties")
-    available_title = _("Available responsible parties")
 
     def getCollection(self):
         return self.context.leaders
@@ -1383,6 +1446,7 @@ class ErrorsSettingsAdapter(object):
 
 class FlourishErrorsConfigureView(Form, FlourishErrorsViewBase):
 
+    template = flourish.templates.Inherit(flourish.page.Page.template)
     legend = _('Errors Settings')
     fields = field.Fields(IErrorsSettings)
     fields['ignored_exceptions'].widgetFactory = CheckBoxFieldWidget

@@ -258,6 +258,7 @@ h3.done-link a:active {
       + widget
     - required information
     - buttons
+    - custom forms
 
 */
 
@@ -289,6 +290,7 @@ form fieldset .row > .error .error {
 }
 
 form fieldset .row .widget input.text-widget,
+input.text-widget,
 form fieldset .row .widget input[type="text"],
 form fieldset .row .widget input.password-widget,
 form fieldset .row .widget input[type="password"] {
@@ -298,6 +300,7 @@ form fieldset .row .widget input[type="password"] {
 }
 
 form fieldset .row .widget input.text-widget:focus,
+input.text-widget:focus,
 form fieldset .row .widget input[type="text"]:focus,
 form fieldset .row .widget input.password-widget:focus,
 form fieldset .row .widget input[type="password"]:focus {
@@ -365,6 +368,10 @@ form span.required {
 
 form pre.csv-text {
     border-color: #888;
+}
+
+form .temporal-relationship-button-options fieldset {
+    background-color: transparent;
 }
 
 /*
@@ -649,6 +656,10 @@ table.schooltool-tasks-status td .success {
 
 .popup_menu span.hover_link {
     background-color: #6c7b7c;
+}
+
+.students tbody a.inactive-student {
+    color: #485454;
 }
 
 /*

@@ -38,11 +38,8 @@ def registerSeleniumSetup():
     from schooltool.testing import registry
     import schooltool.testing.selenium
 
-    def addTerm(browser, schoolyear, title, first, last):
-        browser.query.link('School').click()
-        page = browser.query.tag('html')
-        browser.query.link('Terms').click()
-        browser.wait(lambda: page.expired)
+    def addTerm(browser, schoolyear, title, first, last, holidays=(), weekends=()):
+        browser.open('http://localhost/terms')
         browser.query.link(schoolyear).click()
         browser.query.link('Term').click()
         browser.query.name('form.widgets.title').type(title)
@@ -51,6 +48,15 @@ def registerSeleniumSetup():
         page = browser.query.tag('html')
         browser.query.button('Next').click()
         browser.wait(lambda: page.expired)
+        for date in holidays:
+            checkbox = browser.query.css('input[value="%s"]' % date)
+            td = browser.driver.execute_script(
+                'return $(arguments[0]).closest("td")', checkbox)[0]
+            td.click()
+        for day in weekends:
+            page = browser.query.tag('html')
+            browser.query.css('input[value="%s"]' % day).click()
+            browser.wait(lambda: page.expired)
         page = browser.query.tag('html')
         browser.query.button('Submit').click()
         browser.wait(lambda: page.expired)

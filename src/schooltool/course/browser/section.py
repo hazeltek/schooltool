@@ -58,7 +58,8 @@ from schooltool.app.browser.app import BaseEditView
 from schooltool.app.browser.app import RelationshipViewBase
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.app.utils import vocabulary_titled
-from schooltool.basicperson.browser.person import EditPersonRelationships
+from schooltool.basicperson.browser.person import EditPersonTemporalRelationships
+from schooltool.basicperson.browser.person import StatusPersonListTable
 from schooltool.basicperson.interfaces import IDemographics
 from schooltool.common import SchoolToolMessage as _
 from schooltool.common.inlinept import InheritTemplate
@@ -74,7 +75,6 @@ from schooltool.resource.browser.resource import EditLocationRelationships
 from schooltool.resource.browser.resource import EditEquipmentRelationships
 from schooltool.resource.interfaces import ILocation, IEquipment
 from schooltool.schoolyear.interfaces import ISchoolYear
-from schooltool.schoolyear.interfaces import ISchoolYearContainer
 from schooltool.schoolyear.browser.schoolyear import SchoolyearNavBreadcrumbs
 from schooltool.securitypolicy.crowds import inCrowd
 from schooltool.skin.containers import ContainerView
@@ -377,7 +377,6 @@ class SectionAddView(form.AddForm):
 
     @button.buttonAndHandler(_("Cancel"), name='cancel')
     def handle_cancel_action(self, action):
-        url = absoluteURL(self.context, self.request)
         self.request.response.redirect(self.nextURL())
 
     def updateActions(self):
@@ -1588,8 +1587,10 @@ class FlourishSectionDeleteView(DialogForm, form.EditForm):
         self.actions['cancel'].addClass('button-cancel')
 
 
-class FlourishSectionInstructorView(EditPersonRelationships):
+class FlourishSectionInstructorView(EditPersonTemporalRelationships):
     """View for adding instructors to a Section."""
+
+    app_states_name = "section-instruction"
 
     @property
     def title(self):
@@ -1599,14 +1600,18 @@ class FlourishSectionInstructorView(EditPersonRelationships):
     available_title = _("Add instructors")
 
     def getSelectedItems(self):
-        return filter(IPerson.providedBy, self.context.instructors)
+        members = EditPersonTemporalRelationships.getSelectedItems(self)
+        return filter(IPerson.providedBy, members)
 
     def getCollection(self):
         return self.context.instructors
 
 
-class FlourishSectionLearnerView(EditPersonRelationships):
+class FlourishSectionLearnerView(EditPersonTemporalRelationships):
     """View for adding learners to a Section."""
+
+    app_states_name = "section-membership"
+    dialog_title_template = _("Enroll ${target}")
 
     @property
     def title(self):
@@ -1616,7 +1621,8 @@ class FlourishSectionLearnerView(EditPersonRelationships):
     available_title = _("Add students")
 
     def getSelectedItems(self):
-        return filter(IPerson.providedBy, self.context.members)
+        members = EditPersonTemporalRelationships.getSelectedItems(self)
+        return filter(IPerson.providedBy, members)
 
     def getCollection(self):
         return self.context.members
@@ -1908,3 +1914,13 @@ class SectionRosterPDFView(flourish.report.PlainPDFPage):
 class FlourishRequestSectionRosterView(RequestRemoteReportDialog):
 
     report_builder = SectionRosterPDFView
+
+
+class SectionMembershipPersonListTable(StatusPersonListTable):
+
+    app_states_name = 'section-membership'
+
+
+class SectionInstructionPersonListTable(StatusPersonListTable):
+
+    app_states_name = 'section-instruction'

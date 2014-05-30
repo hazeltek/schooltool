@@ -18,9 +18,6 @@
 """
 Views for school years and school year container implementation
 """
-import cPickle
-from StringIO import StringIO
-
 from zope.viewlet.viewlet import ViewletBase
 from zope.publisher.interfaces.browser import IBrowserRequest
 from zope.cachedescriptors.property import Lazy
@@ -32,7 +29,6 @@ from zope.schema.interfaces import ValidationError
 from zope.interface.exceptions import Invalid
 from zope.interface import implements
 from zope.interface import Interface
-from zope.location.pickling import CopyPersistent
 from zope.traversing.browser.absoluteurl import AbsoluteURL
 from zope.traversing.browser.interfaces import IAbsoluteURL
 from zope.traversing.browser import absoluteURL
@@ -42,6 +38,7 @@ from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from zope.proxy import sameProxiedObjects
 from zope.i18n import translate
 from zope.i18n.interfaces.locales import ICollator
+from zope.security.proxy import removeSecurityProxy
 from zope.security.checker import canAccess
 
 from z3c.form import form, field, button
@@ -344,6 +341,8 @@ class ImportSchoolYearData(object):
             new_course.course_id = course.course_id
             new_course.government_id = course.government_id
             new_course.credits = course.credits
+            for level in course.levels:
+                new_course.levels.add(removeSecurityProxy(level))
 
     def setUpTimetable(self, timetable, old_timetable):
         if IWeekDayTemplates.providedBy(old_timetable.time_slots):

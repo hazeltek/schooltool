@@ -22,6 +22,8 @@ Selenium functional tests setup for schooltool.basicperson
 import os
 
 from schooltool.testing.selenium import SeleniumLayer
+from schooltool.testing.selenium import add_temporal_relationship
+from schooltool.testing.selenium import print_tree
 
 dir = os.path.abspath(os.path.dirname(__file__))
 filename = os.path.join(dir, 'stesting.zcml')
@@ -89,41 +91,49 @@ def registerSeleniumSetup():
         lambda: schooltool.testing.selenium.registerBrowserUI(
             'person.add', addPerson))
 
-    def addAdvisors(browser, username, advisors):
+    def addAdvisors(browser, username, advisors, state=None, date=None):
         browser.open('http://localhost/persons/%s/advisors.html' % username)
-        selector = 'available_table-ajax-available_table--title'
-        browser.query.id(selector).type(', '.join(advisors))
-        selector = '#available_table-ajax-available_table- table'
-        table = browser.query.css(selector)
-        browser.query.name('SEARCH_BUTTON').click()
-        browser.wait(lambda: table.expired)
-        # XXX: Click Show All here in case there are lots of people
-        selector = '#available_table-ajax-available_table- table'
-        table = browser.query.css(selector)
-        browser.query.name('ADD_DISPLAYED_RESULTS').click()
-        browser.wait(lambda: table.expired)
+        add_temporal_relationship(browser, advisors, state, date)
 
     registry.register('SeleniumHelpers',
         lambda: schooltool.testing.selenium.registerBrowserUI(
             'person.advisors.add', addAdvisors))
 
-    def addAdvisees(browser, username, advisees):
+    def addAdvisees(browser, username, advisees, state=None, date=None):
         browser.open('http://localhost/persons/%s/advisees.html' % username)
-        selector = 'available_table-ajax-available_table--title'
-        browser.query.id(selector).type(', '.join(advisees))
-        selector = '#available_table-ajax-available_table- table'
-        table = browser.query.css(selector)
-        browser.query.name('SEARCH_BUTTON').click()
-        browser.wait(lambda: table.expired)
-        # XXX: Click Show All here in case there are lots of people
-        selector = '#available_table-ajax-available_table- table'
-        table = browser.query.css(selector)
-        browser.query.name('ADD_DISPLAYED_RESULTS').click()
-        browser.wait(lambda: table.expired)
+        add_temporal_relationship(browser, advisees, state, date)
 
     registry.register('SeleniumHelpers',
         lambda: schooltool.testing.selenium.registerBrowserUI(
             'person.advisees.add', addAdvisees))
+
+    def printSectionTrees(browser):
+        accordion_header = browser.query_all.css('.ui-accordion-header')[3]
+        accordion_header.click()
+        accordion_content = browser.query_all.css('div.ui-accordion-content')[3]
+        browser.wait(accordion_content.is_displayed)
+        for block in accordion_content.query_all.css('.info-block'):
+            print block.query.tag('h3').text
+            tree = block.query.css('.tree_list > ul')
+            print_tree(tree)
+
+    registry.register('SeleniumHelpers',
+        lambda: schooltool.testing.selenium.registerBrowserUI(
+            'person.print_section_trees', printSectionTrees))
+
+    def printGroupTrees(browser):
+        accordion_header = browser.query_all.css('.ui-accordion-header')[4]
+        accordion_header.click()
+        accordion_content = browser.query_all.css('div.ui-accordion-content')[4]
+        browser.wait(accordion_content.is_displayed)
+        print accordion_content.query.tag('h3').text
+        tree = accordion_content.query.css('.tree_list > ul')
+        print_tree(tree)
+
+    registry.register('SeleniumHelpers',
+        lambda: schooltool.testing.selenium.registerBrowserUI(
+            'person.print_group_trees', printGroupTrees))
+
 
 registerSeleniumSetup()
 del registerSeleniumSetup

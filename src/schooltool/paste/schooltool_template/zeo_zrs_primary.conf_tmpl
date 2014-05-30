@@ -1,0 +1,34 @@
+%import zc.zrs
+<zrs>
+  replicate-to 7082
+  # <filestorage>		traditional FileStorage
+  #   path filename		required
+  #   create yes|no		default: yes
+  #   read-only yes|no		default: no
+  #   quota size		default: no quota
+  #   blob-dir directory        directory to hold blob data
+  # </filestorage>
+  <filestorage>
+    path ${data_dir}/Data.fs
+    blob-dir ${data_dir}/blobs
+  </filestorage>
+</zrs>
+
+<zeo>
+  address 127.0.0.1:7081
+</zeo>
+<eventlog>
+  <logfile>
+    path ${log_dir}/zeo.log
+  </logfile>
+</eventlog>
+
+# cache-size n
+#
+# Default:
+#   cache-size 5000
+
+# pool-size n
+#
+# Default:
+#   pool-size 7

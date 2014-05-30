@@ -101,6 +101,9 @@ Adding terms
     title
     first: YYYY-MM-DD date
     last: YYYY-MM-DD date
+  Optional keyword parameters:
+    holidays: list of YYYY-MM-DD dates
+    weekends: list of day weeks (Monday, ..., Sunday)
 
 Adding courses
 --------------
@@ -115,6 +118,7 @@ Adding courses
     course_id
     government_id
     credits
+    level: title of the level
 
 Adding sections
 ---------------
@@ -129,6 +133,12 @@ Adding sections
     title
     description
     ends: title of the term when it ends
+    instructors: list with person usernames
+    instructors_state: title of the state
+    instructors_date: YYYY-MM-DD date
+    students: list with person usernames
+    students_state: title of the state
+    students_date: YYYY-MM-DD date
 
   NOTE: if ends is not set, the section will end in the starting term
 
@@ -152,12 +162,18 @@ Adding instructors to a section
     term: title of the term
     section: title of the section
     instructors: list with person usernames
+  Optional keyword parameters:
+    state: title of the state
+    date: YYYY-MM-DD date
 
     NOTE: it doesn't matter if some of the usernames are already
           instructors of the section
 
 Removing instructors from a section
 -----------------------------------
+
+With the new temporal relationship implementation, remove really
+becomes an updating action.
 
 * browser.ui.section.instructors.remove()
 
@@ -166,6 +182,9 @@ Removing instructors from a section
     term: title of the term
     section: title of the section
     instructors: list with person usernames
+  Optional keyword parameters:
+    state: title of the state
+    date: YYYY-MM-DD date
 
 Adding students to a section
 ----------------------------
@@ -177,12 +196,18 @@ Adding students to a section
     term: title of the term
     section: title of the section
     students: list with person usernames
+  Optional keyword parameters:
+    state: title of the state
+    date: YYYY-MM-DD date
 
     NOTE: it doesn't matter if some of the usernames are already
           students of the section
 
 Removing students from a section
 --------------------------------
+
+With the new temporal relationship implementation, remove really
+becomes an updating action.
 
 * browser.ui.section.students.remove()
 
@@ -191,6 +216,9 @@ Removing students from a section
     term: title of the term
     section: title of the section
     students: list with person usernames
+  Optional keyword parameters:
+    state: title of the state
+    date: YYYY-MM-DD date
 
 Adding groups
 -------------
@@ -221,6 +249,9 @@ Adding members to a group
     schoolyear: title of the school year
     group: title of the group
     members: list with person usernames
+  Optional keyword parameters:
+    state: title of the state
+    date: YYYY-MM-DD date
 
     NOTE: it doesn't matter if some of the usernames are already
           members of the group
@@ -230,10 +261,16 @@ Removing members from a group
 
 * browser.ui.group.members.remove()
 
+With the new temporal relationship implementation, remove really
+becomes an updating action.
+
   Required parameters:
     schoolyear: title of the school year
     group: title of the group
     members: list with person usernames
+  Optional keyword parameters:
+    state: title of the state
+    date: YYYY-MM-DD date
 
 Element extensions
 ==================
@@ -276,3 +313,48 @@ Setting the value of a field without caring about its type
     of a textarea (it's possible to set break lines using \n), a
     YYYY-MM-DD used in the datepicker widget or the text of an option
     in a menu
+
+
+=============================================
+SchoolTool Gradebook Selenium Testing Support
+=============================================
+
+Browser extensions
+==================
+
+These extensions are coded in the stesting.py module of the
+schooltool.app package and they're tested in the
+selenium_extesions.txt file of the schooltool.gradebook package and
+the selenium_extension.txt file of the schooltool.lyceum.journal
+package.
+
+We have browser extensions for:
+
+Printing a worksheet
+--------------------
+
+* browser.ui.gradebook.worksheet.pprint()
+
+  Optional keyword parameters:
+    show_validation: bool
+
+  NOTE: the current url must be the worksheet's url
+
+  NOTE: if show_validation is set, a code will be printed next to the
+  input field. The codes meaning are:
+
+    * v: valid score
+    * e: extra credit score
+    * i: invalid score
+
+Scoring an activity for a student
+---------------------------------
+
+* browser.ui.gradebook.worksheet.score()
+
+  Required parameters:
+    student: title of the student row
+    activity: label of the column
+    grade
+
+  NOTE: the current url must be the worksheet's url

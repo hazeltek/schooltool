@@ -38,6 +38,7 @@ from zope.schema import ValidationError
 from zope.schema.interfaces import ITitledTokenizedTerm
 from zope.traversing.browser.absoluteurl import absoluteURL
 from zope.security.checker import canAccess
+from zope.security.proxy import removeSecurityProxy
 from zope.proxy import sameProxiedObjects
 
 from reportlab.lib import units
@@ -51,12 +52,18 @@ from schooltool.app.browser.app import RelationshipViewBase
 from schooltool.app.browser.app import EditRelationships
 from schooltool.app.browser.app import RelationshipAddTableMixin
 from schooltool.app.browser.app import RelationshipRemoveTableMixin
+from schooltool.app.browser.states import TemporalRelationshipAddTableMixin
+from schooltool.app.browser.states import TemporalRelationshipRemoveTableMixin
+from schooltool.app.browser.states import EditTemporalRelationships
 from schooltool.app.browser.report import ReportPDFView
 from schooltool.app.browser.report import DefaultPageTemplate
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.app.interfaces import IApplicationPreferences
+from schooltool.app.interfaces import IRelationshipStateContainer
+from schooltool.app.states import INACTIVE
 from schooltool.common.inlinept import InlineViewPageTemplate
 from schooltool.common.inlinept import InheritTemplate
+from schooltool.basicperson.demographics import LEAVE_SCHOOL_FIELDS
 from schooltool.basicperson.interfaces import IDemographics
 from schooltool.basicperson.interfaces import IDemographicsFields
 from schooltool.basicperson.interfaces import IBasicPerson
@@ -66,6 +73,7 @@ from schooltool.person.interfaces import IPerson, IPersonFactory
 from schooltool.person.browser.person import PersonTable, PersonTableFormatter
 from schooltool.person.browser.person import PersonTableFilter
 from schooltool.schoolyear.interfaces import ISchoolYearContainer
+from schooltool.relationship.temporal import ACTIVE
 from schooltool.report.report import OldReportTask
 from schooltool.report.browser.report import RequestRemoteReportDialog
 from schooltool.skin.containers import TableContainerView
@@ -84,7 +92,6 @@ from schooltool.task.browser.task import MessageColumn
 from schooltool.term.interfaces import IDateManager
 
 from schooltool.common import SchoolToolMessage as _
-
 
 
 class BasicPersonContainerView(TableContainerView):
@@ -180,6 +187,14 @@ class IPhotoField(Interface):
         required=False)
 
 
+class ILevelField(Interface):
+
+    level = Choice(
+        title=_('Grade Level'),
+        vocabulary='schooltool.level.level.levelvocabulary',
+        required=False)
+
+
 class PersonAddFormAdapter(object):
     implements(IPersonAddForm)
     adapts(IBasicPerson)
@@ -228,13 +243,17 @@ class UsernameNonASCII(ValidationError):
 
 class UsernameValidator(SimpleFieldValidator):
 
+    @property
+    def container(self):
+        return self.context
+
     def validate(self, username):
         super(UsernameValidator, self).validate(username)
         if username is not None:
-            if username in self.context:
+            if username in self.container:
                 raise UsernameAlreadyUsed(username)
             try:
-                INameChooser(self.context).checkName(username, None)
+                INameChooser(self.container).checkName(username, None)
             except ValueError:
                 raise UsernameBadName(username)
         # XXX: this has to be fixed
@@ -305,6 +324,16 @@ class PersonView(PersonForm, form.DisplayForm):
 class FlourishPersonView(flourish.page.Page):
     """Person index.html view."""
 
+    @property
+    def subtitle(self):
+        result = []
+        levels = self.context.levels
+        for level in levels.on(self.request.util.today).any(ACTIVE):
+            result.append(level)
+        if result:
+            level = ', '.join([level.title for level in levels])
+            return '(%s)' % level
+
 
 class FlourishPersonInfo(flourish.page.Content):
     body_template = ViewPageTemplateFile('templates/f_person_view_details.pt')
@@ -336,6 +365,9 @@ class FlourishPersonInfo(flourish.page.Content):
 class PersonAddFormBase(PersonForm, form.AddForm):
     """Person add form for basic persons."""
 
+    _groups = None
+    _advisors = None
+
     def update(self):
         self.fields = field.Fields(IPersonAddForm)
         self.fields += self.generateExtraFields()
@@ -356,10 +388,12 @@ class PersonAddFormBase(PersonForm, form.AddForm):
         group = data.pop('group')
         advisor = data.pop('advisor')
         form.applyChanges(self, person, data)
+        self._groups = []
         if group is not None:
-            person.groups.add(group)
+            self._groups.append(group)
+        self._advisors = []
         if advisor is not None:
-            person.advisors.add(advisor)
+            self._advisors.append(advisor)
         self._person = person
         return person
 
@@ -377,6 +411,10 @@ class PersonAddFormBase(PersonForm, form.AddForm):
         """
         name = person.username
         self.context[name] = person
+        for group in self._groups:
+            person.groups.add(group)
+        for advisor in self._advisors:
+            person.advisors.add(advisor)
         return person
 
 
@@ -695,7 +733,26 @@ class EditPersonRelationships(EditRelationships):
         return ISchoolToolApplication(None)['persons']
 
 
-class FlourishPersonAdvisorView(EditPersonRelationships):
+class EditPersonTemporalRelationships(EditTemporalRelationships):
+
+    def getAvailableItemsContainer(self):
+        return ISchoolToolApplication(None)['persons']
+
+    def getTargets(self, keys):
+        if not keys:
+            return None
+        app = ISchoolToolApplication(None)
+        persons = [
+            app['persons'].get(username)
+            for username in keys
+            ]
+        return persons
+
+
+class FlourishPersonAdvisorView(EditPersonTemporalRelationships):
+
+    app_states_name = 'person-advisors'
+    dialog_title_template = _("Assign advisor ${target}")
 
     current_title = _('Current advisors')
     available_title = _('Available advisors')
@@ -731,7 +788,10 @@ class PersonAdviseeView(RelationshipViewBase):
         return self.context.advisees
 
 
-class FlourishPersonAdviseeView(EditPersonRelationships):
+class FlourishPersonAdviseeView(EditPersonTemporalRelationships):
+
+    app_states_name = 'person-advisors'
+    dialog_title_template = _("Assign advisee ${target}")
 
     current_title = _("Current advisees")
     available_title = _("Available advisees")
@@ -895,6 +955,8 @@ class PersonAddViewBase(PersonAddFormBase):
         person = self._factory(username, first_name, last_name)
         data.pop('confirm')
         form.applyChanges(self, person, data)
+
+        self._groups = []
         group = None
         syc = ISchoolYearContainer(ISchoolToolApplication(None))
         active_schoolyear = syc.getActiveSchoolYear()
@@ -904,10 +966,13 @@ class PersonAddViewBase(PersonAddFormBase):
             else:
                 group = data.get('group')
         if group is not None:
-            person.groups.add(group)
+            self._groups.append(group)
+
+        self._advisors = []
         advisor = data.get('advisor')
         if advisor is not None:
-            person.advisors.add(advisor)
+            self._advisors.append(advisor)
+
         self._person = person
         return person
 
@@ -941,6 +1006,7 @@ class FlourishPersonAddView(PersonAddViewBase):
         if self.group_id:
             result = result.omit('group')
         result += field.Fields(IPhotoField)
+        result += field.Fields(ILevelField)
         return result
 
     def buildFieldsetGroups(self):
@@ -956,13 +1022,15 @@ class FlourishPersonAddView(PersonAddViewBase):
                 _('User'), ['username', 'password', 'confirm']),
             'details': (
                 _('Details'), ['gender', 'birth_date', 'photo']),
+            'level': (
+                _('Level'), ['level']),
             'demographics': (
                 _('Demographics'), list(self.getDemoFields())),
             'relationships': (
                 _('Relationships'), relationship_fields),
             }
         self.fieldset_order = (
-            'full_name', 'details', 'demographics',
+            'full_name', 'details', 'demographics', 'level',
             'relationships', 'user')
 
     def fieldsets(self):
@@ -991,6 +1059,19 @@ class FlourishPersonAddView(PersonAddViewBase):
     def updateActions(self):
         super(FlourishPersonAddView, self).updateActions()
         self.actions['submitadd'].addClass('button-neutral')
+
+    def create(self, data):
+        self._level = data.pop('level')
+        return super(FlourishPersonAddView, self).create(data)
+
+    def add(self, person):
+        person = super(FlourishPersonAddView, self).add(person)
+        if self._level is not None:
+            self.set_person_level(person, self._level)
+        return person
+
+    def set_person_level(self, person, level):
+        person.levels.on(self.request.util.today).relate(level)
 
 
 ###############  Group-aware add views ################
@@ -1080,6 +1161,16 @@ class BasicPersonRemoveRelationshipTable(RelationshipRemoveTableMixin,
     pass
 
 
+class BasicPersonAddTemporalRelationshipTable(TemporalRelationshipAddTableMixin,
+                                      BasicPersonTable):
+    pass
+
+
+class BasicPersonRemoveTemporalRelationshipTable(TemporalRelationshipRemoveTableMixin,
+                                         BasicPersonTable):
+    pass
+
+
 class BasicPersonTableFormatter(PersonTableFormatter):
 
     def columns(self):
@@ -1105,7 +1196,7 @@ class FlourishManagePeopleOverview(flourish.page.Content,
         'templates/f_manage_people_overview.pt')
 
     built_in_groups = ('administrators', 'clerks', 'manager', 'teachers',
-                       'students')
+                       'substitute_teachers', 'students')
 
     @property
     def groups(self):
@@ -1544,3 +1635,130 @@ class NewMessageIndicatorViewlet(flourish.page.LinkViewlet):
             return None
         url = absoluteURL(person, self.request) + '#messages'
         return url
+
+
+class FlourishLeaderView(EditPersonTemporalRelationships):
+
+    app_states_name = 'asset-leaders'
+    current_title = _("Current responsible parties")
+    available_title = _("Available responsible parties")
+
+    def getCollection(self):
+        return self.context.leaders
+
+    def getAvailableItemsContainer(self):
+        return ISchoolToolApplication(None)['persons']
+
+
+class StatusPersonListTable(PersonListTable):
+
+    app_states_name = None
+
+    def columns(self):
+        default = super(StatusPersonListTable, self).columns()
+        status = zc.table.column.GetterColumn(
+            name='status',
+            title=_('Status'),
+            getter=self.makeStatusGetter())
+        return default + [status]
+
+    def getCollection(self):
+        return self.context.all()
+
+    def items(self):
+        return self.indexItems(self.getCollection())
+
+    def makeStatusGetter(self):
+        if self.app_states is None:
+            return None
+        collection = self.getCollection()
+        def getter(item, formatter):
+            state = collection.state(removeSecurityProxy(item))
+            if state is None:
+                return ''
+            state_today = state.today
+            if state_today is None:
+                return ''
+            active, code = state_today
+            description = self.app_states.states.get(code)
+            if description is None:
+                return ''
+            return description.title
+        return getter
+
+    @Lazy
+    def app_states(self):
+        if self.app_states_name is None:
+            return None
+        app = ISchoolToolApplication(None)
+        container = IRelationshipStateContainer(app)
+        return container.get(self.app_states_name, None)
+
+
+from schooltool.course.interfaces import ILearner
+from schooltool.term.interfaces import ITerm
+from schooltool.schoolyear.interfaces import ISchoolYear
+
+
+class LeaveSchoolView(flourish.form.Form,
+                      form.EditForm,
+                      ActiveSchoolYearContentMixin):
+
+    template = InheritTemplate(flourish.page.Page.template)
+    label = None
+    legend = _('Leave Information')
+
+    @property
+    def fields(self):
+        field_descriptions = IDemographicsFields(ISchoolToolApplication(None))
+        fields = field.Fields()
+        for name in LEAVE_SCHOOL_FIELDS:
+            if name in field_descriptions:
+                fields += field_descriptions[name].makeField()
+        return fields
+
+    @property
+    def title(self):
+        return self.context.title
+
+    def update(self):
+        form.EditForm.update(self)
+
+    def updateActions(self):
+        super(LeaveSchoolView, self).updateActions()
+        self.actions['apply'].addClass('button-ok')
+        self.actions['cancel'].addClass('button-cancel')
+
+    def updateWidgets(self, *args, **kw):
+        super(LeaveSchoolView, self).updateWidgets(*args, **kw)
+        self.widgets['leave_date'].value = self.request.util.today
+
+    @button.buttonAndHandler(_('Submit'), name='apply')
+    def handleApply(self, action):
+        super(LeaveSchoolView, self).handleApply.func(self, action)
+        if (self.status == self.successMessage or
+            self.status == self.noChangesMessage):
+            data, errors = self.extractData()
+            person = removeSecurityProxy(self.context)
+            for section in ILearner(self.context).sections():
+                term = ITerm(section)
+                schoolyear = ISchoolYear(term)
+                if schoolyear is self.schoolyear:
+                    date = data['leave_date']
+                    collection = removeSecurityProxy(section.members)
+                    collection.on(date).relate(person, INACTIVE, 'i')
+            for group in self.context.groups:
+                schoolyear = ISchoolYear(group.__parent__)
+                if schoolyear is self.schoolyear:
+                    date = data['leave_date']
+                    collection = removeSecurityProxy(group.members)
+                    code = 'w' if group.__name__ == 'students' else 'i'
+                    collection.on(date).relate(person, INACTIVE, code)
+            self.request.response.redirect(self.nextURL())
+
+    @button.buttonAndHandler(_("Cancel"))
+    def handle_cancel_action(self, action):
+        self.request.response.redirect(self.nextURL())
+
+    def nextURL(self):
+        return absoluteURL(self.context, self.request)

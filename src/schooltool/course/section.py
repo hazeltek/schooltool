@@ -42,21 +42,26 @@ from schooltool.app import relationships
 from schooltool.app.security import ConfigurableCrowd
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.app.utils import vocabulary_titled
+from schooltool.app.states import StateStartUpBase
 from schooltool.course import interfaces, booking
 from schooltool.group.interfaces import IBaseGroup as IGroup
 from schooltool.person.interfaces import IPerson
-from schooltool.relationship.relationship import getRelatedObjects
 from schooltool.relationship import RelationshipProperty
+from schooltool.relationship.relationship import getRelatedObjects
+from schooltool.relationship.temporal import ACTIVE, INACTIVE
+from schooltool.securitypolicy.crowds import Crowd
 from schooltool.schoolyear.subscriber import EventAdapterSubscriber
 from schooltool.schoolyear.subscriber import ObjectEventAdapterSubscriber
 from schooltool.schoolyear.interfaces import ISubscriber
 from schooltool.schoolyear.interfaces import ISchoolYear
-from schooltool.securitypolicy.crowds import Crowd, AggregateCrowd
-from schooltool.securitypolicy.crowds import ClerksCrowd, AdministratorsCrowd
 from schooltool.term.term import getNextTerm
 from schooltool.term.interfaces import ITerm
 
 from schooltool.common import SchoolToolMessage as _
+
+
+SECTION_CONTAINERS_KEY = 'schooltool.course.section'
+COMPLETED = 'c'
 
 
 class InvalidSectionLinkException(Exception):
@@ -206,9 +211,9 @@ def getSectionContainer(term):
     int_ids = getUtility(IIntIds)
     term_id = str(int_ids.getId(term))
     app = ISchoolToolApplication(None)
-    sc = app['schooltool.course.section'].get(term_id, None)
+    sc = app[SECTION_CONTAINERS_KEY].get(term_id, None)
     if sc is None:
-        sc = app['schooltool.course.section'][term_id] = SectionContainer()
+        sc = app[SECTION_CONTAINERS_KEY][term_id] = SectionContainer()
     return sc
 
 
@@ -266,7 +271,7 @@ class SectionContainer(BTreeContainer):
 class SectionInit(InitBase):
 
     def __call__(self):
-        self.app['schooltool.course.section'] = SectionContainerContainer()
+        self.app[SECTION_CONTAINERS_KEY] = SectionContainerContainer()
 
 
 class InstructorsCrowd(Crowd):
@@ -328,15 +333,6 @@ class SectionEditorSettingCrowd(ConfigurableCrowd):
                 InstructorsCrowd(self.context).contains(principal))
 
 
-class SectionCalendarViewers(AggregateCrowd):
-    """Crowd of those who can see the section calendar."""
-    adapts(interfaces.ISection)
-
-    def crowdFactories(self):
-        return [ClerksCrowd, AdministratorsCrowd,
-                InstructorsCrowd, LearnersCrowd, SectionCalendarSettingCrowd]
-
-
 class PersonLearnerAdapter(object):
     implements(interfaces.ILearner)
     adapts(IPerson)
@@ -373,6 +369,7 @@ class RemoveSectionsWhenTermIsDeleted(ObjectEventAdapterSubscriber):
         section_container = interfaces.ISectionContainer(self.object)
         for section_id in list(section_container.keys()):
             del section_container[section_id]
+        del section_container.__parent__[section_container.__name__]
 
 
 class UnlinkSectionWhenDeleted(ObjectEventAdapterSubscriber):
@@ -408,51 +405,28 @@ class SectionLinkContinuinityValidationSubscriber(EventAdapterSubscriber):
                 _("Sections must be in consecutive terms"))
 
 
-def getSectionRosterEventParticipants(event, rel_type):
-    if rel_type != event.rel_type:
-        return None, None
-    if interfaces.ISection.providedBy(event.participant1):
-        return event.participant1, event.participant2
-    elif interfaces.ISection.providedBy(event.participant2):
-        return event.participant2, event.participant1
-    else:
-        return None, None
-
-
-def propagateSectionInstructorAdded(event):
-    section, teacher = getSectionRosterEventParticipants(event,
-        relationships.URIInstruction)
-    if section is None:
+def propagateSectionInstructorsChange(event):
+    link = event.link
+    if not (link.rel_type == relationships.URIInstruction and
+            interfaces.ISection.providedBy(event.this)):
         return
-    if section.next and teacher not in section.next.instructors:
-        section.next.instructors.add(teacher)
+    section = event.this
+    person = event.other
+    if section.next:
+        collection = section.next.instructors.all()
+        collection.on(event.date).relate(person, event.meaning, event.code)
 
 
-def propagateSectionInstructorRemoved(event):
-    section, teacher = getSectionRosterEventParticipants(event,
-        relationships.URIInstruction)
-    if section is None:
+def propagateSectionStudentsChange(event):
+    link = event.link
+    if not (link.rel_type == relationships.URIMembership and
+            interfaces.ISection.providedBy(event.this)):
         return
-    if section.next and teacher in section.next.instructors:
-        section.next.instructors.remove(teacher)
-
-
-def propagateSectionStudentAdded(event):
-    section, student = getSectionRosterEventParticipants(event,
-        relationships.URIMembership)
-    if section is None:
-        return
-    if section.next and student not in section.next.members:
-        section.next.members.add(student)
-
-
-def propagateSectionStudentRemoved(event):
-    section, student = getSectionRosterEventParticipants(event,
-        relationships.URIMembership)
-    if section is None:
-        return
-    if section.next and student in section.next.members:
-        section.next.members.remove(student)
+    section = event.this
+    person = event.other
+    if section.next:
+        collection = section.next.members.all()
+        collection.on(event.date).relate(person, event.meaning, event.code)
 
 
 def copySection(section, target_term):
@@ -481,3 +455,35 @@ def linkedSectionTermsVocabulary(context):
 
 def LinkedSectionTermsVocabularyFactory():
     return linkedSectionTermsVocabulary
+
+
+class SectionMemberStatesStartup(StateStartUpBase):
+
+    states_name = 'section-membership'
+    states_title = _('Section Enrollment')
+
+    def populate(self, states):
+        states.add(_('Pending'), INACTIVE, 'p')
+        states.add(_('Enrolled'), ACTIVE, 'a')
+        states.add(_('Withdrawn'), INACTIVE, 'i')
+        states.add(_('Completed'), ACTIVE+COMPLETED, 'c')
+        states.add(_('Added in error'), INACTIVE, 'e')
+        states.describe(ACTIVE, _('Member'))
+        states.describe(ACTIVE+COMPLETED, _('Completed/Active'))
+        states.describe(INACTIVE+COMPLETED, _('Completed/Inactive'))
+        states.describe(INACTIVE, _('Inactive'))
+
+
+class SectionInstructorStatesStartup(StateStartUpBase):
+
+    states_name = 'section-instruction'
+    states_title = _('Section Instruction')
+
+    def populate(self, states):
+        states.add(_('Instructor'), ACTIVE, 'a')
+        states.add(_('Substitute (Single day)'), ACTIVE, 's')
+        states.add(_('Substitute (Multi-day)'), ACTIVE, 'm')
+        states.add(_('Withdrawn'), INACTIVE, 'i')
+        states.add(_('Added in error'), INACTIVE, 'e')
+        states.describe(ACTIVE, _('Instructing'))
+        states.describe(INACTIVE, _('Removed'))

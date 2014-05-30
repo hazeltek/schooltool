@@ -1,3 +1,9 @@
+schooltool (1:2.8.1-0ubuntu1) trusty; urgency=medium
+
+  * Initial ARK release.
+
+ -- Douglas Cerna (Soy Douglas) <douglascerna@yahoo.com>  Thu, 29 May 2014 22:18:35 -0600
+
 schooltool (1:2.6.4-0ubuntu2) utopic; urgency=low
 
   * Upload to utopic.

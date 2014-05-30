@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from zope.app.dependable.interfaces import IDependable
 from zope.interface import implements, implementer
 from zope.component import adapts, adapter
 from zope.component import getAdapter, getMultiAdapter
@@ -26,6 +27,7 @@ from zope.traversing.browser.absoluteurl import absoluteURL
 from zope.container.interfaces import INameChooser
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from zope.schema import ValidationError
+from zope.security.proxy import removeSecurityProxy
 
 from z3c.form.interfaces import ITextAreaWidget
 from z3c.form import form, field, button, validator
@@ -123,7 +125,7 @@ class DemographicsView(BrowserView):
             for name in self.request.get('delete', []):
                 del self.context[name]
         elif 'form-submitted' in self.request:
-            old_pos, new_pos, move_detected = 0, 0, False
+            old_pos, new_pos = 0, 0, False
             for activity in self.context.values():
                 old_pos += 1
                 name = getName(activity)
@@ -131,7 +133,6 @@ class DemographicsView(BrowserView):
                     continue
                 new_pos = int(self.request['pos.'+name])
                 if new_pos != old_pos:
-                    move_detected = True
                     break
             old_pos, new_pos = old_pos-1, new_pos-1
             keys = list(self.context.keys())
@@ -216,8 +217,14 @@ class BoolFieldDescriptionAddView(FieldDescriptionAddView):
 
 class EnumFieldDescriptionAddView(FieldDescriptionAddView):
 
-    fields = field.Fields(IEnumFieldDescription).select('title', 'name',
-        'items', 'required', 'limit_keys')
+    fields = field.Fields(IEnumFieldDescription).select(
+        'title',
+        'name',
+        'description',
+        'items',
+        'required',
+        'limit_keys',
+        )
 
     def create(self, data):
         fd = EnumFieldDescription(data['title'],
@@ -230,8 +237,15 @@ class EnumFieldDescriptionAddView(FieldDescriptionAddView):
 
 class IntFieldDescriptionAddView(FieldDescriptionAddView):
 
-    fields = field.Fields(IIntFieldDescription).select('title', 'name',
-        'min_value', 'max_value', 'required', 'limit_keys')
+    fields = field.Fields(IIntFieldDescription).select(
+        'title',
+        'name',
+        'description',
+        'min_value',
+        'max_value',
+        'required',
+        'limit_keys',
+        )
 
     def create(self, data):
         fd = IntFieldDescription(data['title'],
@@ -368,12 +382,15 @@ class FlourishReorderDemographicsView(flourish.page.Page, DemographicsView):
         pos = 0
         result = []
         for demo in self.context.values():
+            dependable = IDependable(removeSecurityProxy(demo), None)
+            removable = dependable is None or not dependable.dependents()
             pos += 1
             result.append({
-                    'name': demo.__name__,
-                   'title': demo.title,
-                   'pos': pos,
-                    })
+                'name': demo.__name__,
+                'title': demo.title,
+                'pos': pos,
+                'removable': removable,
+            })
         return result
 
     def update(self):
@@ -386,7 +403,7 @@ class FlourishReorderDemographicsView(flourish.page.Page, DemographicsView):
                 if name in self.request:
                     del self.context[demo.__name__]
                     return
-            old_pos, new_pos, move_detected = 0, 0, False
+            old_pos, new_pos = 0, 0, False
             for demo in self.context.values():
                 old_pos += 1
                 name = getName(demo)
@@ -394,7 +411,6 @@ class FlourishReorderDemographicsView(flourish.page.Page, DemographicsView):
                     continue
                 new_pos = int(self.request['pos.'+name])
                 if new_pos != old_pos:
-                    move_detected = True
                     break
             old_pos, new_pos = old_pos-1, new_pos-1
             keys = list(self.context.keys())

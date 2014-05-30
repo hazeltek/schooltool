@@ -80,6 +80,7 @@ Javascript will be usable, although perhaps not very nice or convenient.""",
                       'zc.resourcelibrary',
                       'zc.table',
                       'ZODB3',
+                      'zc.zrs>=2.4.4',
                       'zope.annotation',
                       'zope.authentication',
                       'zope.app.applicationcontrol',
@@ -172,9 +173,6 @@ Javascript will be usable, although perhaps not very nice or convenient.""",
     [schooltool.instance_type]
     old = schooltool.standard
     schooltool = schooltool.skin.flourish.instance
-
-    [schooltool.tasks]
-    schooltool.export.importer = schooltool.export.importer
 
     """,
     )

@@ -58,15 +58,17 @@ from schooltool.securitypolicy.crowds import ClerksCrowd
 from schooltool.common import SchoolToolMessage as _
 
 
-defaultGroups =  {"manager"       : _("Site Managers"),
-                  "students"      : _("Students"),
-                  "teachers"      : _("Teachers"),
-                  "clerks"        : _("Clerks"),
-                  "administrators": _("School Administrators"),
+defaultGroups =  {"manager"            : _("Site Managers"),
+                  "students"           : _("Students"),
+                  "teachers"           : _("Teachers"),
+                  "substitute_teachers": _("Substitute Teachers"),
+                  "clerks"             : _("Clerks"),
+                  "administrators"     : _("School Administrators"),
                   }
 
 
 defaultManagerGroups = ("manager", "clerks")
+defaultPEASManagerGroups = ('administrators',)
 
 
 class GroupContainerContainer(BTreeContainer):
@@ -146,11 +148,15 @@ class InitGroupsForNewSchoolYear(ObjectEventAdapterSubscriber):
             IDependable(group).addDependent('')
         persons = ISchoolToolApplication(None)['persons']
         manager = persons.super_user
+        peas_manager = persons['peas-manager']
         if manager is None:
             return
         for id in defaultManagerGroups:
             if manager not in groups[id].members:
                 groups[id].members.add(manager)
+        for id in defaultPEASManagerGroups:
+            if peas_manager not in groups[id].members:
+                groups[id].members.add(peas_manager)
 
     def importDefaultGroups(self, activeSchoolyear):
         oldGroups = IGroupContainer(activeSchoolyear)

@@ -1615,3 +1615,63 @@ class PreferNoLanguage(object):
 
     def getPreferredLanguages(self):
         return ()
+
+
+def set_temporal_relationship(
+    browser, container_id, action_button, items, state, date):
+
+    table_selector = '#%s table' % container_id
+
+    script = 'return $(arguments[0]).find(".batch-extra-navigation").length'
+    if browser.driver.execute_script(script, container_id):
+        table = browser.query.css(table_selector)
+        container = browser.query.id(container_id)
+        container.query.link('Show All').click()
+        browser.wait(lambda: table.expired)
+
+    table = browser.query.css(table_selector)
+    script = 'return $(arguments[0]).find(arguments[1]).length'
+    for item in items:
+        sel = 'input[type="checkbox"][value="%s"]' % item
+        if browser.driver.execute_script(script, table_selector, sel):
+            table.query.css(sel).click()
+
+    if state is not None:
+        browser.query.id('%s-state' % container_id).ui.set_value(state)
+
+    if date is not None:
+        field = browser.query.id('%s-date' % container_id)
+        field.clear()
+        field.ui.set_value(date)
+
+    browser.query.name(action_button).click()
+
+
+def add_temporal_relationship(browser, items, state=None, date=None):
+
+    container_id = 'available_table-ajax-available_table-'
+    action_button = 'ADD_DISPLAYED_RESULTS'
+
+    set_temporal_relationship(
+        browser, container_id, action_button, items, state, date)
+
+
+def remove_temporal_relationship(browser, items, state=None, date=None):
+
+    container_id = 'current_table-ajax-current_table-'
+    action_button = 'REMOVE_DISPLAYED_RESULTS'
+
+    set_temporal_relationship(
+        browser, container_id, action_button, items, state, date)
+
+
+def print_tree(ul, padding=0):
+    for li in ul.query_all.xpath('li'):
+        uls = li.query_all.xpath('ul')
+        if uls:
+            for link in li.query_all.xpath('a'):
+                print ' '*padding, '|+', link.text
+            for ul in uls:
+                print_tree(ul, padding+3)
+        else:
+            print ' '*padding, '|-', li.text

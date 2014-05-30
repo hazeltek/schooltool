@@ -21,6 +21,8 @@ Demographics fields and storage
 from persistent.dict import PersistentDict
 from persistent import Persistent
 
+from zope.annotation.interfaces import IAttributeAnnotatable
+from zope.app.dependable.interfaces import IDependable
 from zope.schema._field import Choice
 from zope.schema._field import Date
 from zope.schema import TextLine, Bool
@@ -51,6 +53,8 @@ from schooltool.basicperson.interfaces import IDemographics
 from schooltool.basicperson.interfaces import IFieldDescription
 from schooltool.common import SchoolToolMessage as _
 
+
+LEAVE_SCHOOL_FIELDS = ['leave_date', 'leave_reason', 'leave_destination']
 
 class IDemographicsForm(Interface):
     """Interface for fields that are supposed to get stored in person demographics."""
@@ -160,6 +164,20 @@ def setUpDefaultDemographics(app):
     dfs['language'] = TextFieldDescription('language', _('Language'))
     dfs['placeofbirth'] = TextFieldDescription('placeofbirth', _('Place of birth'))
     dfs['citizenship'] = TextFieldDescription('citizenship', _('Citizenship'))
+    dfs['leave_date'] = DateFieldDescription(
+        'leave_date', _('Date of leaving'))
+    dfs['leave_reason'] = EnumFieldDescription(
+        'leave_reason', _('Reason for leaving'))
+    dfs['leave_reason'].items = [_('Moved away'),
+                                 _('Expulsion'),
+                                 _('Local transfer')]
+    dfs['leave_destination'] = EnumFieldDescription(
+        'leave_destination', _('Destination school'))
+    dfs['leave_destination'].items = [_('Example School A'),
+                                      _('Example School B')]
+    for name in LEAVE_SCHOOL_FIELDS:
+        if name in dfs:
+            IDependable(dfs[name]).addDependent('')
 
 
 class DemographicsAppStartup(StartUpBase):
@@ -183,14 +201,19 @@ def getDemographicsFields(app):
 
 
 class FieldDescription(Persistent, Location):
-    implements(IFieldDescription)
-    limit_keys = []
+    implements(IFieldDescription, IAttributeAnnotatable)
 
-    def __init__(self, name, title, required=False, limit_keys=[]):
+    limit_keys = []
+    description = None
+
+    def __init__(self, name, title, required=False, limit_keys=[],
+                 description=None):
         self.name, self.title, self.required, self.limit_keys = (name,
             title, required, limit_keys)
+        self.description = description
 
     def setUpField(self, form_field):
+        form_field.description = self.description
         form_field.required = self.required
         form_field.__name__ = str(self.__name__)
         form_field.interface = IDemographicsForm

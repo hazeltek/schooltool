@@ -209,6 +209,12 @@
       for="schooltool.basicperson.interfaces.IBasicPerson"
       />
 
+  <flourish:page_breadcrumbs
+      show_page_title="false"
+      for="schooltool.basicperson.interfaces.IBasicPerson"
+      view="schooltool.basicperson.browser.person.FlourishPersonView"
+      />
+
   <flourish:page
       name="index.html"
       for="schooltool.basicperson.interfaces.IBasicPerson"
@@ -832,6 +838,22 @@
       permission="schooltool.view"
       />
 
+  <flourish:viewlet
+      name="available_table"
+      class="schooltool.basicperson.browser.person.BasicPersonAddTemporalRelationshipTable"
+      manager="schooltool.skin.flourish.interfaces.IAJAXParts"
+      view=".person.EditPersonTemporalRelationships"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="current_table"
+      class="schooltool.basicperson.browser.person.BasicPersonRemoveTemporalRelationshipTable"
+      manager="schooltool.skin.flourish.interfaces.IAJAXParts"
+      view=".person.EditPersonTemporalRelationships"
+      permission="schooltool.view"
+      />
+
   <zope:adapter
       for="*
            schooltool.skin.flourish.IFlourishLayer
@@ -866,5 +888,27 @@
       permission="schooltool.view"
       class=".person.NewMessageIndicatorViewlet"
       />
+
+  <flourish:viewlet
+      name="leave.html"
+      for="schooltool.basicperson.interfaces.IBasicPerson"
+      title="Leave School"
+      class="schooltool.skin.flourish.page.LinkViewlet"
+      manager="schooltool.basicperson.browser.person.PersonActionsLinks"
+      permission="schooltool.edit"
+      />
+
+  <configure package="schooltool.skin.flourish">
+
+    <flourish:page
+        name="leave.html"
+        for="schooltool.basicperson.interfaces.IBasicPerson"
+        class="schooltool.basicperson.browser.person.LeaveSchoolView"
+        content_template="templates/z3c_form_edit.pt"
+        subtitle="Leave School"
+        permission="schooltool.edit"
+        />
+
+  </configure>
 
 </configure>

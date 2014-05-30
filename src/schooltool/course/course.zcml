@@ -129,25 +129,42 @@
   <!-- Propagation of roster changes -->
 
   <subscriber
-      for="schooltool.relationship.interfaces.IRelationshipAddedEvent"
-      handler=".section.propagateSectionInstructorAdded"
+      for="schooltool.relationship.temporal.ILinkStateModifiedEvent"
+      handler=".section.propagateSectionInstructorsChange"
       />
+
   <subscriber
-      for="schooltool.relationship.interfaces.IRelationshipRemovedEvent"
-      handler=".section.propagateSectionInstructorRemoved"
-      />
-  <subscriber
-      for="schooltool.relationship.interfaces.IRelationshipAddedEvent"
-      handler=".section.propagateSectionStudentAdded"
-      />
-  <subscriber
-      for="schooltool.relationship.interfaces.IRelationshipRemovedEvent"
-      handler=".section.propagateSectionStudentRemoved"
+      for="schooltool.relationship.temporal.ILinkStateModifiedEvent"
+      handler=".section.propagateSectionStudentsChange"
       />
 
   <utility
      factory=".section.LinkedSectionTermsVocabularyFactory"
      provides="zope.schema.interfaces.IVocabularyFactory"
      name="schooltool.course.section.linked_section_terms" />
+
+  <adapter
+      for="schooltool.app.interfaces.ISchoolToolApplication"
+      factory=".section.SectionMemberStatesStartup"
+      provides="schooltool.app.interfaces.IPluginInit"
+      name="schooltool.course.section-membership" />
+
+  <adapter
+      for="schooltool.app.interfaces.ISchoolToolApplication"
+      factory=".section.SectionMemberStatesStartup"
+      provides="schooltool.app.interfaces.IPluginStartUp"
+      name="schooltool.course.section-membership" />
+
+  <adapter
+      for="schooltool.app.interfaces.ISchoolToolApplication"
+      factory=".section.SectionInstructorStatesStartup"
+      provides="schooltool.app.interfaces.IPluginInit"
+      name="schooltool.course.section-instruction" />
+
+  <adapter
+      for="schooltool.app.interfaces.ISchoolToolApplication"
+      factory=".section.SectionInstructorStatesStartup"
+      provides="schooltool.app.interfaces.IPluginStartUp"
+      name="schooltool.course.section-instruction" />
 
 </configure>

@@ -24,7 +24,7 @@ import urllib
 
 from zope.cachedescriptors.property import Lazy
 from zope.component import getMultiAdapter, queryMultiAdapter
-from zope.interface import implements, Interface
+from zope.interface import implements
 from zope.publisher.browser import BrowserPage
 from zope.publisher.interfaces import NotFound
 from zope.browser.interfaces import IBrowserView
@@ -414,6 +414,10 @@ class LinkViewlet(Viewlet):
     css_class = None
 
     @property
+    def target(self):
+        return self.context
+
+    @property
     def enabled(self):
         return bool(self.title)
 
@@ -428,7 +432,7 @@ class LinkViewlet(Viewlet):
         link = self.link
         if not link:
             return None
-        return "%s/%s" % (absoluteURL(self.context, self.request),
+        return "%s/%s" % (absoluteURL(self.target, self.request),
                           self.link)
 
     def render(self, *args, **kw):

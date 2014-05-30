@@ -29,10 +29,12 @@ from zope.component import queryMultiAdapter
 from zope.component import getUtility
 from zope.container.interfaces import INameChooser
 from zope.interface import directlyProvides
+from zope.interface import Interface
 from zope.intid.interfaces import IIntIds
 from zope.app.form.browser.add import AddView
 from zope.publisher.interfaces.browser import IBrowserRequest
 from zope.publisher.browser import BrowserView
+from zope.schema import Choice
 from zope.security.checker import canAccess
 from zope.security import checkPermission
 from zope.security.proxy import removeSecurityProxy
@@ -46,8 +48,11 @@ from z3c.form import field, button, form
 from z3c.form.interfaces import HIDDEN_MODE
 
 from schooltool.app.interfaces import ISchoolToolApplication
+from schooltool.app.interfaces import IRelationshipStateContainer
 from schooltool.app.browser.app import ContentTitle
 from schooltool.app.browser.app import ActiveSchoolYearContentMixin
+from schooltool.app.membership import Membership
+from schooltool.app.relationships import Instruction
 from schooltool.common.inlinept import InheritTemplate
 from schooltool.common.inlinept import InlineViewPageTemplate
 from schooltool.term.interfaces import ITerm
@@ -56,7 +61,9 @@ from schooltool.skin.containers import ContainerView
 from schooltool.course.interfaces import ICourse, ICourseContainer
 from schooltool.course.interfaces import ISectionContainer
 from schooltool.course.interfaces import ILearner, IInstructor
+from schooltool.course.interfaces import ISection
 from schooltool.course.course import Course
+from schooltool.level.interfaces import ILevelContainer
 from schooltool.skin import flourish
 from schooltool.skin.flourish.viewlet import Viewlet
 from schooltool.skin.flourish.containers import ContainerDeleteView
@@ -70,6 +77,7 @@ from schooltool.skin.flourish.form import AddForm
 from schooltool.skin.flourish.form import DialogForm
 from schooltool.skin.flourish.form import DisplayForm
 from schooltool.skin.flourish.page import TertiaryNavigationManager
+from schooltool.course.section import COMPLETED
 from schooltool import table
 from schooltool.common import SchoolToolMessage as _
 
@@ -222,7 +230,7 @@ class CoursesViewlet(ViewletBase):
         return self.collator.cmp(this['course'], other['course'])
 
 
-class FlourishCoursesViewlet(Viewlet):
+class FlourishCoursesViewlet(Viewlet, ActiveSchoolYearContentMixin):
     """A flourish viewlet showing the courses a person is in."""
 
     template = ViewPageTemplateFile('templates/f_coursesviewlet.pt')
@@ -246,15 +254,114 @@ class FlourishCoursesViewlet(Viewlet):
 
     def sectionsAsTeacher(self):
         """Get the sections the person instructs."""
-        return self.sectionsAs(IInstructor)
+        app_states = self.app_states('section-instruction')
+        relationships = Instruction.bind(instructor=self.context).all().relationships
+        return self.sectionsAs(app_states, relationships)
 
     def sectionsAsLearner(self):
         """Get the sections the person is a member of."""
-        return self.sectionsAs(ILearner)
+        app_states = self.app_states('section-membership')
+        relationships = Membership.bind(member=self.context).all().relationships
+        return self.sectionsAs(app_states, relationships)
 
-    def sectionsAs(self, role_interface):
+    def sectionsAs(self, app_states, relationships):
         schoolyears_data = {}
-        for section in role_interface(self.context).sections():
+        for link_info in relationships:
+            if not ISection.providedBy(link_info.target):
+                continue
+            section = removeSecurityProxy(link_info.target)
+            sy = ISchoolYear(section)
+            if sy not in schoolyears_data:
+                schoolyears_data[sy] = {}
+            term = ITerm(section)
+            if term not in schoolyears_data[sy]:
+                schoolyears_data[sy][term] = []
+            schoolyears_data[sy][term].append((section, link_info))
+        result = []
+        for sy in sorted(schoolyears_data, key=lambda x:x.first, reverse=True):
+            sy_info = {
+                'obj': sy,
+                'css_class': 'active' if sy is self.schoolyear else 'inactive',
+                'terms': [],
+                }
+            for term in sorted(schoolyears_data[sy],
+                               key=lambda x:x.first,
+                               reverse=True):
+                term_info = {'obj': term, 'sections': []}
+                for section, link_info in sorted(schoolyears_data[sy][term],
+                                                 key=self.sortingKey):
+                    states = self.section_current_states(
+                        section, app_states, link_info)
+                    section_info = {
+                        'obj': section,
+                        'title': section.title,
+                        'states': states,
+                        }
+                    term_info['sections'].append(section_info)
+                sy_info['terms'].append(term_info)
+            result.append(sy_info)
+        return result
+
+    def sortingKey(self, t):
+        section, link = t
+        course_title = ', '.join([c.title for c in section.courses])
+        return (self.collator.key(course_title),
+                self.collator.key(section.title))
+
+    def app_states(self, key):
+        app = ISchoolToolApplication(None)
+        states = IRelationshipStateContainer(app)[key]
+        return states
+
+    def section_current_states(self, section, app_states, link_info):
+        states = []
+        for date, active, code in link_info.state.all():
+            state = app_states.states.get(code)
+            title = state.title if state is not None else ''
+            states.append({
+                'date': date,
+                'title': title,
+                })
+        return states
+
+
+class FlourishCompletedCoursesViewlet(Viewlet, ActiveSchoolYearContentMixin):
+    """A flourish viewlet showing the courses a person completed."""
+
+    template = ViewPageTemplateFile('templates/f_completedcoursesviewlet.pt')
+    body_template = None
+
+    def __init__(self, *args, **kw):
+        Viewlet.__init__(self, *args, **kw)
+        self.collator = ICollator(self.request.locale)
+
+    def render(self, *args, **kw):
+        if not self.courses:
+            return ''
+        return self.template(*args, **kw)
+
+    def update(self):
+        self.courses = self.collectCourses()
+
+    @property
+    def completed_state_codes(self):
+        app = ISchoolToolApplication(None)
+        states = IRelationshipStateContainer(app)['section-membership']
+        codes = [state.code for state in states
+                 if states.overlap(COMPLETED, state.active)]
+        return codes
+
+    def collectCourses(self):
+        today = self.request.util.today
+        student=removeSecurityProxy(self.context)
+        codes = self.completed_state_codes
+        completed_sections = [
+            relationship.target
+            for relationship in Membership.relationships(member=student)
+            if relationship.state.has(today, codes)
+            ]
+        schoolyears_data = {}
+        for section in completed_sections:
             section = removeSecurityProxy(section)
             sy = ISchoolYear(section)
             if sy not in schoolyears_data:
@@ -262,36 +369,29 @@ class FlourishCoursesViewlet(Viewlet):
             term = ITerm(section)
             if term not in schoolyears_data[sy]:
                 schoolyears_data[sy][term] = []
-            schoolyears_data[sy][term].append(section)
+            schoolyears_data[sy][term].extend(section.courses)
         result = []
+        sortingKey = lambda course: self.collator.key(course.title)
         for sy in sorted(schoolyears_data, key=lambda x:x.first, reverse=True):
-            sy_info = {'obj': sy, 'terms': []}
+            sy_info = {
+                'obj': sy,
+                'css_class': 'active' if sy is self.schoolyear else 'inactive',
+                'terms': [],
+                }
             for term in sorted(schoolyears_data[sy],
                                key=lambda x:x.first,
                                reverse=True):
-                sortingKey = lambda section:{'course':
-                                             ', '.join([course.title
-                                                        for course in
-                                                        section.courses]),
-                                             'section_title': section.title}
-                term_info = {'obj': term, 'sections': []}
-                for section in sorted(schoolyears_data[sy][term],
-                                      cmp=self.sortByCourseAndSection,
-                                      key=sortingKey):
-                    section_info = {
-                        'obj': section,
-                        'title': section.title,
+                term_info = {'obj': term, 'courses': []}
+                for course in sorted(schoolyears_data[sy][term],
+                                     key=sortingKey):
+                    course_info = {
+                        'obj': course,
+                        'title': course.title,
                         }
-                    term_info['sections'].append(section_info)
+                    term_info['courses'].append(course_info)
                 sy_info['terms'].append(term_info)
             result.append(sy_info)
         return result
-
-    def sortByCourseAndSection(self, this, other):
-        if this['course'] is other['course']:
-            return self.collator.cmp(this['section_title'],
-                                     other['section_title'])
-        return self.collator.cmp(this['course'], other['course'])
 
 
 class CoursesTertiaryNavigationManager(TertiaryNavigationManager,
@@ -514,12 +614,51 @@ class FlourishCourseContainerDeleteView(ContainerDeleteView):
         return ContainerDeleteView.nextURL(self)
 
 
+class ICourseLevel(Interface):
+
+    level = Choice(
+        title=_('Grade Level'),
+        vocabulary='schooltool.level.level.levelvocabulary',
+        required=False)
+
+
+class CourseLevelFormAdapter(object):
+
+    adapts(ICourse)
+    implements(ICourseLevel)
+
+    def __init__(self, context):
+        self.__dict__['context'] = removeSecurityProxy(context)
+
+    def __getattr__(self, name):
+        if name == 'level':
+            if self.context.levels:
+                return list(self.context.levels)[0]
+
+    def __setattr__(self, name, value):
+        if name == 'level':
+            value = removeSecurityProxy(value)
+            current = None
+            if self.context.levels:
+                current = list(self.context.levels)[0]
+            if value != current:
+                if current is not None:
+                    self.context.levels.remove(current)
+                if value is not None:
+                    self.context.levels.add(value)
+
+
 class FlourishCourseView(DisplayForm):
 
     template = InheritTemplate(Page.template)
     content_template = ViewPageTemplateFile('templates/f_course_view.pt')
-    fields = field.Fields(ICourse)
-    fields = fields.select('__name__', 'title', 'description', 'course_id', 'government_id', 'credits')
+
+    @property
+    def fields(self):
+        fields = field.Fields(ICourse)
+        fields += field.Fields(ICourseLevel)
+        fields = fields.select('__name__', 'title', 'description', 'course_id', 'government_id', 'credits', 'level')
+        return fields
 
     @property
     def sections(self):
@@ -576,8 +715,13 @@ class FlourishCourseAddView(AddForm, ActiveSchoolYearContentMixin):
     template = InheritTemplate(Page.template)
     label = None
     legend = _('Course Information')
-    fields = field.Fields(ICourse)
-    fields = fields.select('title', 'description', 'course_id', 'government_id', 'credits')
+
+    @property
+    def fields(self):
+        fields = field.Fields(ICourse)
+        fields += field.Fields(ICourseLevel)
+        fields = fields.select('title', 'description', 'course_id', 'government_id', 'credits', 'level')
+        return fields
 
     def updateActions(self):
         super(FlourishCourseAddView, self).updateActions()
@@ -600,6 +744,7 @@ class FlourishCourseAddView(AddForm, ActiveSchoolYearContentMixin):
 
     def create(self, data):
         course = Course(data['title'], data.get('description'))
+        self._level = removeSecurityProxy(data.pop('level'))
         form.applyChanges(self, course, data)
         return course
 
@@ -608,6 +753,8 @@ class FlourishCourseAddView(AddForm, ActiveSchoolYearContentMixin):
         name = chooser.chooseName(u'', course)
         self.context[name] = course
         self._course = course
+        if self._level is not None:
+            self._level.courses.add(course)
         return course
 
     def nextURL(self):
@@ -628,8 +775,13 @@ class FlourishCourseEditView(Form, form.EditForm):
     template = InheritTemplate(Page.template)
     label = None
     legend = _('Course Information')
-    fields = field.Fields(ICourse)
-    fields = fields.select('title', 'description', 'course_id', 'government_id', 'credits')
+
+    @property
+    def fields(self):
+        fields = field.Fields(ICourse)
+        fields += field.Fields(ICourseLevel)
+        fields = fields.select('title', 'description', 'course_id', 'government_id', 'credits', 'level')
+        return fields
 
     @property
     def title(self):
@@ -699,12 +851,49 @@ class FlourishCourseFilterWidget(table.table.FilterWidget):
 
 class CoursesTableFilter(table.ajax.TableFilter, FlourishCourseFilterWidget):
 
+    template = ViewPageTemplateFile('templates/f_course_table_filter.pt')
+
     title = _("Title or course ID")
 
-    def filter(self, results):
+    @property
+    def search_id(self):
+        return self.manager.html_id+'-search'
+
+    @property
+    def search_title_id(self):
+        return self.manager.html_id+"-title"
+
+    @property
+    def search_level_id(self):
+        return self.manager.html_id+"-level"
+
+    def levelContainer(self):
+        app = ISchoolToolApplication(None)
+        return ILevelContainer(app)
+
+    def levels(self):
+        result = []
+        container = self.levelContainer()
+        for level_id, level in container.items():
+            result.append({'id': level_id,
+                           'title': level.title})
+        return result
+
+    def filter(self, items):
         if self.ignoreRequest:
-            return results
-        return FlourishCourseFilterWidget.filter(self, results)
+            return items
+        if self.search_level_id in self.request:
+            level_id = self.request[self.search_level_id]
+            level = self.levelContainer().get(level_id)
+            if level:
+                items = [item for item in items
+                         if level in item.levels]
+        if self.search_title_id in self.request:
+            searchstr = self.request[self.search_title_id].lower()
+            items = [item for item in items
+                     if searchstr in item.title.lower() or
+                     (item.course_id and searchstr in item.course_id.lower())]
+        return items
 
 
 class FlourishCourseTableFormatter(table.table.SchoolToolTableFormatter):

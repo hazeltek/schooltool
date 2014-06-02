@@ -772,15 +772,9 @@ src/schooltool/paste/schooltool_template/redis.conf_tmpl
 src/schooltool/paste/schooltool_template/report-server.zcml_tmpl
 src/schooltool/paste/schooltool_template/result-server.zcml_tmpl
 src/schooltool/paste/schooltool_template/schooltool.conf_tmpl
-src/schooltool/paste/schooltool_template/schooltool_local.conf_tmpl
-src/schooltool/paste/schooltool_template/schooltool_zrs_primary.conf_tmpl
-src/schooltool/paste/schooltool_template/schooltool_zrs_secondary.conf_tmpl
 src/schooltool/paste/schooltool_template/site.zcml_tmpl
 src/schooltool/paste/schooltool_template/supervisord.conf_tmpl
 src/schooltool/paste/schooltool_template/zeo.conf_tmpl
-src/schooltool/paste/schooltool_template/zeo_local.conf_tmpl
-src/schooltool/paste/schooltool_template/zeo_zrs_primary.conf_tmpl
-src/schooltool/paste/schooltool_template/zeo_zrs_secondary.conf_tmpl
 src/schooltool/paste/schooltool_template/plugins/README.txt
 src/schooltool/person/__init__.py
 src/schooltool/person/configure.zcml

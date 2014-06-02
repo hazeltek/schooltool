@@ -1,12 +1,6 @@
 <zeo>
   address ${run_dir}/zeo.sock
 </zeo>
-<eventlog>
-  <logfile>
-    path ${log_dir}/zeo.log
-  </logfile>
-</eventlog>
-
 # <filestorage>		traditional FileStorage
 #   path filename		required
 #   create yes|no		default: yes
@@ -18,6 +12,28 @@
   path ${data_dir}/Data.fs
   blob-dir ${data_dir}/blobs
 </filestorage>
+
+# To enable replication to the central server via ZRS, delete the
+# lines above this one and uncomment the section below.
+#
+# %import zc.zrs
+# <zrs>
+#   replicate-to 7082
+#   replicate-from <SCHOOL_PUBLIC_HOSTNAME_OR_IP_ADDRESS>:7082
+#   <filestorage>
+#     path /var/lib/schooltool/Data.fs
+#     blob-dir /var/lib/schooltool/blobs
+#   </filestorage>
+# </zrs>
+# <zeo>
+#   address 0.0.0.0:7081
+# </zeo>
+
+<eventlog>
+  <logfile>
+    path ${log_dir}/zeo.log
+  </logfile>
+</eventlog>
 
 # cache-size n
 #

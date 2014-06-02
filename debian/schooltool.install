@@ -3,12 +3,6 @@ debian/redis.conf etc/schooltool/standard
 debian/report-server.zcml etc/schooltool/standard
 debian/result-server.zcml etc/schooltool/standard
 debian/schooltool.conf etc/schooltool/standard
-debian/schooltool_local.conf etc/schooltool/standard
-debian/schooltool_zrs_primary.conf etc/schooltool/standard
-debian/schooltool_zrs_secondary.conf etc/schooltool/standard
 debian/site.zcml etc/schooltool/standard
 debian/supervisord.conf etc/schooltool/standard
 debian/zeo.conf etc/schooltool/standard
-debian/zeo_local.conf etc/schooltool/standard
-debian/zeo_zrs_primary.conf etc/schooltool/standard
-debian/zeo_zrs_secondary.conf etc/schooltool/standard

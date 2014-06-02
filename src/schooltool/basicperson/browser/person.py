@@ -63,6 +63,8 @@ from schooltool.app.interfaces import IRelationshipStateContainer
 from schooltool.app.states import INACTIVE
 from schooltool.common.inlinept import InlineViewPageTemplate
 from schooltool.common.inlinept import InheritTemplate
+from schooltool.course.interfaces import ILearner
+from schooltool.course.interfaces import ISection
 from schooltool.basicperson.demographics import LEAVE_SCHOOL_FIELDS
 from schooltool.basicperson.interfaces import IDemographics
 from schooltool.basicperson.interfaces import IDemographicsFields
@@ -76,6 +78,7 @@ from schooltool.schoolyear.interfaces import ISchoolYearContainer
 from schooltool.relationship.temporal import ACTIVE
 from schooltool.report.report import OldReportTask
 from schooltool.report.browser.report import RequestRemoteReportDialog
+from schooltool.schoolyear.interfaces import ISchoolYear
 from schooltool.skin.containers import TableContainerView
 from schooltool.skin import flourish
 from schooltool.skin.flourish.interfaces import IViewletManager
@@ -90,6 +93,7 @@ from schooltool.task.tasks import getLastMessagesReadTime
 from schooltool.task.tasks import markMessagesRead
 from schooltool.task.browser.task import MessageColumn
 from schooltool.term.interfaces import IDateManager
+from schooltool.term.interfaces import ITerm
 
 from schooltool.common import SchoolToolMessage as _
 
@@ -1695,14 +1699,8 @@ class StatusPersonListTable(PersonListTable):
         return container.get(self.app_states_name, None)
 
 
-from schooltool.course.interfaces import ILearner
-from schooltool.term.interfaces import ITerm
-from schooltool.schoolyear.interfaces import ISchoolYear
-
-
 class LeaveSchoolView(flourish.form.Form,
-                      form.EditForm,
-                      ActiveSchoolYearContentMixin):
+                      form.EditForm):
 
     template = InheritTemplate(flourish.page.Page.template)
     label = None
@@ -1740,20 +1738,21 @@ class LeaveSchoolView(flourish.form.Form,
             self.status == self.noChangesMessage):
             data, errors = self.extractData()
             person = removeSecurityProxy(self.context)
+            leave_date = data['leave_date']
             for section in ILearner(self.context).sections():
                 term = ITerm(section)
-                schoolyear = ISchoolYear(term)
-                if schoolyear is self.schoolyear:
-                    date = data['leave_date']
+                if leave_date in term or leave_date < term.first:
                     collection = removeSecurityProxy(section.members)
-                    collection.on(date).relate(person, INACTIVE, 'i')
-            for group in self.context.groups:
+                    collection.on(leave_date).relate(person, INACTIVE, 'i')
+            person_groups = [group for group in self.context.groups
+                             if not ISection.providedBy(group)]
+            for group in person_groups:
                 schoolyear = ISchoolYear(group.__parent__)
-                if schoolyear is self.schoolyear:
-                    date = data['leave_date']
+                if ((schoolyear.first <= leave_date <= schoolyear.last) or
+                    leave_date < schoolyear.first):
                     collection = removeSecurityProxy(group.members)
-                    code = 'w' if group.__name__ == 'students' else 'i'
-                    collection.on(date).relate(person, INACTIVE, code)
+                    code = 'w' if group.__name__ == 'students' else 'r'
+                    collection.on(leave_date).relate(person, INACTIVE, code)
             self.request.response.redirect(self.nextURL())
 
     @button.buttonAndHandler(_("Cancel"))

@@ -2,6 +2,14 @@
 CHANGES
 =======
 
+2.8.3 (2014-06-02)
+------------------
+
+- Fixed row indexing in group importer after relationship change in sample data
+- Removed student from future years in the leave school view
+- Used student-enrollment states in remove temporal relationship table and state dialog
+
+
 2.8.2 (2014-06-01)
 ------------------
 

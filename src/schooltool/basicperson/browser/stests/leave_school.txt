@@ -154,8 +154,10 @@ Let's look at Camila's sections and groups:
     >>> manager.ui.person.print_group_trees()
     Group memberships
     |+ 2014
-       |- Chess club
-       |- Science club
+       |+ Chess club
+          |- Member (Jan 1, 2014)
+       |+ Science club
+          |- Member (Jan 1, 2014)
 
 Make Camila leave the school today:
 
@@ -192,17 +194,15 @@ and she has been removed from her sections and groups:
        |+ Semester 1
           |+ Baseball (2)
              |- Enrolled (Jan 1, 2014)
-             |- Withdrawn (Aug 9, 2014)
           |+ Math (1)
              |- Enrolled (Jan 1, 2014)
-             |- Withdrawn (Aug 9, 2014)
 
-    >>> accordion_header = manager.query_all.css('.ui-accordion-header')[4]
-    >>> accordion_header.click()
-    >>> accordion_content = manager.query_all.css('div.ui-accordion-content')[4]
-    >>> manager.wait(accordion_content.is_displayed)
-    >>> print accordion_content.query.tag('h3').text
+    >>> manager.ui.person.print_group_trees()
     Group memberships
-    >>> print accordion_content.query.tag('p').text
-    The person is not a member of any groups.
-
+    |+ 2014
+       |+ Chess club
+          |- Member (Jan 1, 2014)
+          |- Removed (Aug 9, 2014)
+       |+ Science club
+          |- Member (Jan 1, 2014)
+          |- Removed (Aug 9, 2014)

@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+2.8.4 (2014-06-03)
+------------------
+
+- Fixed section/group lookup in school leave view
+- Added jstree for groups accordion in person view
+
+
 2.8.3 (2014-06-02)
 ------------------
 

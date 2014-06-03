@@ -1,3 +1,11 @@
+schooltool (1:2.8.4-0ubuntu1) trusty; urgency=medium
+
+  * New release.
+    - Fixed section/group lookup in school leave view
+    - Added jstree for groups accordion in person view
+
+ -- Douglas Cerna (Soy Douglas) <douglascerna@yahoo.com>  Tue, 03 Jun 2014 13:38:54 -0600
+
 schooltool (1:2.8.3-0ubuntu1) trusty; urgency=medium
 
   * New release.

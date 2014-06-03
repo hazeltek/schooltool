@@ -1,3 +1,12 @@
+schooltool (1:2.8.3-0ubuntu1) trusty; urgency=medium
+
+  * New release.
+    - Fixed row indexing in group importer after relationship change in sample data
+    - Removed student from future years in the leave school view
+    - Used student-enrollment states in remove temporal relationship table and state dialog
+
+ -- Douglas Cerna (Soy Douglas) <douglascerna@yahoo.com>  Mon, 02 Jun 2014 20:31:48 -0600
+
 schooltool (1:2.8.2-0ubuntu1) trusty; urgency=medium
 
   * New release.

@@ -60,10 +60,10 @@ from schooltool.app.browser.report import DefaultPageTemplate
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.app.interfaces import IApplicationPreferences
 from schooltool.app.interfaces import IRelationshipStateContainer
+from schooltool.app.membership import Membership
 from schooltool.app.states import INACTIVE
 from schooltool.common.inlinept import InlineViewPageTemplate
 from schooltool.common.inlinept import InheritTemplate
-from schooltool.course.interfaces import ILearner
 from schooltool.course.interfaces import ISection
 from schooltool.basicperson.demographics import LEAVE_SCHOOL_FIELDS
 from schooltool.basicperson.interfaces import IDemographics
@@ -1739,20 +1739,25 @@ class LeaveSchoolView(flourish.form.Form,
             data, errors = self.extractData()
             person = removeSecurityProxy(self.context)
             leave_date = data['leave_date']
-            for section in ILearner(self.context).sections():
-                term = ITerm(section)
-                if leave_date in term or leave_date < term.first:
-                    collection = removeSecurityProxy(section.members)
-                    collection.on(leave_date).relate(person, INACTIVE, 'i')
-            person_groups = [group for group in self.context.groups
-                             if not ISection.providedBy(group)]
-            for group in person_groups:
-                schoolyear = ISchoolYear(group.__parent__)
-                if ((schoolyear.first <= leave_date <= schoolyear.last) or
-                    leave_date < schoolyear.first):
-                    collection = removeSecurityProxy(group.members)
-                    code = 'w' if group.__name__ == 'students' else 'r'
-                    collection.on(leave_date).relate(person, INACTIVE, code)
+            relationships = Membership.bind(member=person).all().relationships
+            for link_info in relationships:
+                target = removeSecurityProxy(link_info.target)
+                if ISection.providedBy(target):
+                    term = ITerm(target)
+                    if leave_date in term or leave_date < term.first:
+                        collection = removeSecurityProxy(target.members)
+                        if leave_date < term.first:
+                            link_info.state.replace({})
+                        collection.on(leave_date).relate(person, INACTIVE, 'i')
+                else:
+                    schoolyear = ISchoolYear(target.__parent__)
+                    if ((schoolyear.first <= leave_date <= schoolyear.last) or
+                        leave_date < schoolyear.first):
+                        collection = removeSecurityProxy(target.members)
+                        code = 'w' if target.__name__ == 'students' else 'r'
+                        if leave_date < schoolyear.first:
+                            link_info.state.replace({})
+                        collection.on(leave_date).relate(person, INACTIVE, code)
             self.request.response.redirect(self.nextURL())
 
     @button.buttonAndHandler(_("Cancel"))

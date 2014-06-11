@@ -18,6 +18,7 @@
 """
 SchoolTool application views.
 """
+import logging
 import re
 import urllib
 
@@ -730,6 +731,12 @@ class LoginView(BrowserView):
         self.update()
         return self.index()
 
+    def logUser(self, person):
+        if person is not None:
+            logger = logging.getLogger('accesslog')
+            logger.info('User logged in: %s',
+                        removeSecurityProxy(person).username)
+
     def update(self):
         if ('LOGIN' in self.request and 'username' in self.request and
             'password' in self.request):
@@ -742,6 +749,7 @@ class LoginView(BrowserView):
             else:
                 principal = auth.authenticate(self.request)
                 person = IPerson(principal, None)
+                self.logUser(person)
                 if 'nexturl' in self.request:
                     nexturl = self.request['nexturl']
                 elif person is not None:
@@ -807,7 +815,14 @@ class FlourishLoginDispatchView(BrowserView):
 class LogoutView(BrowserView):
     """Clears the authentication creds from the session"""
 
+    def logUser(self):
+        person = IPerson(self.request.principal, None)
+        if person is not None:
+            logger = logging.getLogger('accesslog')
+            logger.info('User logged out: %s', person.username)
+
     def __call__(self):
+        self.logUser()
         auth = getUtility(IAuthentication)
         auth.clearCredentials(self.request)
         url = absoluteURL(ISchoolToolApplication(None),

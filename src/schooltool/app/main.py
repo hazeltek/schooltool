@@ -675,7 +675,8 @@ class SchoolToolServer(SchoolToolMachinery):
         """Configure SchoolTool."""
         setUpLogger(None, options.config.error_log_file,
                     "%(asctime)s %(message)s")
-        setUpLogger('accesslog', options.config.web_access_log_file)
+        setUpLogger('accesslog', options.config.web_access_log_file,
+                    "%(asctime)s %(message)s")
 
         # Shut up ZODB lock_file, because it logs tracebacks when unable
         # to lock the database file, and we don't want that.

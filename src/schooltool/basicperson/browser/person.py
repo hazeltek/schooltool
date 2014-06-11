@@ -1704,7 +1704,7 @@ class LeaveSchoolView(flourish.form.Form,
 
     template = InheritTemplate(flourish.page.Page.template)
     label = None
-    legend = _('Leave Information')
+    legend = _('Un-enroll Information')
 
     @property
     def fields(self):

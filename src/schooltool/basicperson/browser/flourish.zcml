@@ -892,7 +892,7 @@
   <flourish:viewlet
       name="leave.html"
       for="schooltool.basicperson.interfaces.IBasicPerson"
-      title="Leave School"
+      title="Un-enroll"
       class="schooltool.skin.flourish.page.LinkViewlet"
       manager="schooltool.basicperson.browser.person.PersonActionsLinks"
       permission="schooltool.edit"
@@ -905,7 +905,7 @@
         for="schooltool.basicperson.interfaces.IBasicPerson"
         class="schooltool.basicperson.browser.person.LeaveSchoolView"
         content_template="templates/z3c_form_edit.pt"
-        subtitle="Leave School"
+        subtitle="Un-enroll"
         permission="schooltool.edit"
         />
 

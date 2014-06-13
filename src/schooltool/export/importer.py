@@ -237,7 +237,7 @@ class ImporterBase(object):
                 valid = False
         return value, found, valid
 
-    def getIntFromCell(self, sheet, row, col, default=0):
+    def getIntFromCell(self, sheet, row, col, default=None):
         value, found, valid = self.getIntFoundValid(sheet, row, col, default)
         return value
 

@@ -71,6 +71,7 @@ from schooltool.basicperson.interfaces import IDemographicsFields
 from schooltool.basicperson.interfaces import IBasicPerson
 from schooltool.contact.interfaces import IContactable
 from schooltool.group.interfaces import IGroupContainer
+from schooltool.group.interfaces import IGroup
 from schooltool.person.interfaces import IPerson, IPersonFactory
 from schooltool.person.browser.person import PersonTable, PersonTableFormatter
 from schooltool.person.browser.person import PersonTableFilter
@@ -1704,7 +1705,7 @@ class LeaveSchoolView(flourish.form.Form,
 
     template = InheritTemplate(flourish.page.Page.template)
     label = None
-    legend = _('Leave Information')
+    legend = _('Un-enroll Information')
 
     @property
     def fields(self):
@@ -1766,3 +1767,16 @@ class LeaveSchoolView(flourish.form.Form,
 
     def nextURL(self):
         return absoluteURL(self.context, self.request)
+
+
+class LeaveSchoolLinkViewlet(flourish.page.LinkViewlet):
+
+    @property
+    def enabled(self):
+        person = removeSecurityProxy(self.context)
+        relationships = Membership.bind(member=person).all().relationships
+        for link_info in relationships:
+            section = removeSecurityProxy(link_info.target)
+            if IGroup.providedBy(section):
+                continue
+            return True

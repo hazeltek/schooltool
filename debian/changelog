@@ -1,3 +1,13 @@
+schooltool (1:2.8.5-0ubuntu1) trusty; urgency=medium
+
+  * New release.
+    - Set user logging information in web-access.log file
+    - Made leave school feature available only for students
+    - Updated wording and default values as requested by PEAS
+    - Set None as default for integer columns in importer
+
+ -- Douglas Cerna (Soy Douglas) <douglascerna@yahoo.com>  Fri, 13 Jun 2014 13:36:26 -0600
+
 schooltool (1:2.8.4-0ubuntu1) trusty; urgency=medium
 
   * New release.

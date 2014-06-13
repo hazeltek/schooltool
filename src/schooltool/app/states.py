@@ -298,6 +298,6 @@ class TeacheAttendanceStatesStartUp(StateStartUpBase):
     def populate(self, states):
         super(TeacheAttendanceStatesStartUp, self).populate(states)
         states.add(_('Present'), ACTIVE, 'a')
-        states.add(_('Absent'), INACTIVE, 'i')
-        states.add(_('Sick'), INACTIVE, 's')
-        states.add(_('Added in error'), INACTIVE, 'e')
+        states.add(_('Absent because sick'), INACTIVE, 's')
+        states.add(_('Absent because unknown'), INACTIVE, 'i')
+        states.add(_('Late'), INACTIVE, 'l')

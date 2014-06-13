@@ -2,6 +2,15 @@
 CHANGES
 =======
 
+2.8.5 (2014-06-13)
+------------------
+
+- Set user logging information in web-access.log file
+- Made leave school feature available only for students
+- Updated wording and default values as requested by PEAS
+- Set None as default for integer columns in importer
+
+
 2.8.4 (2014-06-03)
 ------------------
 

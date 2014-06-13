@@ -893,7 +893,7 @@
       name="leave.html"
       for="schooltool.basicperson.interfaces.IBasicPerson"
       title="Un-enroll"
-      class="schooltool.skin.flourish.page.LinkViewlet"
+      class=".person.LeaveSchoolLinkViewlet"
       manager="schooltool.basicperson.browser.person.PersonActionsLinks"
       permission="schooltool.edit"
       />

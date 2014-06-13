@@ -165,16 +165,19 @@ def setUpDefaultDemographics(app):
     dfs['placeofbirth'] = TextFieldDescription('placeofbirth', _('Place of birth'))
     dfs['citizenship'] = TextFieldDescription('citizenship', _('Citizenship'))
     dfs['leave_date'] = DateFieldDescription(
-        'leave_date', _('Date of un-enrollment'))
+        'leave_date', _('Date of un-enrollment'),
+        limit_keys=['students'])
     dfs['leave_reason'] = EnumFieldDescription(
-        'leave_reason', _('Reason for un-enrollment'))
+        'leave_reason', _('Reason for un-enrollment'),
+        limit_keys=['students'])
     dfs['leave_reason'].items = [_('Transferred'),
                                  _('Dropped-out - fees'),
                                  _('Dropped-out - pregnancy'),
                                  _('Dropped-out - family'),
                                  _('Left school - unknown')]
     dfs['leave_destination'] = EnumFieldDescription(
-        'leave_destination', _('Destination school'))
+        'leave_destination', _('Destination school'),
+        limit_keys=['students'])
     dfs['leave_destination'].items = [_('Example School A'),
                                       _('Example School B')]
     for name in LEAVE_SCHOOL_FIELDS:

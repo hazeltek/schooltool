@@ -1,3 +1,11 @@
+schooltool (1:2.8.6-0ubuntu1) trusty; urgency=medium
+
+  * New release.
+    - Sync'ed teacher states with new teacher score system
+    - Added viewlet extra parameter to reports links manager
+
+ -- Douglas Cerna (Soy Douglas) <douglascerna@yahoo.com>  Sun, 15 Jun 2014 20:11:14 -0600
+
 schooltool (1:2.8.5-0ubuntu1) trusty; urgency=medium
 
   * New release.

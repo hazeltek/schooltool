@@ -300,4 +300,4 @@ class TeacheAttendanceStatesStartUp(StateStartUpBase):
         states.add(_('Present'), ACTIVE, 'a')
         states.add(_('Absent because sick'), INACTIVE, 's')
         states.add(_('Absent because unknown'), INACTIVE, 'i')
-        states.add(_('Late'), INACTIVE, 'l')
+        states.add(_('Late'), ACTIVE, 'l')

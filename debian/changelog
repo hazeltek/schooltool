@@ -1,3 +1,10 @@
+schooltool (1:2.8.7-0ubuntu1) trusty; urgency=medium
+
+  * New release.
+    - Fixed reorder demographics view
+
+ -- Douglas Cerna (Soy Douglas) <douglascerna@yahoo.com>  Tue, 17 Jun 2014 15:09:40 -0600
+
 schooltool (1:2.8.6-0ubuntu1) trusty; urgency=medium
 
   * New release.

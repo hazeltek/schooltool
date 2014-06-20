@@ -1,3 +1,14 @@
+schooltool (1:2.8.8-0ubuntu1) trusty; urgency=medium
+
+  * New release.
+    - Added view for editing student level
+    - Added accordion to list student level
+    - Showed level subtitle only for students
+    - Made gender required in forms and the XLS importer
+    - Used section enrollment/group membership for showing un-enroll link
+
+ -- Douglas Cerna (Soy Douglas) <douglascerna@yahoo.com>  Fri, 20 Jun 2014 13:53:55 -0600
+
 schooltool (1:2.8.7-0ubuntu1) trusty; urgency=medium
 
   * New release.

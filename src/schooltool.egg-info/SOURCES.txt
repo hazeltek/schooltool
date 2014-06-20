@@ -241,6 +241,7 @@ src/schooltool/basicperson/browser/templates/f_demographics_reorder.pt
 src/schooltool/basicperson/browser/templates/f_demographics_view.pt
 src/schooltool/basicperson/browser/templates/f_generalViewlet.pt
 src/schooltool/basicperson/browser/templates/f_id_cards_template.pt
+src/schooltool/basicperson/browser/templates/f_levelViewlet.pt
 src/schooltool/basicperson/browser/templates/f_manage_people_overview.pt
 src/schooltool/basicperson/browser/templates/f_person_add_multiple.pt
 src/schooltool/basicperson/browser/templates/f_person_add_subform.pt

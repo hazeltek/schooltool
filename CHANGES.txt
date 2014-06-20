@@ -2,6 +2,16 @@
 CHANGES
 =======
 
+2.8.8 (2014-06-20)
+------------------
+
+- Added view for editing student level
+- Added accordion to list student level
+- Showed level subtitle only for students
+- Made gender required in forms and the XLS importer
+- Used section enrollment/group membership for showing un-enroll link
+
+
 2.8.7 (2014-06-17)
 ------------------
 

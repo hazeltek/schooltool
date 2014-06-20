@@ -647,6 +647,11 @@ class FlourishPersonEditView(flourish.page.Page, PersonEditView):
                     fieldset_id, legend, list(fields)))
         return result
 
+    def updateWidgets(self, *args, **kw):
+        super(FlourishPersonEditView, self).updateWidgets(*args, **kw)
+        self.widgets['gender'].prompt = True
+        self.widgets['gender'].promptMessage = _('Select gender')
+
 
 class PersonTerm(object):
     """A term for displaying a person."""
@@ -1078,6 +1083,11 @@ class FlourishPersonAddView(PersonAddViewBase):
 
     def set_person_level(self, person, level):
         person.levels.on(self.request.util.today).relate(level)
+
+    def updateWidgets(self, *args, **kw):
+        super(FlourishPersonAddView, self).updateWidgets(*args, **kw)
+        self.widgets['gender'].prompt = True
+        self.widgets['gender'].promptMessage = _('Select gender')
 
 
 ###############  Group-aware add views ################

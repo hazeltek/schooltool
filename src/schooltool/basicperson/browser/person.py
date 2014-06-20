@@ -33,7 +33,7 @@ from z3c.form.interfaces import DISPLAY_MODE
 from zope.interface import invariant, Invalid
 from zope.interface import directlyProvides
 from zope.intid.interfaces import IIntIds
-from zope.schema import Password, TextLine, Choice, List
+from zope.schema import Password, TextLine, Choice, List, Date
 from zope.schema import ValidationError
 from zope.schema.interfaces import ITitledTokenizedTerm
 from zope.traversing.browser.absoluteurl import absoluteURL
@@ -332,13 +332,14 @@ class FlourishPersonView(flourish.page.Page):
 
     @property
     def subtitle(self):
-        result = []
-        levels = self.context.levels
-        for level in levels.on(self.request.util.today).any(ACTIVE):
-            result.append(level)
-        if result:
-            level = ', '.join([level.title for level in levels])
-            return '(%s)' % level
+        if is_student(self.context):
+            result = []
+            levels = self.context.levels
+            for level in levels.on(self.request.util.today).any(ACTIVE):
+                result.append(level)
+            if result:
+                level = ', '.join([level.title for level in levels])
+                return '(%s)' % level
 
 
 class FlourishPersonInfo(flourish.page.Content):
@@ -1785,3 +1786,97 @@ class LeaveSchoolLinkViewlet(flourish.page.LinkViewlet):
     @property
     def enabled(self):
         return is_student(self.context)
+
+
+class LevelAccordionViewlet(Viewlet):
+
+    template = ViewPageTemplateFile('templates/f_levelViewlet.pt')
+
+    @property
+    def title(self):
+        result = _('Grade Level')
+        today = self.request.util.today
+        levels = [level.title
+                  for level in self.context.levels.on(today).any(ACTIVE)]
+        if levels:
+            result = _('Grade Level: ${level}',
+                       mapping={'level': ', '.join(levels)})
+        return result
+
+    @property
+    def canModify(self):
+        return canAccess(self.context.__parent__, '__delitem__')
+
+    def render(self, *args, **kw):
+        if is_student(self.context):
+            return self.template(*args, **kw)
+        return ''
+
+
+class PersonEditLevelView(flourish.form.Form,
+                          form.EditForm):
+
+    template = InheritTemplate(flourish.page.Page.template)
+    label = None
+    legend = _('Level Information')
+
+    @property
+    def fields(self):
+        result = field.Fields(Date(__name__='date', title=_('Date')))
+        result += field.Fields(ILevelField)
+        return result
+
+    @property
+    def current_level(self):
+        today = self.request.util.today
+        levels = [level
+                  for level in self.context.levels.on(today).any(ACTIVE)]
+        if levels:
+            return levels[0]
+
+    def getContent(self):
+        return {
+            'date': self.request.util.today,
+            'level': self.current_level,
+        }
+
+    @property
+    def title(self):
+        return self.context.title
+
+    def update(self):
+        form.EditForm.update(self)
+
+    def updateActions(self):
+        super(PersonEditLevelView, self).updateActions()
+        self.actions['apply'].addClass('button-ok')
+        self.actions['cancel'].addClass('button-cancel')
+
+    def updateWidgets(self, *args, **kw):
+        super(PersonEditLevelView, self).updateWidgets(*args, **kw)
+        self.widgets['level'].prompt = True
+        self.widgets['level'].promptMessage = _('No Level')
+
+    @button.buttonAndHandler(_('Submit'), name='apply')
+    def handleApply(self, action):
+        super(PersonEditLevelView, self).handleApply.func(self, action)
+        if (self.status == self.successMessage or
+            self.status == self.noChangesMessage):
+            data, errors = self.extractData()
+            person = removeSecurityProxy(self.context)
+            date = data['date']
+            current_level = removeSecurityProxy(self.current_level)
+            new_level = removeSecurityProxy(data['level'])
+            if current_level != new_level:
+                if current_level is not None:
+                    person.levels.on(date).relate(current_level, INACTIVE, 'i')
+                if new_level is not None:
+                    person.levels.on(date).relate(new_level)
+        self.request.response.redirect(self.nextURL())
+
+    @button.buttonAndHandler(_("Cancel"))
+    def handle_cancel_action(self, action):
+        self.request.response.redirect(self.nextURL())
+
+    def nextURL(self):
+        return absoluteURL(self.context, self.request)

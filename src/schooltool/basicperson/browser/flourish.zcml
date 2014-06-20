@@ -909,6 +909,24 @@
         permission="schooltool.edit"
         />
 
+    <flourish:page
+        name="edit_level.html"
+        for="schooltool.basicperson.interfaces.IBasicPerson"
+        class="schooltool.basicperson.browser.person.PersonEditLevelView"
+        content_template="templates/z3c_form_edit.pt"
+        permission="schooltool.edit"
+        subtitle="Edit"
+        />
+
   </configure>
+
+  <flourish:viewlet
+      name="person_level"
+      after="*"
+      for="schooltool.basicperson.interfaces.IBasicPerson"
+      manager="schooltool.basicperson.browser.person.IFlourishPersonInfoManager"
+      class=".person.LevelAccordionViewlet"
+      permission="schooltool.view"
+      />
 
 </configure>

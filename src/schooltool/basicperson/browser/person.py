@@ -65,6 +65,7 @@ from schooltool.app.states import INACTIVE
 from schooltool.common.inlinept import InlineViewPageTemplate
 from schooltool.common.inlinept import InheritTemplate
 from schooltool.course.interfaces import ISection
+from schooltool.course.section import is_student
 from schooltool.basicperson.demographics import LEAVE_SCHOOL_FIELDS
 from schooltool.basicperson.interfaces import IDemographics
 from schooltool.basicperson.interfaces import IDemographicsFields
@@ -1773,10 +1774,4 @@ class LeaveSchoolLinkViewlet(flourish.page.LinkViewlet):
 
     @property
     def enabled(self):
-        person = removeSecurityProxy(self.context)
-        relationships = Membership.bind(member=person).all().relationships
-        for link_info in relationships:
-            section = removeSecurityProxy(link_info.target)
-            if IGroup.providedBy(section):
-                continue
-            return True
+        return is_student(self.context)

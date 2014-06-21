@@ -338,8 +338,7 @@ class FlourishPersonView(flourish.page.Page):
             for level in levels.on(self.request.util.today).any(ACTIVE):
                 result.append(level)
             if result:
-                level = ', '.join([level.title for level in levels])
-                return '(%s)' % level
+                return ', '.join([level.title for level in result])
 
 
 class FlourishPersonInfo(flourish.page.Content):

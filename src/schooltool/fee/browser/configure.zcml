@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<configure xmlns="http://namespaces.zope.org/browser"
+           xmlns:z3c="http://namespaces.zope.org/z3c"
+           xmlns:zope="http://namespaces.zope.org/zope"
+           xmlns:security="http://schooltool.org/securitypolicy"
+           xmlns:flourish="http://schooltool.org/flourish"
+           xmlns:report="http://namespaces.schooltool.org/report"
+           i18n_domain="schooltool">
+
+  <flourish:viewlet
+      name="fees"
+      after="person_level"
+      for="schooltool.basicperson.interfaces.IBasicPerson"
+      manager="schooltool.basicperson.browser.person.IFlourishPersonInfoManager"
+      class=".fee.PersonFeesViewlet"
+      permission="schooltool.view"
+      />
+
+  <configure package="schooltool.skin.flourish">
+
+    <flourish:page
+        name="add_debit.html"
+        for="schooltool.basicperson.interfaces.IBasicPerson"
+        class="schooltool.fee.browser.fee.AddDebitPersonView"
+        content_template="templates/z3c_form_edit.pt"
+        permission="schooltool.edit"
+        subtitle="Add Debit"
+        />
+
+    <flourish:page
+        name="add_credit.html"
+        for="schooltool.basicperson.interfaces.IBasicPerson"
+        class="schooltool.fee.browser.fee.AddCreditPersonView"
+        content_template="templates/z3c_form_edit.pt"
+        permission="schooltool.edit"
+        subtitle="Add Credit"
+        />
+
+  </configure>
+
+</configure>

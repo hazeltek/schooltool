@@ -198,3 +198,11 @@ table.relationship-states td {
 table.relationship-states input[type="text"] {
     width: 100%;
 }
+
+table.fees .date {
+    width: 20%;
+}
+
+table.fees .amount {
+    width: 12%;
+}

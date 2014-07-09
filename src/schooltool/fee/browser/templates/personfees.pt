@@ -1,0 +1,33 @@
+<div i18n:domain="schooltool"
+     tal:define="amount_due view/amount_due">
+  <h2 i18n:translate="">Fees</h2>
+  <div>
+    <div>
+      <a tal:attributes="href string:${context/@@absolute_url}/add_debit.html"
+         i18n:translate="">Add Debit</a>
+      <a tal:attributes="href string:${context/@@absolute_url}/add_credit.html"
+         i18n:translate="">Add Credit</a>
+    </div>
+    <table class="fees">
+      <thead>
+        <th i18n:translate="" class="date">Date</th>
+        <th i18n:translate="">Title</th>
+        <th i18n:translate="" class="amount">Debit</th>
+        <th i18n:translate="" class="amount">Credit</th>
+      </thead>
+      <tbody>
+        <tr tal:repeat="entry view/entries">
+          <td tal:content="entry/date" />
+          <td tal:content="entry/title" />
+          <td tal:content="entry/debit" />
+          <td tal:content="entry/credit" />
+        </tr>
+      </tbody>
+    </table>
+    <div tal:condition="amount_due">
+      <h3 i18n:translate="">
+        Amount due: <tal:block content="amount_due" i18n:name="amount" />
+      </h3>
+    </div>
+  </div>
+</div>

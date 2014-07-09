@@ -94,6 +94,7 @@
   <include package="schooltool.email" />
   <include package="schooltool.level" />
   <include package="schooltool.report" />
+  <include package="schooltool.fee" />
 
   <adapter
       for="zope.interface.Interface

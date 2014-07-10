@@ -20,26 +20,30 @@ Fee implementation
 """
 
 from persistent import Persistent
-from persistent.list import PersistentList
 
 from zope.annotation.interfaces import IAnnotations
 from zope.component import adapter
+from zope.container.btree import BTreeContainer
+from zope.container.contained import Contained
 from zope.interface import implementer
 from zope.interface import implements
 
 from schooltool.basicperson.interfaces import IBasicPerson
 from schooltool.fee.interfaces import IAmount
 from schooltool.fee.interfaces import ICredit
-from schooltool.fee.interfaces import ICreditBalance
 from schooltool.fee.interfaces import IDebit
-from schooltool.fee.interfaces import IDebitBalance
+from schooltool.fee.interfaces import IFeeContainer
 
 
-PERSON_CREDIT_KEY = 'schooltool.fee.credit'
-PERSON_DEBIT_KEY = 'schooltool.fee.debit'
+PERSON_FEE_KEY = 'schooltool.fee'
 
 
-class Amount(Persistent):
+class FeeContainer(BTreeContainer):
+
+    implements(IFeeContainer)
+
+
+class Amount(Persistent, Contained):
 
     implements(IAmount)
 
@@ -59,19 +63,14 @@ class Debit(Amount):
     implements(IDebit)
 
 
-@implementer(ICreditBalance)
+@implementer(IFeeContainer)
 @adapter(IBasicPerson)
-def PersonCreditBalance(person):
+def getPersonFeeContainer(person):
     ann = IAnnotations(person)
-    if PERSON_CREDIT_KEY not in ann:
-        ann[PERSON_CREDIT_KEY] = PersistentList()
-    return ann[PERSON_CREDIT_KEY]
-
-
-@implementer(IDebitBalance)
-@adapter(IBasicPerson)
-def PersonDebitBalance(person):
-    ann = IAnnotations(person)
-    if PERSON_DEBIT_KEY not in ann:
-        ann[PERSON_DEBIT_KEY] = PersistentList()
-    return ann[PERSON_DEBIT_KEY]
+    try:
+        return ann[PERSON_FEE_KEY]
+    except (KeyError,):
+        ann[PERSON_FEE_KEY] = FeeContainer()
+        ann[PERSON_FEE_KEY].__name__ = 'fees'
+        ann[PERSON_FEE_KEY].__parent__ = person
+        return ann[PERSON_FEE_KEY]

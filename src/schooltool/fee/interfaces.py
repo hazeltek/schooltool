@@ -19,6 +19,7 @@
 Fee related interfaces
 """
 
+from zope.container.constraints import contains
 from zope.interface import Interface
 from zope.schema import Date
 from zope.schema import Decimal
@@ -26,6 +27,11 @@ from zope.schema import Text
 from zope.schema import TextLine
 
 from schooltool.common import SchoolToolMessage as _
+
+
+class IFeeContainer(Interface):
+
+    contains('.IAmount')
 
 
 class IAmount(Interface):
@@ -41,24 +47,9 @@ class IAmount(Interface):
 
 class IDebit(IAmount):
 
-    pass
+    title = TextLine(title=_(u'Title'))
 
 
 class ICredit(IAmount):
-
-    pass
-
-
-class IBalance(Interface):
-
-    pass
-
-
-class ICreditBalance(IBalance):
-
-    pass
-
-
-class IDebitBalance(IBalance):
 
     pass

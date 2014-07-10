@@ -16,12 +16,22 @@
       permission="schooltool.view"
       />
 
+  <zope:adapter
+      factory=".fee.AddAmountDefaultDate"
+      name="default"
+      />
+
+  <zope:adapter
+      factory=".fee.AddAmountDefaultAmount"
+      name="default"
+      />
+
   <configure package="schooltool.skin.flourish">
 
     <flourish:page
         name="add_debit.html"
-        for="schooltool.basicperson.interfaces.IBasicPerson"
-        class="schooltool.fee.browser.fee.AddDebitPersonView"
+        for="schooltool.fee.interfaces.IFeeContainer"
+        class="schooltool.fee.browser.fee.DebitAddView"
         content_template="templates/z3c_form_edit.pt"
         permission="schooltool.edit"
         subtitle="Add Debit"
@@ -29,13 +39,57 @@
 
     <flourish:page
         name="add_credit.html"
-        for="schooltool.basicperson.interfaces.IBasicPerson"
-        class="schooltool.fee.browser.fee.AddCreditPersonView"
+        for="schooltool.fee.interfaces.IFeeContainer"
+        class="schooltool.fee.browser.fee.CreditAddView"
         content_template="templates/z3c_form_edit.pt"
         permission="schooltool.edit"
         subtitle="Add Credit"
         />
 
+    <flourish:page
+        name="edit.html"
+        for="schooltool.fee.interfaces.IDebit"
+        class="schooltool.fee.browser.fee.DebitEditView"
+        content_template="templates/z3c_form_edit.pt"
+        permission="schooltool.edit"
+        subtitle="Edit Debit"
+        />
+
+    <flourish:page
+        name="edit.html"
+        for="schooltool.fee.interfaces.ICredit"
+        class="schooltool.fee.browser.fee.CreditEditView"
+        content_template="templates/z3c_form_edit.pt"
+        permission="schooltool.edit"
+        subtitle="Edit Credit"
+        />
+
+    <flourish:page
+        name="delete.html"
+        for="schooltool.fee.interfaces.IFeeContainer"
+        class="schooltool.fee.browser.fee.FeeContainerDeleteView"
+        content_template="templates/container_delete.pt"
+        permission="schooltool.edit"
+        />
+
   </configure>
+
+  <flourish:viewlet
+      name="amount-action-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class=".fee.AmountActionsLinks"
+      title="Actions"
+      permission="schooltool.edit"
+      view=".fee.AmountEditView"
+      />
+
+  <flourish:viewlet
+      name="delete.html"
+      view=".fee.AmountEditView"
+      title="Delete"
+      class=".fee.AmountDeleteLink"
+      manager=".fee.AmountActionsLinks"
+      permission="schooltool.edit"
+      />
 
 </configure>

@@ -1,9 +1,41 @@
 <?xml version="1.0"?>
 <configure xmlns="http://namespaces.zope.org/zope">
 
-  <adapter factory=".fee.PersonCreditBalance" trusted="True" />
+  <class class=".fee.FeeContainer">
+    <allow interface="zope.container.interfaces.ISimpleReadContainer" />
+    <require permission="schooltool.view"
+             attributes="keys values items __iter__ __len__ has_key" />
+    <require permission="schooltool.edit"
+             interface="zope.container.interfaces.IWriteContainer" />
+  </class>
 
-  <adapter factory=".fee.PersonDebitBalance" trusted="True" />
+  <class class=".fee.Debit">
+    <implements
+        interface="zope.annotation.interfaces.IAttributeAnnotatable" />
+    <require permission="schooltool.view"
+             interface=".interfaces.IDebit" />
+    <require permission="schooltool.edit"
+             set_schema=".interfaces.IDebit" />
+  </class>
+
+  <class class=".fee.Credit">
+    <implements
+        interface="zope.annotation.interfaces.IAttributeAnnotatable" />
+    <require permission="schooltool.view"
+             interface=".interfaces.ICredit" />
+    <require permission="schooltool.edit"
+             set_schema=".interfaces.ICredit" />
+  </class>
+
+  <adapter  factory=".fee.getPersonFeeContainer" trusted="true" />
+
+  <adapterTraverserPlugin
+      for="schooltool.basicperson.interfaces.IBasicPerson"
+      layer="zope.publisher.interfaces.http.IHTTPRequest"
+      name="fees"
+      adapter="schooltool.fee.interfaces.IFeeContainer"
+      permission="schooltool.edit"
+      />
 
   <include package=".browser" />
 

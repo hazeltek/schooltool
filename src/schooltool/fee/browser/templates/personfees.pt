@@ -3,15 +3,14 @@
   <div>
     <table class="fees">
       <thead>
+        <th i18n:translate="" class="action">Edit</th>
         <th i18n:translate="" class="date">Date</th>
         <th i18n:translate="">Title</th>
         <th i18n:translate="" class="amount">Amount</th>
       </thead>
       <tbody>
         <tr tal:repeat="entry view/entries">
-          <td tal:content="entry/date" />
           <td>
-            <tal:block content="entry/title" />
             <a class="modify" href="" title="Edit this amount"
                tal:attributes="href entry/edit_url"
                i18n:attributes="title"
@@ -21,10 +20,12 @@
                    i18n:attributes="alt" />
             </a>
           </td>
+          <td tal:content="entry/date" />
+          <td tal:content="entry/title" />
           <td tal:content="entry/amount" />
         </tr>
-        <tr>
-          <td colspan="2" i18n:translate="">Amount due</td>
+        <tr class="balance">
+          <td colspan="3" i18n:translate="">Balance</td>
           <td tal:content="view/balance" />
         </tr>
       </tbody>

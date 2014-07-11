@@ -199,10 +199,23 @@ table.relationship-states input[type="text"] {
     width: 100%;
 }
 
+table.fees .action {
+    width: 8%;
+}
+
 table.fees .date {
     width: 20%;
 }
 
 table.fees .amount {
     width: 12%;
+}
+
+table.fees tr.balance {
+    border-top: 1px solid #6c7b7c;
+    border-bottom: none;
+}
+
+table.fees tr.balance td {
+    font-weight: bold;
 }

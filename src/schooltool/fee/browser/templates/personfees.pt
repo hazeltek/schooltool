@@ -25,7 +25,8 @@
           <td tal:content="entry/amount" />
         </tr>
         <tr class="balance">
-          <td colspan="3" i18n:translate="">Balance</td>
+          <td colspan="2">&nbsp;</td>
+          <td i18n:translate="">Balance</td>
           <td tal:content="view/balance" />
         </tr>
       </tbody>

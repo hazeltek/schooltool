@@ -25,7 +25,6 @@ from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from zope.cachedescriptors.property import Lazy
 from zope.container.interfaces import INameChooser
 from zope.security.checker import canAccess
-from zope.security.proxy import removeSecurityProxy
 from zope.traversing.browser.absoluteurl import absoluteURL
 
 from z3c.form import button
@@ -110,7 +109,7 @@ class AmountAddView(flourish.form.AddForm):
         self.request.response.redirect(self.nextURL())
 
     def nextURL(self):
-        return absoluteURL(self.person, self.request)
+        return '%s?active_accordion=5' % absoluteURL(self.person, self.request)
 
     def create(self, data):
         obj = self.factory()
@@ -177,7 +176,8 @@ class AmountEditView(flourish.form.Form,
         self.actions['cancel'].addClass('button-cancel')
 
     def nextURL(self):
-        return absoluteURL(self.person, self.request)
+        return '%s?active_accordion=5' % absoluteURL(self.person, self.request)
+
 
     @button.buttonAndHandler(_('Submit'), name='submit')
     def handle_submit(self, action):
@@ -225,5 +225,6 @@ class FeeContainerDeleteView(flourish.containers.ContainerDeleteView):
 
     def nextURL(self):
         if 'CONFIRM' in self.request:
-            return absoluteURL(self.person, self.request)
+            return '%s?active_accordion=5' % absoluteURL(self.person,
+                                                         self.request)
         return flourish.containers.ContainerDeleteView.nextURL(self)

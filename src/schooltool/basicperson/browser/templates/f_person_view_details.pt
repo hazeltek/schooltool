@@ -10,13 +10,24 @@
   <a tal:attributes="href view/done_link" i18n:domain="schooltool" i18n:translate="">Done</a>
 </h3>
 <script>
+  ST.state.push();
+</script>
+<tal:script tal:replace="structure scriptlocal:
+                         active_accordion view/active_accordion;" />
+<script>
 $(document).ready(function() {
-    // accordion setup
-    $( ".person-info" ).accordion({
-        header: 'h2',
-        collapsible: true,
-        autoHeight: false,
-    });
-});
+    var active_accordion = ST.local.active_accordion;
+    return function() {
+        // accordion setup
+        $( ".person-info" ).accordion({
+            active: active_accordion,
+            header: 'h2',
+            collapsible: true,
+            autoHeight: false,
+        });
+}}());
+</script>
+<script>
+  ST.state.pop();
 </script>
 </tal:block>

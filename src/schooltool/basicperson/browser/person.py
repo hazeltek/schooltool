@@ -367,6 +367,12 @@ class FlourishPersonInfo(flourish.page.Content):
         app = ISchoolToolApplication(None)
         return absoluteURL(app, self.request) + '/persons'
 
+    def active_accordion(self):
+        try:
+            return int(self.request.get('active_accordion'))
+        except (ValueError, TypeError):
+            return 0
+
 
 class PersonAddFormBase(PersonForm, form.AddForm):
     """Person add form for basic persons."""

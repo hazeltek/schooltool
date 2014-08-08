@@ -338,8 +338,7 @@ class FlourishPersonView(flourish.page.Page):
             for level in levels.on(self.request.util.today).any(ACTIVE):
                 result.append(level)
             if result:
-                level = ', '.join([level.title for level in levels])
-                return '(%s)' % level
+                return ', '.join([level.title for level in result])
 
 
 class FlourishPersonInfo(flourish.page.Content):
@@ -367,6 +366,12 @@ class FlourishPersonInfo(flourish.page.Content):
             return done_link
         app = ISchoolToolApplication(None)
         return absoluteURL(app, self.request) + '/persons'
+
+    def active_accordion(self):
+        try:
+            return int(self.request.get('active_accordion'))
+        except (ValueError, TypeError):
+            return 0
 
 
 class PersonAddFormBase(PersonForm, form.AddForm):

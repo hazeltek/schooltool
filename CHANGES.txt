@@ -2,6 +2,15 @@
 CHANGES
 =======
 
+2.8.9 (2014-08-08)
+------------------
+
+- Updated teacher attendance states
+- Set active accordion on person view
+- Moved Un-enroll link above Delete link in person view
+- Removed parentheses around grade level subtitle in person view
+
+
 2.8.8 (2014-06-20)
 ------------------
 

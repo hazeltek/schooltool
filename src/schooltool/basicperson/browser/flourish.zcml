@@ -891,6 +891,7 @@
 
   <flourish:viewlet
       name="leave.html"
+      before="delete.html"
       for="schooltool.basicperson.interfaces.IBasicPerson"
       title="Un-enroll"
       class=".person.LeaveSchoolLinkViewlet"

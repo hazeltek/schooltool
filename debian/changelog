@@ -1,3 +1,13 @@
+schooltool (1:2.8.9-0ubuntu1) trusty; urgency=medium
+
+  * New release.
+    - Updated teacher attendance states
+    - Set active accordion on person view
+    - Moved Un-enroll link above Delete link in person view
+    - Removed parentheses around grade level subtitle in person view
+
+ -- Douglas Cerna (Soy Douglas) <douglascerna@yahoo.com>  Fri, 08 Aug 2014 09:22:32 -0600
+
 schooltool (1:2.8.8-0ubuntu1) trusty; urgency=medium
 
   * New release.

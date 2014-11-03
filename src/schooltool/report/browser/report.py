@@ -185,6 +185,7 @@ class ReportsLinks(RefineLinksViewlet):
 
     implements(IFlourishReportLinkViewletManager)
 
+    list_class = "filter reports-links"
     body_template = ViewPageTemplateFile('templates/f_report_links_body.pt')
 
     @Lazy

@@ -167,4 +167,14 @@
       provides="schooltool.app.interfaces.IPluginStartUp"
       name="schooltool.course.section-instruction" />
 
+  <adapter factory=".course.SearchableTextCourse" />
+
+  <adapter factory=".course.CourseCatalog"
+           name="schooltool.course.course.CourseCatalog" />
+
+  <adapter
+      for="schooltool.course.interfaces.ICourseContainer"
+      factory=".course.getCourseCatalog"
+      provides="zope.catalog.interfaces.ICatalog" />
+
 </configure>

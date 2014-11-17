@@ -83,7 +83,7 @@
 
   <flourish:viewlet
       name="filter"
-      class="schooltool.table.table.DoNotFilter"
+      class=".course.CourseListTableFilter"
       manager=".course.CourseListTable"
       permission="schooltool.view"
       />
@@ -103,18 +103,6 @@
       render="template"
       permission="schooltool.view"
       />
-
-  <!-- adapters -->
-
-  <zope:adapter
-      for="schooltool.course.interfaces.ICourseContainer
-           schooltool.skin.flourish.interfaces.IFlourishLayer"
-      factory=".course.FlourishCourseFilterWidget" />
-
-  <zope:adapter
-      for="schooltool.course.interfaces.ICourseContainer
-           schooltool.skin.flourish.interfaces.IFlourishLayer"
-      factory=".course.FlourishCourseTableFormatter " />
 
   <!-- viewlet managers -->
 

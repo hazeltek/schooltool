@@ -21,6 +21,8 @@ Course implementation
 
 from persistent import Persistent
 
+from zope.catalog.text import TextIndex
+from zope.index.text.interfaces import ISearchableText
 from zope.interface import implementer
 from zope.interface import implements
 from zope.component import adapts
@@ -32,6 +34,7 @@ from zope.lifecycleevent.interfaces import IObjectRemovedEvent
 from zope.container.contained import Contained
 from zope.container.btree import BTreeContainer
 
+from schooltool.app.catalog import AttributeCatalog
 from schooltool.term.interfaces import ITerm
 from schooltool.schoolyear.subscriber import ObjectEventAdapterSubscriber
 from schooltool.schoolyear.interfaces import ISchoolYearContainer
@@ -45,6 +48,7 @@ from schooltool.level import level
 from schooltool.course.interfaces import ICourse
 from schooltool.course.interfaces import ICourseContainer
 from schooltool.course import interfaces
+from schooltool.table.catalog import ConvertingIndex
 
 
 COURSE_CONTAINER_KEY = 'schooltool.course.course'
@@ -147,3 +151,38 @@ class RemoveCoursesWhenSchoolYearIsDeleted(ObjectEventAdapterSubscriber):
         for course_id in list(course_container.keys()):
             del course_container[course_id]
         del course_container.__parent__[course_container.__name__]
+
+
+def getCourseContainerID(course):
+    int_ids = getUtility(IIntIds)
+    container = ICourseContainer(course)
+    return int_ids.getId(container)
+
+
+class CourseCatalog(AttributeCatalog):
+
+    version = '1 - initial'
+    interface = ICourse
+    attributes = ('title', 'course_id')
+
+    def setIndexes(self, catalog):
+        super(CourseCatalog, self).setIndexes(catalog)
+        catalog['text'] = TextIndex('getSearchableText', ISearchableText, True)
+        catalog['container_id'] = ConvertingIndex(
+            converter=getCourseContainerID)
+
+
+getCourseCatalog = CourseCatalog.get
+
+
+class SearchableTextCourse(object):
+
+    adapts(ICourse)
+    implements(ISearchableText)
+
+    def __init__(self, context):
+        self.context = context
+
+    def getSearchableText(self):
+        result = [self.context.title, self.context.course_id or '']
+        return ' '.join(result)

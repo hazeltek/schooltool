@@ -28,7 +28,6 @@ from zope.component import getMultiAdapter
 from zope.component import queryMultiAdapter
 from zope.component import getUtility
 from zope.container.interfaces import INameChooser
-from zope.interface import directlyProvides
 from zope.interface import Interface
 from zope.intid.interfaces import IIntIds
 from zope.app.form.browser.add import AddView
@@ -43,10 +42,10 @@ from zope.traversing.browser.absoluteurl import absoluteURL
 from zope.i18n.interfaces.locales import ICollator
 from zope.i18n import translate
 from zope.viewlet.viewlet import ViewletBase
-from zc.table.interfaces import ISortableColumn
 from z3c.form import field, button, form
 from z3c.form.interfaces import HIDDEN_MODE
 
+from schooltool.app.catalog import buildQueryString
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.app.interfaces import IRelationshipStateContainer
 from schooltool.app.browser.app import ContentTitle
@@ -533,21 +532,21 @@ def getCoursesTable(context, request, view, manager):
     return table
 
 
-class CoursesTableBase(table.ajax.Table):
+class CoursesTableBase(table.ajax.IndexedTable):
 
     def columns(self):
-        title = table.table.LocaleAwareGetterColumn(
+        title = table.column.IndexedLocaleAwareGetterColumn(
+            index='title',
             name='title',
             title=_(u'Title'),
             getter=lambda i, f: i.title,
             subsort=True)
-        course_id = table.table.LocaleAwareGetterColumn(
+        course_id = table.column.IndexedLocaleAwareGetterColumn(
+            index='course_id',
             name='course_id',
             title=_('Course ID'),
             getter=lambda i, f: i.course_id or '',
             subsort=True)
-        directlyProvides(title, ISortableColumn)
-        directlyProvides(course_id, ISortableColumn)
         return [title, course_id]
 
 
@@ -562,9 +561,6 @@ class CourseListTable(CoursesTableBase):
     def source(self):
         schoolyear = ISchoolYear(self.context)
         return ICourseContainer(schoolyear)
-
-    def items(self):
-        return self.context.courses
 
 
 class CourseTableSchoolYear(flourish.viewlet.Viewlet):
@@ -836,20 +832,7 @@ class FlourishCourseDeleteView(DialogForm, form.EditForm):
         self.actions['cancel'].addClass('button-cancel')
 
 
-class FlourishCourseFilterWidget(table.table.FilterWidget):
-
-    template = ViewPageTemplateFile('templates/f_course_filter.pt')
-
-    def filter(self, results):
-        if 'SEARCH' in self.request:
-            searchstr = self.request['SEARCH'].lower()
-            results = [item for item in results
-                       if searchstr in item.title.lower() or
-                       (item.course_id and searchstr in item.course_id.lower())]
-        return results
-
-
-class CoursesTableFilter(table.ajax.TableFilter, FlourishCourseFilterWidget):
+class CoursesTableFilter(table.ajax.IndexedTableFilter):
 
     template = ViewPageTemplateFile('templates/f_course_table_filter.pt')
 
@@ -879,39 +862,24 @@ class CoursesTableFilter(table.ajax.TableFilter, FlourishCourseFilterWidget):
                            'title': level.title})
         return result
 
+    def query(self, items, params):
+        result = self.catalog.searchResults(**params)
+        return [item for item in items if item['id'] in result.uids]
+
     def filter(self, items):
-        if self.ignoreRequest:
-            return items
-        if self.search_level_id in self.request:
-            level_id = self.request[self.search_level_id]
+        container_id = getUtility(IIntIds).getId(self.source)
+        params = {'container_id': {'any_of': [container_id]}}
+        if not self.ignoreRequest:
+            searchstr = self.request.get(self.search_title_id, '')
+            if searchstr:
+                params['text'] = buildQueryString(searchstr)
+            level_id = self.request.get(self.search_level_id)
             level = self.levelContainer().get(level_id)
             if level:
+                # XXX: create set index for course levels
                 items = [item for item in items
-                         if level in item.levels]
-        if self.search_title_id in self.request:
-            searchstr = self.request[self.search_title_id].lower()
-            items = [item for item in items
-                     if searchstr in item.title.lower() or
-                     (item.course_id and searchstr in item.course_id.lower())]
-        return items
-
-
-class FlourishCourseTableFormatter(table.table.SchoolToolTableFormatter):
-
-    def columns(self):
-        title = table.table.LocaleAwareGetterColumn(
-            name='title',
-            title=_(u'Title'),
-            getter=lambda i, f: i.title,
-            subsort=True)
-        course_id = table.table.LocaleAwareGetterColumn(
-            name='course_id',
-            title=_('Course ID'),
-            getter=lambda i, f: i.course_id or '',
-            subsort=True)
-        directlyProvides(title, ISortableColumn)
-        directlyProvides(course_id, ISortableColumn)
-        return [title, course_id]
+                         if level in table.column.unindex(item).levels]
+        return self.query(items, params)
 
 
 class FlourishManageCoursesOverview(Content, ActiveSchoolYearContentMixin):
@@ -944,3 +912,14 @@ class FlourishManageCoursesOverview(Content, ActiveSchoolYearContentMixin):
 
     def sections_url(self):
         return self.url_with_schoolyear_id(self.context, view_name='sections')
+
+
+class CourseListTableFilter(table.ajax.IndexedTableFilter):
+
+    def filter(self, items):
+        int_ids = getUtility(IIntIds)
+        course_ids = [int_ids.getId(course) for course in self.context.courses]
+        return [item for item in items if item['id'] in course_ids]
+
+    def render(self, *args, **kw):
+        return ''

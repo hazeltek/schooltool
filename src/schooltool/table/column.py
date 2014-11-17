@@ -320,7 +320,7 @@ class IndexedGetterColumn(zc.table.column.GetterColumn):
     def getSortKey(self, item, formatter):
         id = item['id']
         index = item['catalog'][self.index]
-        return index.documents_to_values[id]
+        return index.documents_to_values.get(id)
 
 
 class IndexedLocaleAwareGetterColumn(IndexedGetterColumn):

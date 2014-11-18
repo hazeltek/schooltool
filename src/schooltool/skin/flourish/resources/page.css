@@ -150,6 +150,10 @@
     padding-bottom: 2px;
 }
 
+.page > .body > .sidebar .content > .body > ul.reports-links > li {
+    padding-bottom: 6px;
+}
+
 .page > .body > .sidebar .content > .body > ul.filter > li.active {
     font-size: 12px;
     line-height: 16px;

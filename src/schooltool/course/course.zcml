@@ -177,4 +177,16 @@
       factory=".course.getCourseCatalog"
       provides="zope.catalog.interfaces.ICatalog" />
 
+  <adapter factory=".section.SearchableTextSection" />
+
+  <adapter factory=".section.SectionCatalog"
+           name="schooltool.course.section.SectionCatalog" />
+
+  <adapter
+      for="schooltool.course.interfaces.ISectionContainer"
+      factory=".section.getSectionCatalog"
+      provides="zope.catalog.interfaces.ICatalog" />
+
+  <adapter factory=".section.getSectionContainerForSection" />
+
 </configure>

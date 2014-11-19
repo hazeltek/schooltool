@@ -1029,10 +1029,7 @@ class SectionsTable(SectionsTableBase):
 
 class SectionListTable(SectionsTableBase):
 
-    def columns(self):
-        default = super(SectionListTable, self).columns()
-        title, term, courses, instructors, size = default
-        return [title, term, instructors]
+    visible_column_names = ['title', 'term', 'instructors']
 
     def sortOn(self):
         return (('term', True), ('title', False))
@@ -1176,9 +1173,16 @@ class SectionListTableFilter(SectionsTableFilter):
     def schoolyear(self):
         return ISchoolYear(self.context)
 
+    @Lazy
+    def sections_by_term(self):
+        result = {}
+        for section in self.context.sections:
+            term = ITerm(section)
+            result.setdefault(term, []).append(1)
+        return result
+
     def getSectionCount(self, term):
-        return len([section for section in ISectionContainer(term).values()
-                    if section in self.context.sections])
+        return sum(self.sections_by_term.get(term, []))
 
 
 class SectionsTableSchoolYear(flourish.viewlet.Viewlet):

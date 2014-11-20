@@ -201,4 +201,13 @@
       class=".schoolyear.FlourishSchoolYearsOverview"
       />
 
+  <flourish:viewlet
+      name="schoolyears"
+      before="*"
+      title="School Years"
+      class="schooltool.skin.flourish.page.LinkViewlet"
+      manager="schooltool.app.browser.app.CustomizeSchoolLinks"
+      permission="schooltool.edit"
+      />
+
 </configure>

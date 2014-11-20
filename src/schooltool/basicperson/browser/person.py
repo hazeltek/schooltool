@@ -901,7 +901,7 @@ class FlourishGeneralViewlet(FormViewlet):
 
 
 ###############  Base class of all group-aware add views ################
-class PersonAddViewBase(PersonAddFormBase):
+class PersonAddViewBase(PersonAddFormBase, ActiveSchoolYearContentMixin):
 
     id = 'person-form'
     template = ViewPageTemplateFile('templates/person_form.pt')
@@ -966,11 +966,9 @@ class PersonAddViewBase(PersonAddFormBase):
 
         self._groups = []
         group = None
-        syc = ISchoolYearContainer(ISchoolToolApplication(None))
-        active_schoolyear = syc.getActiveSchoolYear()
-        if active_schoolyear is not None:
+        if self.schoolyear is not None:
             if self.group_id:
-                group = IGroupContainer(active_schoolyear).get(self.group_id)
+                group = IGroupContainer(self.schoolyear).get(self.group_id)
             else:
                 group = data.get('group')
         if group is not None:

@@ -867,13 +867,20 @@ class FlourishManageGroupsOverview(flourish.page.Content,
         return self.url_with_schoolyear_id(self.context, view_name='groups')
 
     def groups_info(self):
+        persons = self.context['persons']
         result = []
-        order = ['students', 'administrators', 'teachers', 'manager', 'clerks']
-        for group_id in order:
+        order = [
+            ('students', 'addStudent'),
+            ('administrators', 'addAdministrator'),
+            ('teachers', 'addTeacher'),
+            ('manager', 'addManager'),
+            ('clerks', 'addClerk'),
+        ]
+        for group_id, add_view_name in order:
             group = self.groups.get(group_id)
             if group is not None:
-                add_url = '%s/members_persons.html' % (
-                    absoluteURL(group, self.request))
+                add_url = self.url_with_schoolyear_id(
+                    persons, view_name='%s.html' % add_view_name)
                 result.append({
                     'title': group.title,
                     'url': absoluteURL(group, self.request),

@@ -1,4 +1,4 @@
-<div tal:attributes="id view/container_id">
+<div tal:attributes="id view/container_id" i18n:domain="schooltool">
 </div>
 <form>
   <div class="select">
@@ -19,7 +19,8 @@
     </select>
   </div>
   <div class="buttons">
-    <input type="button" class="button-ok" value="XXX"
+    <input type="button" class="button-cancel" value="Get Report"
+           i18n:attributes="value"
            tal:attributes="id view/button_id" />
     <script>ST.state.push()</script>
     <tal:script replace="structure scriptlocal:

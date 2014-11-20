@@ -15,6 +15,10 @@
     padding: 24px;
 }
 
+.manage-page > .header {
+    padding: 16px;
+}
+
 .page > .header h1,
 .page > .header h2 {
     display: inline-block;
@@ -25,6 +29,10 @@
     font-size: 36px;
     line-height: 40px;
     margin-right: 16px;
+}
+
+.manage-page > .header h1 {
+    display: none;
 }
 
 .page > .header h2 {
@@ -43,6 +51,10 @@
     margin-right: 16px;
     position: relative;
     width: 752px;
+}
+
+.manage-page .third-nav {
+    border-bottom: none;
 }
 
 .page .third-nav-narrow {
@@ -108,6 +120,21 @@
     width: 528px;
 }
 
+.manage-page > .body > .sidebar,
+.manage-page > .body > .container {
+    padding: 8px 4px;
+    width: 456px;
+    border-width: 1px;
+    border-style: solid;
+
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+
+.manage-page .third-nav {
+    width: 464px;
+}
+
 .page > .body > .container > .main > .content > .body > p.hint {
     margin-top: -8px;
     font-size: 10px;
@@ -131,6 +158,10 @@
 
 .page > .body > .sidebar .content {
     margin-bottom: 16px;
+}
+
+.manage-page > .body > .sidebar .content {
+    margin-bottom: 0;
 }
 
 .page > .body > .sidebar .content > .header {
@@ -176,6 +207,133 @@
 
 .page > .body > .sidebar .content > .header > .photo-display > img {
     padding: 0px;
+}
+
+.manage-page .container-search {
+    margin-bottom: 4px;
+}
+
+.manage-page .container-search .info,
+.manage-page .container-search .form {
+    width: 226px;
+}
+
+.manage-page .container-search .info {
+    float: left;
+}
+
+.manage-page .group-container-search .info {
+    margin: 0 4px 4px 0;
+    width: 224px;
+}
+
+.manage-page .container-search .info .title {
+    width: 200px;
+    background-color: #008c93;
+}
+
+.manage-page .group-container-search .info .title {
+    width: 198px;
+}
+
+.manage-page .container-search .info .title,
+.manage-page .container-search .info .add-button {
+    padding: 4px 0;
+}
+
+.manage-page .container-search .info .title a {
+    display: inline-block;
+    padding-left: 4px;
+    float: left;
+    color: #fff;
+}
+
+.manage-page .container-search .info .title span {
+    display: inline-block;
+    padding-right: 4px;
+    float: right;
+    color: #dbe2de;
+}
+
+.manage-page .container-search .info .add-button {
+    width: 26px;
+    text-align: center;
+    background-color: #7bc1c5;
+}
+
+.manage-page .container-search .info .add-button a {
+    color: #fff;
+}
+
+.manage-page .container-search .form {
+    float: right;
+    display: table;
+}
+
+.manage-page .container-search h3 {
+    margin: 0;
+}
+
+.manage-page .container-search .form form {
+    margin: 2px 0 0 0;
+}
+
+.manage-page .container-search .info h3 {
+    float: left;
+}
+
+.manage-page .container-search .form input {
+    width: 222px;
+}
+
+.manage-page ul.customize li {
+    background-color: #fff;
+    display: table;
+    float: left;
+    height: 32px;
+    margin-bottom: 8px;
+    margin-right: 4px;
+    padding: 8px;
+    width: 132px;
+}
+
+.manage-page ul.customize li a {
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+    color: #6c7b7c;
+}
+
+.manage-page .school-reports form {
+    margin: 0;
+}
+
+.manage-page .school-reports form .select {
+    margin-bottom: 4px;
+}
+
+.manage-page .school-reports form select {
+    width: 456px;
+    padding: 0;
+}
+
+.manage-page .school-reports form .separator {
+    background-color: #6c7b7c;
+    color: #fff;
+    padding: 4px;
+}
+
+.manage-page > .body > .sidebar .school-reports,
+.manage-page .school-reports {
+    margin: 16px 0;
+}
+
+.manage-page .manage-courses-overview {
+    margin-top: 16px;
+}
+
+.manage-page .school-reports .buttons {
+    margin: 0;
 }
 
 }

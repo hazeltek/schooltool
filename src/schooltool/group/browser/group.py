@@ -83,6 +83,7 @@ from schooltool.course.interfaces import ISection
 from schooltool.schoolyear.interfaces import ISchoolYear
 from schooltool.schoolyear.interfaces import ISchoolYearContainer
 from schooltool.group.group import Group
+from schooltool.group.group import defaultGroups
 from schooltool.group.interfaces import IGroup
 from schooltool.group.interfaces import IGroupMember
 from schooltool.group.interfaces import IGroupContainer, IGroupContained
@@ -857,12 +858,35 @@ class FlourishManageGroupsOverview(flourish.page.Content,
     body_template = ViewPageTemplateFile(
         'templates/f_manage_groups_overview.pt')
 
-    @property
+    @Lazy
     def groups(self):
         return IGroupContainer(self.schoolyear, None)
 
+    @Lazy
     def groups_url(self):
         return self.url_with_schoolyear_id(self.context, view_name='groups')
+
+    def groups_info(self):
+        result = []
+        order = ['students', 'administrators', 'teachers', 'manager', 'clerks']
+        for group_id in order:
+            group = self.groups.get(group_id)
+            if group is not None:
+                add_url = '%s/members_persons.html' % (
+                    absoluteURL(group, self.request))
+                result.append({
+                    'title': group.title,
+                    'url': absoluteURL(group, self.request),
+                    'add_url': add_url,
+                })
+        groups_add_url = '%s/addSchoolToolGroup.html' % (
+            absoluteURL(self.groups, self.request))
+        result.append({
+            'title': _('Other Groups'),
+            'url': self.groups_url,
+            'add_url': groups_add_url,
+        })
+        return result
 
 
 class FlourishRequestGroupIDCardsView(RequestRemoteReportDialog):

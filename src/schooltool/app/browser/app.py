@@ -56,9 +56,11 @@ from z3c.form import form, field, button
 from z3c.form.browser.checkbox import CheckBoxFieldWidget
 from z3c.form.interfaces import DISPLAY_MODE
 from zc.table.table import FormFullFormatter
+import zc.resourcelibrary
 
 from schooltool.calendar.icalendar import convert_calendar_to_ical
 from schooltool.app.browser.interfaces import IManageMenuViewletManager
+from schooltool.app.catalog import buildQueryString
 from schooltool.app.interfaces import ISchoolToolAuthenticationPlugin
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.app.interfaces import IApplicationPreferences
@@ -1144,6 +1146,13 @@ class ContentTitle(ContentProvider):
         return title
 
 
+class SchoolNameViewlet(flourish.page.Viewlet, ContentTitle):
+
+    render = InlineViewPageTemplate('''
+        <h2><span tal:replace="structure view/title"></span></h2>
+    '''.strip())
+
+
 class ContentLink(ContentTitle):
     render = InlineViewPageTemplate('''
         <a tal:attributes="href view/url" tal:content="view/title"></a>
@@ -1183,7 +1192,12 @@ class ServerActionsLinks(flourish.page.RefineLinksViewlet):
 
 
 class ManageSchool(flourish.page.Page):
-    pass
+
+    page_class = 'page manage-page'
+
+    def update(self):
+        zc.resourcelibrary.need('schooltool.table')
+        super(ManageSchool, self).update()
 
 
 class ActiveSchoolYearContentMixin(object):
@@ -1240,12 +1254,20 @@ class ManageSiteLinks(flourish.page.RefineLinksViewlet):
     """Manage Site links viewlet."""
 
 
-class CustomizeSchoolLinks(flourish.page.RefineLinksViewlet):
+class CustomizeSchoolLinksBase(flourish.page.RefineLinksViewlet):
     """Customize School links viewlet."""
 
+    list_class = 'customize ui-helper-clearfix'
 
-class SchoolAddLinks(flourish.page.RefineLinksViewlet):
-    """School add links viewlet."""
+
+class CustomizeSchoolLinks(CustomizeSchoolLinksBase):
+
+    pass
+
+
+class CustomizeYearLinks(CustomizeSchoolLinksBase):
+
+    pass
 
 
 class SchoolActionsLinks(flourish.page.RefineLinksViewlet):
@@ -1652,3 +1674,72 @@ class NameSortingBreadcrumb(flourish.breadcrumbs.Breadcrumbs):
     @property
     def follow_crumb(self):
         return ManageSiteBreadcrumb(self.context, self.request, self.view)
+
+
+class ContainerSearchContent(flourish.page.Content,
+                             ActiveSchoolYearContentMixin):
+
+    add_view_name = ''
+    hint = ''
+    title = ''
+    container = None
+
+    body_template = ViewPageTemplateFile(
+        'templates/f_container_search.pt')
+
+    @property
+    def search_id(self):
+        # XXX: use manager id
+        return 'live-search-%s' % self.__name__
+
+    @property
+    def json_url(self):
+        return '%s/json' % absoluteURL(self.container, self.request)
+
+    def container_url(self):
+        return self.url_with_schoolyear_id(self.container)
+
+    def add_url(self):
+        return '%s/%s' % (absoluteURL(self.container, self.request),
+                          self.add_view_name)
+
+    def count(self):
+        return len(self.container)
+
+
+class YearLinkViewlet(flourish.page.LinkViewlet,
+                      ActiveSchoolYearContentMixin):
+
+    @property
+    def url(self):
+        return self.url_with_schoolyear_id(self.context,
+                                           view_name=self.__name__)
+
+
+class JSONSearchViewBase(flourish.page.Page):
+
+    batch_size = 25
+    items = ()
+    catalog = None
+
+    @Lazy
+    def text_query(self):
+        search = self.request.get('search', '')
+        return buildQueryString(search)
+
+    def render(self):
+        encoder = flourish.tal.JSONEncoder()
+        result = []
+        for item in self.items:
+            result.append(self.encode(item))
+        if self.batch_size:
+            result = result[:self.batch_size]
+        json = encoder.encode(result)
+        return json
+
+    def encode(self, item):
+        return {
+            'label': self.get_label(item),
+            'value': self.get_value(item),
+            'url': self.get_url(item),
+        }

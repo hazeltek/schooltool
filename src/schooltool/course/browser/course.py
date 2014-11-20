@@ -23,6 +23,8 @@ from urllib import urlencode
 
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from zope.interface import implements
+from zope.cachedescriptors.property import Lazy
+from zope.catalog.interfaces import ICatalog
 from zope.component import adapts
 from zope.component import getMultiAdapter
 from zope.component import queryMultiAdapter
@@ -49,7 +51,9 @@ from schooltool.app.catalog import buildQueryString
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.app.interfaces import IRelationshipStateContainer
 from schooltool.app.browser.app import ContentTitle
+from schooltool.app.browser.app import ContainerSearchContent
 from schooltool.app.browser.app import ActiveSchoolYearContentMixin
+from schooltool.app.browser.app import JSONSearchViewBase
 from schooltool.app.membership import Membership
 from schooltool.app.relationships import Instruction
 from schooltool.common.inlinept import InheritTemplate
@@ -882,36 +886,24 @@ class CoursesTableFilter(table.ajax.IndexedTableFilter):
         return self.query(items, params)
 
 
-class FlourishManageCoursesOverview(Content, ActiveSchoolYearContentMixin):
+class FlourishManageCoursesOverview(ContainerSearchContent):
 
-    body_template = ViewPageTemplateFile(
-        'templates/f_manage_courses_overview.pt')
+    add_view_name = 'addSchoolToolCourse.html'
+    hint = _('Manage courses')
+    title = _('Courses')
+    css_class = 'content manage-courses-overview'
 
     @property
-    def courses(self):
+    def container(self):
         return ICourseContainer(self.schoolyear, None)
 
-    @property
-    def sections(self):
-        if self.has_schoolyear:
-            result = []
-            for term in self.schoolyear.values():
-                sections = ISectionContainer(term)
-                result.extend(list(sections.values()))
-            return result
-
-    @property
-    def render_sections_link(self):
-        return self.schoolyear is not None and \
-               self.schoolyear and \
-               self.courses is not None and \
-               self.courses
-
-    def courses_url(self):
+    def container_url(self):
         return self.url_with_schoolyear_id(self.context, view_name='courses')
 
-    def sections_url(self):
-        return self.url_with_schoolyear_id(self.context, view_name='sections')
+    @property
+    def json_url(self):
+        app = ISchoolToolApplication(None)
+        return '%s/courses_json' % absoluteURL(app, self.request)
 
 
 class CourseListTableFilter(table.ajax.IndexedTableFilter):
@@ -923,3 +915,35 @@ class CourseListTableFilter(table.ajax.IndexedTableFilter):
 
     def render(self, *args, **kw):
         return ''
+
+
+class CoursesJSONSearchView(JSONSearchViewBase,
+                            ActiveSchoolYearContentMixin):
+
+    @Lazy
+    def container(self):
+        return ICourseContainer(self.schoolyear)
+
+    @property
+    def catalog(self):
+        return ICatalog(self.container)
+
+    @property
+    def items(self):
+        if self.text_query:
+            container_id = getUtility(IIntIds).getId(self.container)
+            container_query = {'any_of': [container_id]}
+            params = {
+                'text': self.text_query,
+                'container_id': container_query,
+            }
+            return self.catalog.searchResults(**params)
+        return []
+
+    def encode(self, course):
+        label = course.title
+        return {
+            'label': label,
+            'value': label,
+            'url': absoluteURL(course, self.request),
+        }

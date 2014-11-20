@@ -24,6 +24,7 @@ from urllib import urlencode
 
 import zc.table.table
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
+from zope.catalog.interfaces import ICatalog
 from zope.component import adapts, adapter
 from zope.component import getMultiAdapter, getAdapter
 from zope.component import getUtility
@@ -55,7 +56,9 @@ from zc.table.interfaces import ISortableColumn
 
 from schooltool.app.browser.app import ActiveSchoolYearContentMixin
 from schooltool.app.browser.app import BaseEditView
+from schooltool.app.browser.app import ContainerSearchContent
 from schooltool.app.browser.app import RelationshipViewBase
+from schooltool.app.browser.app import JSONSearchViewBase
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.app.utils import vocabulary_titled
 from schooltool.basicperson.browser.person import EditPersonTemporalRelationships
@@ -2005,3 +2008,63 @@ class SectionMailingLabelsPDFView(SectionPDFViewBase, MailingLabelsPDFView):
     def base_filename(self):
         courses = [c.__name__ for c in self.context.courses]
         return 'section_mailing_labels_%s' % '_'.join(courses)
+
+
+class FlourishManageSectionsOverview(ContainerSearchContent):
+
+    add_view_name = 'addSection.html'
+    hint = _('Manage sections')
+    title = _('Sections')
+
+    @property
+    def container(self):
+        return self.schoolyear
+
+    def container_url(self):
+        return self.url_with_schoolyear_id(self.context, view_name='sections')
+
+    def count(self):
+        result = 0
+        if self.schoolyear:
+            schoolyear_id = getUtility(IIntIds).getId(self.schoolyear)
+            first = self.schoolyear.keys()[0]
+            container = ISectionContainer(self.schoolyear[first])
+            catalog = ICatalog(container)
+            query = {'any_of': [schoolyear_id]}
+            result = len(catalog['schoolyear_id'].apply(query))
+        return result
+
+    @property
+    def json_url(self):
+        app = ISchoolToolApplication(None)
+        return '%s/sections_json' % absoluteURL(app, self.request)
+
+
+class SectionsJSONSearchView(JSONSearchViewBase,
+                             ActiveSchoolYearContentMixin):
+
+    @property
+    def catalog(self):
+        first = self.schoolyear.keys()[0]
+        container = ISectionContainer(self.schoolyear[first])
+        return ICatalog(container)
+
+    @property
+    def items(self):
+        if self.text_query and self.schoolyear:
+            schoolyear_id = getUtility(IIntIds).getId(self.schoolyear)
+            schoolyear_query = {'any_of': [schoolyear_id]}
+            params = {
+                'text': self.text_query,
+                'schoolyear_id': schoolyear_query,
+            }
+            return self.catalog.searchResults(**params)
+        return []
+
+    def encode(self, section):
+        label = '%s, %s' % (section.title, ITerm(section).title)
+        return {
+            'label': label,
+            'value': label,
+            'url': absoluteURL(section, self.request),
+        }

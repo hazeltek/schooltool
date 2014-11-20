@@ -228,7 +228,6 @@
       after="customize_school_links"
       manager="schooltool.skin.flourish.page.IPageRefineManager"
       class="schooltool.app.browser.app.SchoolActionsLinks"
-      title="Actions"
       permission="schooltool.view"
       view="schooltool.app.browser.app.ManageSchool"
       />
@@ -535,11 +534,10 @@
 
   <flourish:viewlet
       name="customize_school_links"
-      after="school_add_links"
+      after="school-reports-links"
       manager="schooltool.skin.flourish.page.IPageRefineManager"
       class="schooltool.app.browser.app.CustomizeSchoolLinks"
       view="schooltool.app.browser.app.ManageSchool"
-      title="Customize"
       permission="schooltool.view"
       />
 
@@ -549,13 +547,18 @@
      permission="schooltool.edit" />
 
   <flourish:viewlet
-      name="school_add_links"
-      manager="schooltool.skin.flourish.page.IPageRefineManager"
-      class="schooltool.app.browser.app.SchoolAddLinks"
+      name="customize-school-year-links"
+      after="school-schoolyear-reports-links"
+      manager="schooltool.skin.flourish.page.IPageContentManager"
+      class="schooltool.app.browser.app.CustomizeYearLinks"
       view="schooltool.app.browser.app.ManageSchool"
-      title="Add"
-      permission="schooltool.edit"
+      permission="schooltool.view"
       />
+
+  <security:allow
+     interface=".app.CustomizeYearLinks"
+     crowds="managers administrators clerks"
+     permission="schooltool.edit" />
 
   <!-- Content providers -->
 
@@ -564,6 +567,15 @@
       view="zope.publisher.interfaces.browser.IBrowserPage"
       permission="schooltool.view"
       name="title" />
+
+  <flourish:viewlet
+      name="school-name-overview"
+      before="*"
+      view="schooltool.app.browser.app.ManageSchool"
+      permission="schooltool.view"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class=".app.SchoolNameViewlet"
+      />
 
   <flourish:content
       class=".app.ContentLink"

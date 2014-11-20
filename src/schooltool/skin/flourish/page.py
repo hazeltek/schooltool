@@ -146,7 +146,7 @@ class WideContainerPage(Page):
 class ContentViewletManager(ViewletManager):
     template = templates.Inline("""
         <tal:block repeat="viewlet view/viewlets">
-          <div class="content"
+          <div tal:attributes="class viewlet/css_class|string:content"
                tal:define="rendered viewlet;
                            stripped rendered/strip|nothing"
                tal:condition="stripped"

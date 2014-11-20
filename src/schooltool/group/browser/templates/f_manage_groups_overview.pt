@@ -1,16 +1,14 @@
-<div class="manage-view" i18n:domain="schooltool"
+<div class="manage-view container-search group-container-search ui-helper-clearfix"
+     i18n:domain="schooltool"
      tal:condition="view/has_schoolyear">
-  <h3>
-    <a tal:attributes="href view/groups_url"
-       title="Manage groups" i18n:attributes="title"
-       i18n:translate="">
-      Groups
-    </a>
-  </h3>
-  <p i18n:translate="">
-    There are
-    <metal:block tal:replace="python:len(view.groups)" i18n:name="count"/>
-    groups defined for
-    <metal:block tal:replace="view/schoolyear/title" i18n:name="schoolyear"/>.
-  </p>
+  <div class="info" tal:repeat="info view/groups_info">
+    <h3 class="title">
+      <a tal:attributes="href info/url;
+                         title info/title"
+         tal:content="info/title" />
+    </h3>
+    <h3 class="add-button">
+      <a tal:attributes="href info/add_url;">+</a>
+    </h3>
+  </div>
 </div>

@@ -46,6 +46,7 @@ from zope.proxy import getProxiedObject
 from z3c.form import button
 
 import schooltool.traverser.traverser
+from schooltool.app.browser.app import ActiveSchoolYearContentMixin
 from schooltool.common import format_message
 from schooltool.person.interfaces import IPerson
 from schooltool.report.interfaces import IReportLinksURL
@@ -180,16 +181,14 @@ class FlourishReportReferenceView(WideContainerPage, ReportReferenceView):
         return self.collator.key(row['group']), self.collator.key(row['title'])
 
 
-class ReportsLinks(RefineLinksViewlet):
+class ReportsLinksBase(RefineLinksViewlet):
     """Reports links viewlet."""
-
-    implements(IFlourishReportLinkViewletManager)
 
     body_template = ViewPageTemplateFile('templates/f_report_links_body.pt')
 
     @Lazy
     def items(self):
-        items = super(ReportsLinks, self).items
+        items = super(ReportsLinksBase, self).items
         result = []
         for item in items:
             viewlet = item['viewlet']
@@ -219,6 +218,11 @@ class ReportsLinks(RefineLinksViewlet):
                     'url': url,
                     })
         return result
+
+
+class ReportsLinks(ReportsLinksBase):
+
+    implements(IFlourishReportLinkViewletManager)
 
 
 class ReportLinkViewletProxy(flourish.viewlet.ViewletProxy):
@@ -667,3 +671,36 @@ class RequestReportArchiveDialog(RequestRemoteReportDialog):
 
 class ReportReferenceLinkViewlet(flourish.page.LinkViewlet):
     pass
+
+
+class SchoolReportsLinksBase(ReportsLinksBase):
+
+    css_class = 'content school-reports'
+    select_id = None
+    button_id = None
+    container_id = None
+
+    template = ViewPageTemplateFile(
+        'templates/f_school_report_links_body.pt')
+
+
+class SchoolReportsLinks(SchoolReportsLinksBase, ReportsLinks):
+
+    select_id = 'school-reports-select'
+    button_id = 'school-reports-button'
+    container_id = 'school-reports-dialog-container'
+
+
+class IFlourishYearReportLinkViewletManager(Interface):
+
+    pass
+
+
+class YearReportsLinks(SchoolReportsLinksBase,
+                       ActiveSchoolYearContentMixin):
+
+    implements(IFlourishYearReportLinkViewletManager)
+
+    select_id = 'school-year-reports-select'
+    button_id = 'school-year-reports-button'
+    container_id = 'school-year-reports-dialog-container'

@@ -43,7 +43,8 @@ from zope.i18n import translate
 from z3c.form import form, subform, field, button
 from z3c.form.interfaces import DISPLAY_MODE
 
-from schooltool.app.browser.app import ActiveSchoolYearContentMixin
+from schooltool.app.browser.app import ContainerSearchContent
+from schooltool.app.browser.app import JSONSearchViewBase
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.app.catalog import buildQueryString
 from schooltool.contact.interfaces import IContactable
@@ -925,25 +926,22 @@ class PersonAsContactLinkViewlet(flourish.page.LinkIdViewlet):
                  mapping={'person_full_name': person.title})
 
 
-class FlourishManageContactsOverview(flourish.page.Content,
-                                     ActiveSchoolYearContentMixin):
+class FlourishManageContactsOverview(ContainerSearchContent):
 
-    body_template = ViewPageTemplateFile(
-        'templates/f_manage_contacts_overview.pt')
+    add_view_name = 'add.html'
+    hint = _('Manage contacts')
+    title = _('Contacts')
 
     @property
-    def contacts(self):
+    def container(self):
         app = ISchoolToolApplication(None)
         contacts = IContactContainer(app)
         return contacts
 
     @property
-    def total(self):
-        catalog = ICatalog(self.contacts)
+    def count(self):
+        catalog = ICatalog(self.container)
         return len(catalog.extent)
-
-    def contacts_url(self):
-        return self.url_with_schoolyear_id(self.context, view_name='contacts')
 
 
 class ContactActionsLinks(flourish.page.RefineLinksViewlet):
@@ -999,3 +997,31 @@ class FlourishContactDeleteView(flourish.form.DialogForm, form.EditForm):
 
 class PhotoView(flourish.widgets.ImageView):
     attribute = "photo"
+
+
+class ContactContainerJSONSearchView(JSONSearchViewBase):
+
+    @property
+    def container(self):
+        return IContactContainer(self.context)
+
+    @property
+    def catalog(self):
+        return ICatalog(self.container)
+
+    @property
+    def items(self):
+        if self.text_query:
+            params = {
+                'text': self.text_query,
+            }
+            return self.catalog.searchResults(**params)
+        return []
+
+    def encode(self, item):
+        label = item.title
+        return {
+            'label': label,
+            'value': label,
+            'url': absoluteURL(item, self.request),
+        }

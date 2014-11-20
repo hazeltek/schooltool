@@ -134,8 +134,7 @@
 
   <flourish:viewlet
       name="manage-groups-overview"
-      after="manage-people-overview manage-contacts-overview"
-      before="manage-courses-overview"
+      after="manage-year-overview"
       view="schooltool.app.browser.app.ManageSchool"
       permission="schooltool.edit"
       manager="schooltool.skin.flourish.page.IPageContentManager"

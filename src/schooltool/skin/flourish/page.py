@@ -24,6 +24,8 @@ import urllib
 
 from zope.cachedescriptors.property import Lazy
 from zope.component import getMultiAdapter, queryMultiAdapter
+from zope.i18n import translate
+from zope.i18n.interfaces.locales import ICollator
 from zope.interface import implements
 from zope.publisher.browser import BrowserPage
 from zope.publisher.interfaces import NotFound
@@ -362,6 +364,19 @@ class RefineLinksViewlet(Refine, ListNavigationViewlet):
         if not self.items:
             return ''
         return Refine.render(self, *args, **kw)
+
+
+class RefineLinksSortedByTitleViewlet(RefineLinksViewlet):
+
+    def buildOrder(self, viewlet_dict):
+        result = []
+        collator = ICollator(self.request.locale)
+        for name, viewlet in viewlet_dict.items():
+            title = getattr(viewlet, 'title')
+            if title:
+                title = translate(title, context=self.request)
+            result.append((collator.key(title), name))
+        return [name for key, name in sorted(result)]
 
 
 class IHTMLHeadManager(interfaces.IViewletManager):

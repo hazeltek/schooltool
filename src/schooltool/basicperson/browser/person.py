@@ -128,7 +128,7 @@ class FlourishBasicPersonContainerView(flourish.page.Page):
     ''')
 
 
-class PersonContainerLinks(flourish.page.RefineLinksViewlet):
+class PersonContainerLinks(flourish.page.RefineLinksSortedByTitleViewlet):
     """Person container links viewlet."""
 
 

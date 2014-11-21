@@ -59,7 +59,6 @@ from schooltool.report.report import ReportTask
 from schooltool.report.report import ArchiveReportTask
 from schooltool.skin import flourish
 from schooltool.skin.flourish.page import WideContainerPage
-from schooltool.skin.flourish.page import RefineLinksViewlet
 from schooltool.skin.flourish import IFlourishLayer
 from schooltool.skin.flourish.form import DialogForm
 from schooltool.task.tasks import query_message
@@ -181,7 +180,7 @@ class FlourishReportReferenceView(WideContainerPage, ReportReferenceView):
         return self.collator.key(row['group']), self.collator.key(row['title'])
 
 
-class ReportsLinksBase(RefineLinksViewlet):
+class ReportsLinksBase(flourish.page.RefineLinksSortedByTitleViewlet):
     """Reports links viewlet."""
 
     body_template = ViewPageTemplateFile('templates/f_report_links_body.pt')

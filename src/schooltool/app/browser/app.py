@@ -1254,7 +1254,7 @@ class ManageSiteLinks(flourish.page.RefineLinksViewlet):
     """Manage Site links viewlet."""
 
 
-class CustomizeSchoolLinksBase(flourish.page.RefineLinksViewlet):
+class CustomizeSchoolLinksBase(flourish.page.RefineLinksSortedByTitleViewlet):
     """Customize School links viewlet."""
 
     list_class = 'customize ui-helper-clearfix'

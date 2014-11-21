@@ -1,12 +1,3 @@
-<script>
-  $(document).ready(function() {
-      var refine_height = $('.sidebar').height(),
-          container_height = $('.manage-page > .body > .container').height(),
-          max = Math.max(refine_height, container_height) + 8;
-      $('.sidebar').css({height: max});
-      $('.manage-page > .body > .container').css({height: max});
-  });
-</script>
 <div class="body">
 
 <div class="sidebar refine" tal:define="refine view/providers/page_refine|nothing"

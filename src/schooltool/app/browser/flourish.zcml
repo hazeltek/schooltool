@@ -987,4 +987,12 @@
        name="default"
        />
 
+  <flourish:viewlet
+      name="manage-school-script"
+      view="schooltool.app.browser.app.ManageSchool"
+      permission="schooltool.view"
+      manager="schooltool.skin.flourish.page.IPageContentManager"
+      class=".app.ManageSchoolScriptViewlet"
+      />
+
 </configure>

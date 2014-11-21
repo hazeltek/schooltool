@@ -11,9 +11,20 @@
                            title item/title">
           <option tal:content="title"
                   tal:condition="item/is_report_link"
-                  tal:attributes="value url;
+                  tal:attributes="value link_id;
                                   id link_id;
-                                  title title;" />
+                                  title item/description;" />
+	  <script>ST.state.push()</script>
+	  <tal:script replace="structure scriptlocal:
+			       url;
+			       title;
+			       link_id;" />
+	  <script>
+	    $(ST.dialogs.jquery_id(ST.local.link_id)).data(
+	        'info',
+		{title: ST.local.title, url: ST.local.url});
+	  </script>
+	  <script>ST.state.pop()</script>
         </tal:block>
       </tal:block>
     </select>
@@ -36,9 +47,9 @@
                   var option = $(ST.dialogs.jquery_id(select_id) + ' option:selected'),
                       option_value = option.val();
                   if (option_value) {
-                      ST.dialogs.open_modal_form(option_value,
+                      ST.dialogs.open_modal_form(option.data('info').url,
                                                  container_id,
-                                                 option.attr('title'));
+                                                 option.data('info').title);
                   }
                   return false;
               }}());

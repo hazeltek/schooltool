@@ -292,12 +292,12 @@
     background-color: #fff;
     display: table;
     float: left;
-    height: 32px;
+    height: 48px;
     margin-bottom: 8px;
     margin-right: 8px;
-    padding: 8px;
+    padding: 0 8px;
     width: 128px;
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .manage-page ul.customize li a {
@@ -319,10 +319,19 @@
     padding: 0;
 }
 
+#school-reports select {
+    height: 94px;
+}
+
+.manage-page .school-reports form select option {
+    padding: 2px 4px;
+}
+
 .manage-page .school-reports form .separator {
     background-color: #f7f7f7;
     color: #6c7b7c;
-    padding: 4px;
+    padding: 4px 8px;
+    font-weight: bold;
 }
 
 .manage-page > .body > .sidebar .school-reports,

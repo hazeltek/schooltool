@@ -194,11 +194,12 @@ class ReportsLinksBase(RefineLinksViewlet):
             viewlet = item['viewlet']
             url = viewlet.link
             is_report_link = bool(getattr(viewlet, 'file_type', ''))
+            description = translate(viewlet.description,
+                                    context=self.request)
+            title = translate(viewlet.title, context=self.request)
             if is_report_link:
                 file_type = translate(viewlet.file_type,
                                       context=self.request)
-                description = translate(viewlet.description,
-                                        context=self.request)
                 params = {
                     'file_type': file_type.encode('utf-8').upper(),
                     'description': description.encode('utf-8'),
@@ -214,8 +215,9 @@ class ReportsLinksBase(RefineLinksViewlet):
                     'is_report_link': is_report_link,
                     'link_id': viewlet.link.replace('.', '_'),
                     'form_id': viewlet.link.replace('.', '_') + '_form',
-                    'title': translate(viewlet.title, context=self.request),
+                    'title': title,
                     'url': url,
+                    'description': description or title,
                     })
         return result
 

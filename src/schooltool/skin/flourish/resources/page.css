@@ -234,6 +234,7 @@
 
 .manage-page .group-container-search .info .title {
     width: 198px;
+    overflow: hidden;
 }
 
 .manage-page .container-search .info .title,
@@ -246,6 +247,7 @@
     padding-left: 4px;
     float: left;
     color: #fff;
+    white-space: nowrap;
 }
 
 .manage-page .container-search .info .title span {

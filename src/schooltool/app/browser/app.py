@@ -1752,7 +1752,7 @@ class ManageSchoolScriptViewlet(flourish.page.Viewlet):
         $(document).ready(function() {
             var h1 = $('.sidebar').height(),
                 h2 = $('.manage-page > .body > .container').height(),
-                max = Math.max(h1, h2) + 8;
+                max = Math.max(h1, h2);
             $('.sidebar').css({height: max});
             $('.manage-page > .body > .container').css({height: max});
         });

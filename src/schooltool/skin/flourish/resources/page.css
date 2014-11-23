@@ -120,6 +120,10 @@
     width: 528px;
 }
 
+.manage-page > .body {
+    overflow: hidden;
+}
+
 .manage-page > .body > .sidebar,
 .manage-page > .body > .container {
     padding: 8px 4px;

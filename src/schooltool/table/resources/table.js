@@ -291,7 +291,6 @@ ST.table = function() {
                       name: 'search',
                       value: request.term
                   });
-                  console.log(form, data);
                   $.ajax({
                       url: json_url,
                       data: data,

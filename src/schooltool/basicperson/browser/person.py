@@ -1860,7 +1860,8 @@ class BasicPersonContainerJSONSearchView(JSONSearchViewBase):
 
     @property
     def catalog(self):
-        return ICatalog(self.context)
+        app = ISchoolToolApplication(None)
+        return ICatalog(app['persons'])
 
     @property
     def items(self):

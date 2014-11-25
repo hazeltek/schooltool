@@ -2039,6 +2039,19 @@ class FlourishManageSectionsOverview(ContainerSearchContent):
         app = ISchoolToolApplication(None)
         return '%s/sections_json' % absoluteURL(app, self.request)
 
+    @property
+    def render_sections_link(self):
+        courses = ICourseContainer(self.schoolyear, None)
+        return (self.schoolyear is not None and
+                self.schoolyear and
+                courses is not None and
+                courses)
+
+    def render(self,*args, **kw):
+        if not self.render_sections_link:
+            return ''
+        return super(FlourishManageSectionsOverview, self).render(*args, **kw)
+
 
 class SectionsJSONSearchView(JSONSearchViewBase,
                              ActiveSchoolYearContentMixin):

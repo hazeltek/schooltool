@@ -674,7 +674,7 @@ class ReportReferenceLinkViewlet(flourish.page.LinkViewlet):
     pass
 
 
-class SchoolReportsLinksBase(ReportsLinksBase):
+class SchoolReportsLinksBase(ReportsLinksBase, ActiveSchoolYearContentMixin):
 
     css_class = 'content school-reports'
     select_id = None
@@ -683,6 +683,11 @@ class SchoolReportsLinksBase(ReportsLinksBase):
 
     template = ViewPageTemplateFile(
         'templates/f_school_report_links_body.pt')
+
+    def render(self, *args, **kw):
+        if self.schoolyear is None:
+            return ''
+        return super(SchoolReportsLinksBase, self).render(*args, **kw)
 
 
 class SchoolReportsLinks(SchoolReportsLinksBase, ReportsLinks):
@@ -697,8 +702,7 @@ class IFlourishYearReportLinkViewletManager(Interface):
     pass
 
 
-class YearReportsLinks(SchoolReportsLinksBase,
-                       ActiveSchoolYearContentMixin):
+class YearReportsLinks(SchoolReportsLinksBase):
 
     implements(IFlourishYearReportLinkViewletManager)
 

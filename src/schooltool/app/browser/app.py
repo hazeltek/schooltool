@@ -1265,9 +1265,13 @@ class CustomizeSchoolLinks(CustomizeSchoolLinksBase):
     pass
 
 
-class CustomizeYearLinks(CustomizeSchoolLinksBase):
+class CustomizeYearLinks(CustomizeSchoolLinksBase,
+                         ActiveSchoolYearContentMixin):
 
-    pass
+    def render(self, *args, **kw):
+        if self.schoolyear is None:
+            return ''
+        return super(CustomizeYearLinks, self).render(*args, **kw)
 
 
 class SchoolActionsLinks(flourish.page.RefineLinksViewlet):

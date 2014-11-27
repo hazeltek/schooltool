@@ -875,7 +875,7 @@ class FlourishManageStudentsOverview(ContainerSearchContent):
         return self.url_with_schoolyear_id(persons, view_name=self.add_view_name)
 
     def count(self):
-        return None
+        return len(self.container.members)
 
 
 class FlourishManageTeachersOverview(FlourishManageStudentsOverview):

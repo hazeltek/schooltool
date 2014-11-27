@@ -1,14 +1,16 @@
 <div class="manage-view container-search group-container-search ui-helper-clearfix"
      i18n:domain="schooltool"
      tal:condition="view/has_schoolyear">
-  <div class="info" tal:repeat="info view/groups_info">
-    <h3 class="title">
-      <a tal:attributes="href info/url;
-                         title info/title"
-         tal:content="info/title" />
-    </h3>
-    <h3 class="add-button">
-      <a tal:attributes="href info/add_url;">+</a>
-    </h3>
-  </div>
+  <tal:block repeat="info view/groups_info">
+    <div tal:attributes="class python:'info ' +  ('odd' if repeat['info'].odd() else 'even')">
+      <h3 class="title">
+        <a tal:attributes="href info/url;
+                           title info/title"
+           tal:content="info/title" />
+      </h3>
+      <h3 class="add-button">
+        <a tal:attributes="href info/add_url;">+</a>
+      </h3>
+    </div>
+  </tal:block>
 </div>

@@ -215,29 +215,34 @@
 
 .manage-page .container-search {
     margin-bottom: 4px;
+    width: 100%;
 }
 
-.manage-page .container-search .info,
 .manage-page .container-search .form {
-    width: 226px;
+    width: 49.5%;
 }
 
 .manage-page .container-search .info {
     float: left;
+    width: 49.5%;
+    margin-right: 4px;
 }
 
 .manage-page .group-container-search .info {
-    margin: 0 4px 4px 0;
-    width: 224px;
+    float: left;
+    margin: 0 0 4px 0;
+}
+
+.manage-page .group-container-search .odd {
+    float: right;
 }
 
 .manage-page .container-search .info .title {
-    width: 200px;
+    width: 88.5%;
     background-color: #008c93;
 }
 
 .manage-page .group-container-search .info .title {
-    width: 198px;
     overflow: hidden;
 }
 
@@ -262,7 +267,7 @@
 }
 
 .manage-page .container-search .info .add-button {
-    width: 26px;
+    width: 11.5%;
     text-align: center;
     background-color: #7bc1c5;
 }
@@ -272,24 +277,22 @@
 }
 
 .manage-page .container-search .form {
-    float: right;
-    display: table;
-}
-
-.manage-page .container-search h3 {
-    margin: 0;
+    display: inline-block;
 }
 
 .manage-page .container-search .form form {
-    margin: 2px 0 0 0;
+    margin-top: 0px;
+    width: 100%;
 }
 
 .manage-page .container-search .info h3 {
+    margin: 0;
     float: left;
 }
 
 .manage-page .container-search .form input {
-    width: 222px;
+    margin-top: 2px;
+    width: 98%;
 }
 
 .manage-page ul.customize li {

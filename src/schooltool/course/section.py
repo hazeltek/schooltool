@@ -587,4 +587,8 @@ class SearchableTextSection(object):
         self.context = context
 
     def getSearchableText(self):
-        return self.context.title
+        result = [
+            self.context.title,
+            self.context.description or '',
+        ]
+        return ' '.join(result)

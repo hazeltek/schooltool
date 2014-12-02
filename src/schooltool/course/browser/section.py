@@ -60,6 +60,7 @@ from schooltool.app.browser.app import ContainerSearchContent
 from schooltool.app.browser.app import RelationshipViewBase
 from schooltool.app.browser.app import JSONSearchViewBase
 from schooltool.app.interfaces import ISchoolToolApplication
+from schooltool.app.relationships import Instruction
 from schooltool.app.utils import vocabulary_titled
 from schooltool.basicperson.browser.person import EditPersonTemporalRelationships
 from schooltool.basicperson.browser.person import StatusPersonListTable
@@ -2064,15 +2065,34 @@ class SectionsJSONSearchView(JSONSearchViewBase,
 
     @property
     def items(self):
+        result = set()
         if self.text_query and self.schoolyear:
-            schoolyear_id = getUtility(IIntIds).getId(self.schoolyear)
+            int_ids = getUtility(IIntIds)
+            schoolyear_id = int_ids.getId(self.schoolyear)
             schoolyear_query = {'any_of': [schoolyear_id]}
             params = {
                 'text': self.text_query,
                 'schoolyear_id': schoolyear_query,
             }
-            return self.catalog.searchResults(**params)
-        return []
+            for section in self.catalog.searchResults(**params):
+                result.add(section)
+            persons_catalog = ICatalog(ISchoolToolApplication(None)['persons'])
+            for person in persons_catalog.searchResults(text=self.text_query):
+                relationships = Instruction.bind(instructor=person).relationships
+                for link_info in relationships:
+                    if not ISection.providedBy(link_info.target):
+                        continue
+                    section = removeSecurityProxy(link_info.target)
+                    if ISchoolYear(ITerm(section)) == self.schoolyear:
+                        result.add(section)
+            course_container = ICourseContainer(self.schoolyear)
+            course_container_id = int_ids.getId(course_container)
+            course_catalog = ICatalog(course_container)
+            for course in course_catalog.searchResults(
+                    text=self.text_query, container_id={'any_of': [course_container_id]}):
+                for section in course.sections:
+                    result.add(section)
+        return result
 
     def encode(self, section):
         label = '%s, %s' % (section.title, ITerm(section).title)

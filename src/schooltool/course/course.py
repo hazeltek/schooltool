@@ -184,5 +184,9 @@ class SearchableTextCourse(object):
         self.context = context
 
     def getSearchableText(self):
-        result = [self.context.title, self.context.course_id or '']
+        result = [
+            self.context.title,
+            self.context.description or '',
+            self.context.course_id or '',
+        ]
         return ' '.join(result)

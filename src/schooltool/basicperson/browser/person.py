@@ -1780,6 +1780,10 @@ class LeaveSchoolView(flourish.form.Form,
                         if leave_date < schoolyear.first:
                             link_info.state.replace({})
                         collection.on(leave_date).relate(person, INACTIVE, code)
+            current_level = self.current_level
+            if current_level and current_level['level'] is not None:
+                person.levels.on(leave_date).relate(
+                    current_level['level'], INACTIVE, 'i')
             self.request.response.redirect(self.nextURL())
 
     @button.buttonAndHandler(_("Cancel"))
@@ -1789,12 +1793,87 @@ class LeaveSchoolView(flourish.form.Form,
     def nextURL(self):
         return absoluteURL(self.context, self.request)
 
+    @property
+    def current_level(self):
+        result = {}
+        levels = self.context.levels.all().any(ACTIVE)
+        if levels:
+            result['level'] = removeSecurityProxy(list(levels)[0])
+            dt, code, meaning = list(levels.relationships)[0].state.all()[0]
+            result['date'] = dt
+        return result
+
 
 class LeaveSchoolLinkViewlet(flourish.page.LinkViewlet):
 
     @property
     def enabled(self):
-        return is_student(self.context)
+        return (is_student(self.context) and
+                not IDemographics(self.context).get('leave_date'))
+
+
+class ReEnrollSchoolLinkViewlet(flourish.page.LinkViewlet):
+
+    @property
+    def enabled(self):
+        return IDemographics(self.context).get('leave_date')
+
+
+class ReEnrollSchoolView(flourish.form.Form,
+                         form.EditForm):
+
+    template = InheritTemplate(flourish.page.Page.template)
+    label = None
+    legend = _('Re-enroll Information')
+
+    @property
+    def fields(self):
+        result = field.Fields(Date(__name__='date', title=_('Date')))
+        result += field.Fields(ILevelField)
+        return result
+
+    def getContent(self):
+        return {
+            'date': self.request.util.today,
+            'level': None,
+        }
+
+    @property
+    def title(self):
+        return self.context.title
+
+    def update(self):
+        form.EditForm.update(self)
+
+    def updateActions(self):
+        super(ReEnrollSchoolView, self).updateActions()
+        self.actions['apply'].addClass('button-ok')
+        self.actions['cancel'].addClass('button-cancel')
+
+    def updateWidgets(self, *args, **kw):
+        super(ReEnrollSchoolView, self).updateWidgets(*args, **kw)
+        self.widgets['date'].value = self.request.util.today
+
+    @button.buttonAndHandler(_('Submit'), name='apply')
+    def handleApply(self, action):
+        super(ReEnrollSchoolView, self).handleApply.func(self, action)
+        if (self.status == self.successMessage or
+            self.status == self.noChangesMessage):
+            data, errors = self.extractData()
+            person = removeSecurityProxy(self.context)
+            date = data['date']
+            person.levels.on(date).relate(removeSecurityProxy(data['level']))
+            demographics = IDemographics(person)
+            for name in LEAVE_SCHOOL_FIELDS:
+                demographics[name] = None
+            self.request.response.redirect(self.nextURL())
+
+    @button.buttonAndHandler(_("Cancel"))
+    def handle_cancel_action(self, action):
+        self.request.response.redirect(self.nextURL())
+
+    def nextURL(self):
+        return absoluteURL(self.context, self.request)
 
 
 class LevelAccordionViewlet(Viewlet):

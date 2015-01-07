@@ -334,8 +334,8 @@ class FlourishPersonView(flourish.page.Page):
     def subtitle(self):
         if is_student(self.context):
             result = []
-            levels = self.context.levels
-            for level in levels.on(self.request.util.today).any(ACTIVE):
+            levels = self.context.levels.all()
+            for level in levels.any(ACTIVE):
                 result.append(level)
             if result:
                 return ', '.join([level.title for level in result])
@@ -1023,6 +1023,7 @@ class FlourishPersonAddView(PersonAddViewBase):
         if self.group_id:
             result = result.omit('group')
         result += field.Fields(IPhotoField)
+        result += field.Fields(Date(__name__='level_date', title=_('Date'), required=False))
         result += field.Fields(ILevelField)
         return result
 
@@ -1040,7 +1041,7 @@ class FlourishPersonAddView(PersonAddViewBase):
             'details': (
                 _('Details'), ['gender', 'birth_date', 'photo']),
             'level': (
-                _('Level'), ['level']),
+                _('Level'), ['level_date', 'level']),
             'demographics': (
                 _('Demographics'), list(self.getDemoFields())),
             'relationships': (
@@ -1078,17 +1079,20 @@ class FlourishPersonAddView(PersonAddViewBase):
         self.actions['submitadd'].addClass('button-neutral')
 
     def create(self, data):
+        self._level_date = data.pop('level_date')
         self._level = data.pop('level')
         return super(FlourishPersonAddView, self).create(data)
 
     def add(self, person):
         person = super(FlourishPersonAddView, self).add(person)
         if self._level is not None:
-            self.set_person_level(person, self._level)
+            self.set_person_level(person, self._level, self._level_date)
         return person
 
-    def set_person_level(self, person, level):
-        person.levels.on(self.request.util.today).relate(level)
+    def set_person_level(self, person, level, date=None):
+        if date is None:
+            date = self.request.util.today
+        person.levels.on(date).relate(level)
 
     def updateWidgets(self, *args, **kw):
         super(FlourishPersonAddView, self).updateWidgets(*args, **kw)
@@ -1800,9 +1804,8 @@ class LevelAccordionViewlet(Viewlet):
     @property
     def title(self):
         result = _('Grade Level')
-        today = self.request.util.today
         levels = [level.title
-                  for level in self.context.levels.on(today).any(ACTIVE)]
+                  for level in self.context.levels.all().any(ACTIVE)]
         if levels:
             result = _('Grade Level: ${level}',
                        mapping={'level': ', '.join(levels)})
@@ -1833,16 +1836,19 @@ class PersonEditLevelView(flourish.form.Form,
 
     @property
     def current_level(self):
-        today = self.request.util.today
-        levels = [level
-                  for level in self.context.levels.on(today).any(ACTIVE)]
+        result = {}
+        levels = self.context.levels.all().any(ACTIVE)
         if levels:
-            return levels[0]
+            result['level'] = removeSecurityProxy(list(levels)[0])
+            dt, code, meaning = list(levels.relationships)[0].state.all()[0]
+            result['date'] = dt
+        return result
 
     def getContent(self):
+        current_level = self.current_level
         return {
-            'date': self.request.util.today,
-            'level': self.current_level,
+            'date': current_level.get('date', self.request.util.today),
+            'level': current_level.get('level'),
         }
 
     @property
@@ -1870,11 +1876,12 @@ class PersonEditLevelView(flourish.form.Form,
             data, errors = self.extractData()
             person = removeSecurityProxy(self.context)
             date = data['date']
-            current_level = removeSecurityProxy(self.current_level)
+            current_level = self.current_level
             new_level = removeSecurityProxy(data['level'])
-            if current_level != new_level:
-                if current_level is not None:
-                    person.levels.on(date).relate(current_level, INACTIVE, 'i')
+            if current_level.get('level') != new_level:
+                if current_level.get('level') is not None:
+                    person.levels.on(date).relate(
+                        current_level['level'], INACTIVE, 'i')
                 if new_level is not None:
                     person.levels.on(date).relate(new_level)
         self.request.response.redirect(self.nextURL())

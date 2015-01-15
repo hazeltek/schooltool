@@ -1867,6 +1867,7 @@ class ReEnrollSchoolView(flourish.form.Form,
             demographics = IDemographics(person)
             for name in LEAVE_SCHOOL_FIELDS:
                 demographics[name] = None
+            self.addAsStudent(person, date)
             self.request.response.redirect(self.nextURL())
 
     @button.buttonAndHandler(_("Cancel"))
@@ -1876,6 +1877,16 @@ class ReEnrollSchoolView(flourish.form.Form,
     def nextURL(self):
         return absoluteURL(self.context, self.request)
 
+    def addAsStudent(self, person, date):
+        app = ISchoolToolApplication(None)
+        years = [y for y in ISchoolYearContainer(app).values()
+                 if y.first <= date <= y.last]
+        if years:
+            year = years[0]
+            students = IGroupContainer(year).get('students')
+            if students is not None:
+                students.members.on(date).add(person)
+            
 
 class LevelAccordionViewlet(Viewlet):
 

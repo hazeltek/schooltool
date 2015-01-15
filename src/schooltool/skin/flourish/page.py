@@ -372,7 +372,7 @@ class RefineLinksSortedByTitleViewlet(RefineLinksViewlet):
         result = []
         collator = ICollator(self.request.locale)
         for name, viewlet in viewlet_dict.items():
-            title = getattr(viewlet, 'title')
+            title = getattr(viewlet, 'title', '')
             if title:
                 title = translate(title, context=self.request)
             result.append((collator.key(title), name))

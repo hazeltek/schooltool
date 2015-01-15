@@ -424,7 +424,10 @@ class PersonAddFormBase(PersonForm, form.AddForm):
         name = person.username
         self.context[name] = person
         for group in self._groups:
-            person.groups.add(group)
+            if self._group_date is not None:
+                person.groups.on(self._group_date).add(group)
+            else:
+                person.groups.add(group)
         for advisor in self._advisors:
             person.advisors.add(advisor)
         return person
@@ -1023,7 +1026,12 @@ class FlourishPersonAddView(PersonAddViewBase):
         if self.group_id:
             result = result.omit('group')
         result += field.Fields(IPhotoField)
-        result += field.Fields(Date(__name__='level_date', title=_('Date'), required=False))
+        result += field.Fields(Date(__name__='level_date',
+                                    title=_('Effective Date'),
+                                    required=False))
+        result += field.Fields(Date(__name__='group_date',
+                                    title=_('Enrollment Date'),
+                                    required=False))
         result += field.Fields(ILevelField)
         return result
 
@@ -1080,6 +1088,7 @@ class FlourishPersonAddView(PersonAddViewBase):
 
     def create(self, data):
         self._level_date = data.pop('level_date')
+        self._group_date = data.pop('group_date')
         self._level = data.pop('level')
         return super(FlourishPersonAddView, self).create(data)
 
@@ -1098,6 +1107,13 @@ class FlourishPersonAddView(PersonAddViewBase):
         super(FlourishPersonAddView, self).updateWidgets(*args, **kw)
         self.widgets['gender'].prompt = True
         self.widgets['gender'].promptMessage = _('Select gender')
+        # XXX: this should be done with z3c.form widget
+        dtm = getUtility(IDateManager)
+        today = dtm.today
+        if 'group_date' in self.widgets:
+            self.widgets['group_date'].value = today
+        if 'level_date' in self.widgets:
+            self.widgets['level_date'].value = today
 
 
 ###############  Group-aware add views ################

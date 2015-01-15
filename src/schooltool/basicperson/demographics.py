@@ -161,7 +161,10 @@ def setUpLeaveSchoolDemographics(app):
         'leave_reason', _('Reason for un-enrollment'),
         limit_keys=['students'])
     dfs['leave_reason'].items = [_('Transferred'),
-                                 _('Dropped out')]
+                                 _('Dropped-out - fees'),
+                                 _('Dropped-out - pregnancy'),
+                                 _('Dropped-out - family'),
+                                 _('Left school - unknown')]
     dfs['leave_destination'] = EnumFieldDescription(
         'leave_destination', _('Destination school'),
         limit_keys=['students'])
@@ -186,7 +189,6 @@ def setUpDefaultDemographics(app):
     dfs['language'] = TextFieldDescription('language', _('Language'))
     dfs['placeofbirth'] = TextFieldDescription('placeofbirth', _('Place of birth'))
     dfs['citizenship'] = TextFieldDescription('citizenship', _('Citizenship'))
-    setUpLeaveSchoolDemographics(app)
 
 
 class DemographicsAppStartup(StartUpBase):

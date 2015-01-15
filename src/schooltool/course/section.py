@@ -490,7 +490,8 @@ class SectionInstructorStatesStartup(StateStartUpBase):
 
     def populate(self, states):
         states.add(_('Instructor'), ACTIVE, 'a')
-        states.add(_('Substitute'), ACTIVE, 's')
+        states.add(_('Substitute (Single day)'), ACTIVE, 's')
+        states.add(_('Substitute (Multi-day)'), ACTIVE, 'm')
         states.add(_('Withdrawn'), INACTIVE, 'i')
         states.add(_('Added in error'), INACTIVE, 'e')
         states.describe(ACTIVE, _('Instructing'))

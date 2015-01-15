@@ -953,10 +953,8 @@ class PersonImporter(ImporterBase):
             data['suffix'] = self.getTextFromCell(sh, row, 5)
             data['preferred_name'] = self.getTextFromCell(sh, row, 6)
             data['birth_date'] = self.getDateFromCell(sh, row, 7, default=None)
-            data['gender'] = self.getTextFromCell(sh, row, 8)
-            if data['gender'] == '':
-                data['gender'] = None
-            elif data['gender'] not in ['male', 'female']:
+            data['gender'] = self.getRequiredTextFromCell(sh, row, 8)
+            if data['gender'] not in ['male', 'female']:
                 self.error(row, 8, ERROR_INVALID_GENDER)
             data['password'] = self.getTextFromCell(sh, row, 9)
 

@@ -544,4 +544,16 @@
       provides="schooltool.app.interfaces.IPluginStartUp"
       name="schooltool.app.states-student-levels" />
 
+  <adapter
+      for="schooltool.app.interfaces.ISchoolToolApplication"
+      factory=".states.TeacheAttendanceStatesStartUp"
+      provides="schooltool.app.interfaces.IPluginInit"
+      name="schooltool.app.states-teacher-attendance" />
+
+  <adapter
+      for="schooltool.app.interfaces.ISchoolToolApplication"
+      factory=".states.TeacheAttendanceStatesStartUp"
+      provides="schooltool.app.interfaces.IPluginStartUp"
+      name="schooltool.app.states-teacher-attendance" />
+
 </configure>

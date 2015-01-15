@@ -241,20 +241,3 @@ class TimetableDoneLink(ActiveSchoolYearContentMixin):
     def url(self):
         app = ISchoolToolApplication(None)
         return self.url_with_schoolyear_id(app, view_name='timetables')
-
-
-class FlourishManageTimetablesOverview(flourish.page.Content,
-                                       ActiveSchoolYearContentMixin):
-
-    body_template = ViewPageTemplateFile('templates/f_manage_timetables_overview.pt')
-
-    @property
-    def timetables(self):
-        timetables = ITimetableContainer(self.schoolyear, None)
-        if timetables is not None:
-            return sorted(timetables.values(), key=lambda t:t.first,
-                          reverse=True)
-
-    def timetables_url(self):
-        return self.url_with_schoolyear_id(self.context,
-                                           view_name='timetables')

@@ -20,6 +20,7 @@ Basic person browser views.
 """
 
 from zope.interface import Interface, implements
+from zope.catalog.interfaces import ICatalog
 from zope.container.interfaces import INameChooser
 from zope.app.form.browser.interfaces import ITerms
 from zope.authentication.interfaces import IUnauthenticatedPrincipal
@@ -48,6 +49,8 @@ from zc.table.interfaces import ISortableColumn
 from z3c.form.validator import SimpleFieldValidator
 
 from schooltool.app.browser.app import ActiveSchoolYearContentMixin
+from schooltool.app.browser.app import JSONSearchViewBase
+from schooltool.app.browser.app import ContainerSearchContent
 from schooltool.app.browser.app import RelationshipViewBase
 from schooltool.app.browser.app import EditRelationships
 from schooltool.app.browser.app import RelationshipAddTableMixin
@@ -72,7 +75,6 @@ from schooltool.basicperson.interfaces import IDemographicsFields
 from schooltool.basicperson.interfaces import IBasicPerson
 from schooltool.contact.interfaces import IContactable
 from schooltool.group.interfaces import IGroupContainer
-from schooltool.group.interfaces import IGroup
 from schooltool.person.interfaces import IPerson, IPersonFactory
 from schooltool.person.browser.person import PersonTable, PersonTableFormatter
 from schooltool.person.browser.person import PersonTableFilter
@@ -126,7 +128,7 @@ class FlourishBasicPersonContainerView(flourish.page.Page):
     ''')
 
 
-class PersonContainerLinks(flourish.page.RefineLinksViewlet):
+class PersonContainerLinks(flourish.page.RefineLinksSortedByTitleViewlet):
     """Person container links viewlet."""
 
 
@@ -913,7 +915,7 @@ class FlourishGeneralViewlet(FormViewlet):
 
 
 ###############  Base class of all group-aware add views ################
-class PersonAddViewBase(PersonAddFormBase):
+class PersonAddViewBase(PersonAddFormBase, ActiveSchoolYearContentMixin):
 
     id = 'person-form'
     template = ViewPageTemplateFile('templates/person_form.pt')
@@ -978,11 +980,9 @@ class PersonAddViewBase(PersonAddFormBase):
 
         self._groups = []
         group = None
-        syc = ISchoolYearContainer(ISchoolToolApplication(None))
-        active_schoolyear = syc.getActiveSchoolYear()
-        if active_schoolyear is not None:
+        if self.schoolyear is not None:
             if self.group_id:
-                group = IGroupContainer(active_schoolyear).get(self.group_id)
+                group = IGroupContainer(self.schoolyear).get(self.group_id)
             else:
                 group = data.get('group')
         if group is not None:
@@ -1231,33 +1231,15 @@ class BasicPersonTableFormatter(PersonTableFormatter):
         return formatter
 
 
-class FlourishManagePeopleOverview(flourish.page.Content,
-                                   ActiveSchoolYearContentMixin):
+class FlourishManagePeopleOverview(ContainerSearchContent):
 
-    body_template = ViewPageTemplateFile(
-        'templates/f_manage_people_overview.pt')
-
-    built_in_groups = ('administrators', 'clerks', 'manager', 'teachers',
-                       'substitute_teachers', 'students')
+    add_view_name = 'add.html'
+    hint = _('Manage people')
+    title = _('People')
 
     @property
-    def groups(self):
-        return IGroupContainer(self.schoolyear, None)
-
-    @property
-    def persons(self):
+    def container(self):
         return self.context['persons']
-
-    @property
-    def school_name(self):
-        preferences = IApplicationPreferences(self.context)
-        return preferences.title
-
-    def persons_url(self):
-        return self.url_with_schoolyear_id(self.context, view_name='persons')
-
-    def group_members(self, group):
-        return len(group.members.all().any(ACTIVE))
 
 
 class FlourishRequestPersonIDCardView(RequestRemoteReportDialog):
@@ -1990,3 +1972,28 @@ class PersonEditLevelView(flourish.form.Form,
 
     def nextURL(self):
         return absoluteURL(self.context, self.request)
+
+
+class BasicPersonContainerJSONSearchView(JSONSearchViewBase):
+
+    @property
+    def catalog(self):
+        app = ISchoolToolApplication(None)
+        return ICatalog(app['persons'])
+
+    @property
+    def items(self):
+        if self.text_query:
+            params = {
+                'text': self.text_query,
+            }
+            return self.catalog.searchResults(**params)
+        return []
+
+    def encode(self, item):
+        label = '%s, %s' % (item.title, item.username)
+        return {
+            'label': label,
+            'value': label,
+            'url': absoluteURL(item, self.request),
+        }

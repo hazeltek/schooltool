@@ -20,20 +20,19 @@
 
   <flourish:viewlet
       name="school-reports-links"
-      after="school-actions-links"
+      after="manage-resources-overview"
       manager="schooltool.skin.flourish.page.IPageRefineManager"
-      class="schooltool.report.browser.report.ReportsLinks"
-      title="Reports"
+      class="schooltool.report.browser.report.SchoolReportsLinks"
       view="schooltool.app.browser.app.ManageSchool"
+      title="School Reports"
       permission="schooltool.view"
       />
 
   <flourish:viewlet
       name="report_reference.html"
-      before="export.xls"
-      title="Overview"
-      class=".report.ReportReferenceLinkViewlet"
-      manager="schooltool.report.browser.report.ReportsLinks"
+      title="Reports"
+      class="schooltool.skin.flourish.page.LinkViewlet"
+      manager="schooltool.app.browser.app.CustomizeSchoolLinks"
       view="schooltool.app.browser.app.ManageSchool"
       permission="schooltool.edit"
       />
@@ -61,6 +60,16 @@
       title="Reports"
       view="schooltool.group.browser.group.FlourishGroupView"
       permission="schooltool.edit"
+      />
+
+  <flourish:viewlet
+      name="school-schoolyear-reports-links"
+      after="manage-sections-overview"
+      manager="schooltool.skin.flourish.page.IPageContentManager"
+      class="schooltool.report.browser.report.YearReportsLinks"
+      view="schooltool.app.browser.app.ManageSchool"
+      title="Year Reports"
+      permission="schooltool.view"
       />
 
   <flourish:viewlet

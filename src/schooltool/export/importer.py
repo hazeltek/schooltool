@@ -1185,7 +1185,7 @@ class CourseImporter(ImporterBase):
                 course.levels.add(level)
 
     def createCourse(self, data):
-        course = Course()
+        course = Course(data['title'])
         course.__name__ = data['__name__']
         return course
 

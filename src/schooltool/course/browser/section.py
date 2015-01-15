@@ -24,6 +24,7 @@ from urllib import urlencode
 
 import zc.table.table
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
+from zope.catalog.interfaces import ICatalog
 from zope.component import adapts, adapter
 from zope.component import getMultiAdapter, getAdapter
 from zope.component import getUtility
@@ -55,8 +56,11 @@ from zc.table.interfaces import ISortableColumn
 
 from schooltool.app.browser.app import ActiveSchoolYearContentMixin
 from schooltool.app.browser.app import BaseEditView
+from schooltool.app.browser.app import ContainerSearchContent
 from schooltool.app.browser.app import RelationshipViewBase
+from schooltool.app.browser.app import JSONSearchViewBase
 from schooltool.app.interfaces import ISchoolToolApplication
+from schooltool.app.relationships import Instruction
 from schooltool.app.utils import vocabulary_titled
 from schooltool.basicperson.browser.person import EditPersonTemporalRelationships
 from schooltool.basicperson.browser.person import StatusPersonListTable
@@ -1029,10 +1033,7 @@ class SectionsTable(SectionsTableBase):
 
 class SectionListTable(SectionsTableBase):
 
-    def columns(self):
-        default = super(SectionListTable, self).columns()
-        title, term, courses, instructors, size = default
-        return [title, term, instructors]
+    visible_column_names = ['title', 'term', 'instructors']
 
     def sortOn(self):
         return (('term', True), ('title', False))
@@ -1176,9 +1177,16 @@ class SectionListTableFilter(SectionsTableFilter):
     def schoolyear(self):
         return ISchoolYear(self.context)
 
+    @Lazy
+    def sections_by_term(self):
+        result = {}
+        for section in self.context.sections:
+            term = ITerm(section)
+            result.setdefault(term, []).append(1)
+        return result
+
     def getSectionCount(self, term):
-        return len([section for section in ISectionContainer(term).values()
-                    if section in self.context.sections])
+        return sum(self.sections_by_term.get(term, []))
 
 
 class SectionsTableSchoolYear(flourish.viewlet.Viewlet):
@@ -2001,3 +2009,95 @@ class SectionMailingLabelsPDFView(SectionPDFViewBase, MailingLabelsPDFView):
     def base_filename(self):
         courses = [c.__name__ for c in self.context.courses]
         return 'section_mailing_labels_%s' % '_'.join(courses)
+
+
+class FlourishManageSectionsOverview(ContainerSearchContent):
+
+    add_view_name = 'addSection.html'
+    hint = _('Manage sections')
+    title = _('Sections')
+
+    @property
+    def container(self):
+        return self.schoolyear
+
+    def container_url(self):
+        return self.url_with_schoolyear_id(self.context, view_name='sections')
+
+    def count(self):
+        result = 0
+        if self.schoolyear:
+            schoolyear_id = getUtility(IIntIds).getId(self.schoolyear)
+            first = self.schoolyear.keys()[0]
+            container = ISectionContainer(self.schoolyear[first])
+            catalog = ICatalog(container)
+            query = {'any_of': [schoolyear_id]}
+            result = len(catalog['schoolyear_id'].apply(query))
+        return result
+
+    @property
+    def json_url(self):
+        app = ISchoolToolApplication(None)
+        return '%s/sections_json' % absoluteURL(app, self.request)
+
+    @property
+    def render_sections_link(self):
+        courses = ICourseContainer(self.schoolyear, None)
+        return (self.schoolyear is not None and
+                self.schoolyear and
+                courses is not None and
+                courses)
+
+    def render(self,*args, **kw):
+        if not self.render_sections_link:
+            return ''
+        return super(FlourishManageSectionsOverview, self).render(*args, **kw)
+
+
+class SectionsJSONSearchView(JSONSearchViewBase,
+                             ActiveSchoolYearContentMixin):
+
+    @property
+    def catalog(self):
+        first = self.schoolyear.keys()[0]
+        container = ISectionContainer(self.schoolyear[first])
+        return ICatalog(container)
+
+    @property
+    def items(self):
+        result = set()
+        if self.text_query and self.schoolyear:
+            int_ids = getUtility(IIntIds)
+            schoolyear_id = int_ids.getId(self.schoolyear)
+            schoolyear_query = {'any_of': [schoolyear_id]}
+            params = {
+                'text': self.text_query,
+                'schoolyear_id': schoolyear_query,
+            }
+            for section in self.catalog.searchResults(**params):
+                result.add(section)
+            persons_catalog = ICatalog(ISchoolToolApplication(None)['persons'])
+            for person in persons_catalog.searchResults(text=self.text_query):
+                relationships = Instruction.bind(instructor=person).relationships
+                for link_info in relationships:
+                    if not ISection.providedBy(link_info.target):
+                        continue
+                    section = removeSecurityProxy(link_info.target)
+                    if ISchoolYear(ITerm(section)) == self.schoolyear:
+                        result.add(section)
+            course_container = ICourseContainer(self.schoolyear)
+            course_container_id = int_ids.getId(course_container)
+            course_catalog = ICatalog(course_container)
+            for course in course_catalog.searchResults(
+                    text=self.text_query, container_id={'any_of': [course_container_id]}):
+                for section in course.sections:
+                    result.add(section)
+        return result
+
+    def encode(self, section):
+        label = '%s, %s' % (section.title, ITerm(section).title)
+        return {
+            'label': label,
+            'value': label,
+            'url': absoluteURL(section, self.request),
+        }

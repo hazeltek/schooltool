@@ -25,6 +25,7 @@ import zc.table.table
 import zc.table.column
 from zope.app.dependable.interfaces import IDependable
 from zope.cachedescriptors.property import Lazy
+from zope.catalog.interfaces import ICatalog
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from zope.interface import Attribute
 from zope.interface import Interface
@@ -65,6 +66,7 @@ from schooltool.app.browser.states import EditTemporalRelationships
 from schooltool.app.browser.states import TemporalRelationshipAddTableMixin
 from schooltool.app.browser.states import TemporalRelationshipRemoveTableMixin
 from schooltool.app.browser.app import RelationshipViewBase
+from schooltool.app.browser.app import ContainerSearchContent
 from schooltool.app.membership import Membership
 from schooltool.person.interfaces import IPerson
 from schooltool.person.interfaces import IPersonFactory
@@ -72,6 +74,7 @@ from schooltool.person.browser.person import PersonTableFilter
 from schooltool.basicperson.browser.person import StatusPersonListTable
 from schooltool.basicperson.browser.person import EditPersonTemporalRelationships
 from schooltool.basicperson.browser.person import BasicPersonTable
+from schooltool.basicperson.browser.person import BasicPersonContainerJSONSearchView
 from schooltool.basicperson.demographics import LEAVE_SCHOOL_FIELDS
 from schooltool.basicperson.interfaces import IDemographics
 from schooltool.basicperson.interfaces import IDemographicsFields
@@ -83,6 +86,7 @@ from schooltool.course.interfaces import ISection
 from schooltool.schoolyear.interfaces import ISchoolYear
 from schooltool.schoolyear.interfaces import ISchoolYearContainer
 from schooltool.group.group import Group
+from schooltool.group.group import defaultGroups
 from schooltool.group.interfaces import IGroup
 from schooltool.group.interfaces import IGroupMember
 from schooltool.group.interfaces import IGroupContainer, IGroupContained
@@ -851,18 +855,76 @@ class FlourishMemberViewPersons(EditPersonTemporalRelationships):
         return self.context.members
 
 
+class FlourishManageStudentsOverview(ContainerSearchContent):
+
+    add_view_name = 'addStudent.html'
+    hint = _('Manage students')
+    group_id = 'students'
+
+    @property
+    def title(self):
+        return self.container.title
+
+    @Lazy
+    def container(self):
+        groups = IGroupContainer(self.schoolyear)
+        return groups[self.group_id]
+
+    def add_url(self):
+        persons = ISchoolToolApplication(None)['persons']
+        return self.url_with_schoolyear_id(persons, view_name=self.add_view_name)
+
+    def count(self):
+        return len(self.container.members)
+
+
+class FlourishManageTeachersOverview(FlourishManageStudentsOverview):
+
+    add_view_name = 'addTeacher.html'
+    hint = _('Manage teachers')
+    group_id = 'teachers'
+
+
 class FlourishManageGroupsOverview(flourish.page.Content,
                                    ActiveSchoolYearContentMixin):
 
     body_template = ViewPageTemplateFile(
         'templates/f_manage_groups_overview.pt')
 
-    @property
+    @Lazy
     def groups(self):
         return IGroupContainer(self.schoolyear, None)
 
+    @Lazy
     def groups_url(self):
         return self.url_with_schoolyear_id(self.context, view_name='groups')
+
+    def groups_info(self):
+        persons = self.context['persons']
+        result = []
+        order = [
+            ('clerks', 'addClerk'),
+            ('administrators', 'addAdministrator'),
+            ('manager', 'addManager'),
+        ]
+        for group_id, add_view_name in order:
+            group = self.groups.get(group_id)
+            if group is not None:
+                add_url = self.url_with_schoolyear_id(
+                    persons, view_name='%s.html' % add_view_name)
+                result.append({
+                    'title': group.title,
+                    'url': self.url_with_schoolyear_id(group),
+                    'add_url': add_url,
+                })
+        groups_add_url = '%s/addSchoolToolGroup.html' % (
+            absoluteURL(self.groups, self.request))
+        result.append({
+            'title': _('Other Groups'),
+            'url': self.groups_url,
+            'add_url': groups_add_url,
+        })
+        return result
 
 
 class FlourishRequestGroupIDCardsView(RequestRemoteReportDialog):
@@ -1422,3 +1484,18 @@ class MailingLabelsTable(table.ajax.Table):
             title=_(u'Country'),
             getter=lambda i, f: IContact(i).country)
         return [title, address_1, address_2, city, country]
+
+
+class GroupJSONSearchView(BasicPersonContainerJSONSearchView):
+
+    @property
+    def items(self):
+        result = []
+        int_ids = getUtility(IIntIds)
+        items = super(GroupJSONSearchView, self).items
+        if items:
+            for person_id in items.uids:
+                person = int_ids.getObject(person_id)
+                if person in self.context.members:
+                    result.append(person)
+        return result

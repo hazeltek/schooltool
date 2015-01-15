@@ -21,6 +21,8 @@ Section implementation
 from persistent import Persistent
 
 from zope.annotation.interfaces import IAttributeAnnotatable
+from zope.catalog.text import TextIndex
+from zope.index.text.interfaces import ISearchableText
 from zope.intid.interfaces import IIntIds
 from zope.interface import implements
 from zope.interface import implementer
@@ -36,6 +38,7 @@ from zope.proxy import sameProxiedObjects
 from zope.security.proxy import removeSecurityProxy
 
 from schooltool.app import membership
+from schooltool.app.catalog import AttributeCatalog
 from schooltool.app.relationships import URIInstruction, URISection
 from schooltool.app.relationships import Instruction
 from schooltool.app.app import InitBase
@@ -56,6 +59,7 @@ from schooltool.schoolyear.subscriber import ObjectEventAdapterSubscriber
 from schooltool.schoolyear.interfaces import ISubscriber
 from schooltool.schoolyear.interfaces import ISchoolYear
 from schooltool.schoolyear.interfaces import ISchoolYearContainer
+from schooltool.table.catalog import ConvertingIndex
 from schooltool.term.term import getNextTerm
 from schooltool.term.interfaces import ITerm
 
@@ -256,6 +260,12 @@ def getCourseContainerForSectionContainer(section_container):
 @implementer(interfaces.ICourseContainer)
 def getCourseContainerForSection(section):
     return interfaces.ICourseContainer(ISchoolYear(section))
+
+
+@adapter(interfaces.ISection)
+@implementer(interfaces.ISectionContainer)
+def getSectionContainerForSection(section):
+    return section.__parent__
 
 
 class SectionContainerContainer(BTreeContainer):
@@ -538,3 +548,48 @@ def is_student(person, only_active_year=False):
             (not only_active_year or schoolyear == active)):
             return True
     return False
+
+
+def getSchoolYearID(section):
+    int_ids = getUtility(IIntIds)
+    schoolyear = ISchoolYear(section)
+    return int_ids.getId(schoolyear)
+
+
+def getSectionContainerID(section):
+    int_ids = getUtility(IIntIds)
+    container = interfaces.ISectionContainer(section)
+    return int_ids.getId(container)
+
+
+class SectionCatalog(AttributeCatalog):
+
+    version = '1 - initial'
+    interface = interfaces.ISection
+    attributes = ('title',)
+
+    def setIndexes(self, catalog):
+        super(SectionCatalog, self).setIndexes(catalog)
+        catalog['text'] = TextIndex('getSearchableText', ISearchableText, True)
+        catalog['container_id'] = ConvertingIndex(
+            converter=getSectionContainerID)
+        catalog['schoolyear_id'] = ConvertingIndex(converter=getSchoolYearID)
+
+
+getSectionCatalog = SectionCatalog.get
+
+
+class SearchableTextSection(object):
+
+    adapts(interfaces.ISection)
+    implements(ISearchableText)
+
+    def __init__(self, context):
+        self.context = context
+
+    def getSearchableText(self):
+        result = [
+            self.context.title,
+            self.context.description or '',
+        ]
+        return ' '.join(result)

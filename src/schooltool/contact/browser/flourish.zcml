@@ -108,7 +108,7 @@
       after="manage-people-overview"
       view="schooltool.app.browser.app.ManageSchool"
       permission="schooltool.view"
-      manager="schooltool.skin.flourish.page.IPageContentManager"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
       class=".contact.FlourishManageContactsOverview"
       />
 
@@ -392,6 +392,13 @@
       template="templates/f_children_overview.pt"
       manager="schooltool.skin.flourish.page.IPageContentManager"
       class=".parent.ChildrenOverview"
+      />
+
+  <flourish:page
+      name="json"
+      for="schooltool.contact.interfaces.IContactContainer"
+      class=".contact.ContactContainerJSONSearchView"
+      permission="schooltool.view"
       />
 
 </configure>

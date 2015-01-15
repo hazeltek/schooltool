@@ -120,6 +120,10 @@
             repeat="form view/subforms"
             content="structure form/render"
             condition="view/subforms|nothing" />
+        <input type="hidden" name="schoolyear_id"
+               tal:define="schoolyear_id request/schoolyear_id|nothing"
+               tal:condition="schoolyear_id"
+               tal:attributes="value schoolyear_id" />
       </metal:above-buttons>
     </div>
     <metal:buttons define-slot="buttons">

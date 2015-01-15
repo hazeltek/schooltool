@@ -150,6 +150,25 @@
      content_template="templates/f_person_form.pt"
      />
 
+  <flourish:page
+     name="addClerk.html"
+     subtitle="Add new clerk"
+     for="schooltool.person.interfaces.IPersonContainer"
+     class="schooltool.basicperson.browser.person.FlourishPersonAddView"
+     group_id="clerks"
+     permission="schooltool.edit"
+     content_template="templates/f_person_form.pt"
+     />
+
+  <flourish:page
+     name="addManager.html"
+     subtitle="Add new manager"
+     for="schooltool.person.interfaces.IPersonContainer"
+     class="schooltool.basicperson.browser.person.FlourishPersonAddView"
+     group_id="manager"
+     permission="schooltool.edit"
+     content_template="templates/f_person_form.pt"
+     />
 
   <configure package="schooltool.skin.flourish">
     <flourish:viewlet
@@ -191,6 +210,22 @@
     <flourish:viewlet
         name="addAdministrator.html"
         title="Administrator"
+        class="schooltool.skin.flourish.page.LinkViewlet"
+        manager="schooltool.basicperson.browser.person.PersonContainerLinks"
+        permission="schooltool.edit"
+        />
+
+    <flourish:viewlet
+        name="addClerk.html"
+        title="Clerk"
+        class="schooltool.skin.flourish.page.LinkViewlet"
+        manager="schooltool.basicperson.browser.person.PersonContainerLinks"
+        permission="schooltool.edit"
+        />
+
+    <flourish:viewlet
+        name="addManager.html"
+        title="Manager"
         class="schooltool.skin.flourish.page.LinkViewlet"
         manager="schooltool.basicperson.browser.person.PersonContainerLinks"
         permission="schooltool.edit"
@@ -714,9 +749,10 @@
 
   <flourish:viewlet
       name="manage-people-overview"
+      after="school-name-overview"
       view="schooltool.app.browser.app.ManageSchool"
       permission="schooltool.view"
-      manager="schooltool.skin.flourish.page.IPageContentManager"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
       class=".person.FlourishManagePeopleOverview"
       />
 
@@ -947,6 +983,13 @@
       for="schooltool.basicperson.interfaces.IBasicPerson"
       manager="schooltool.basicperson.browser.person.IFlourishPersonInfoManager"
       class=".person.LevelAccordionViewlet"
+      permission="schooltool.view"
+      />
+
+  <flourish:page
+      name="json"
+      for="schooltool.person.interfaces.IPersonContainer"
+      class=".person.BasicPersonContainerJSONSearchView"
       permission="schooltool.view"
       />
 

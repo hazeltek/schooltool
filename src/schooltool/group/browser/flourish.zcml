@@ -133,9 +133,26 @@
       />
 
   <flourish:viewlet
+      name="manage-students-overview"
+      after="manage-year-overview"
+      view="schooltool.app.browser.app.ManageSchool"
+      permission="schooltool.edit"
+      manager="schooltool.skin.flourish.page.IPageContentManager"
+      class=".group.FlourishManageStudentsOverview"
+      />
+
+  <flourish:viewlet
+      name="manage-teachers-overview"
+      after="manage-students-overview"
+      view="schooltool.app.browser.app.ManageSchool"
+      permission="schooltool.edit"
+      manager="schooltool.skin.flourish.page.IPageContentManager"
+      class=".group.FlourishManageTeachersOverview"
+      />
+
+  <flourish:viewlet
       name="manage-groups-overview"
-      after="manage-people-overview manage-contacts-overview"
-      before="manage-courses-overview"
+      after="manage-teachers-overview"
       view="schooltool.app.browser.app.ManageSchool"
       permission="schooltool.edit"
       manager="schooltool.skin.flourish.page.IPageContentManager"
@@ -618,6 +635,13 @@
       name="mailing_labels_table"
       for="schooltool.group.interfaces.IGroup"
       class=".group.MailingLabelsTable"
+      permission="schooltool.view"
+      />
+
+  <flourish:page
+      name="json"
+      for="schooltool.group.interfaces.IGroup"
+      class=".group.GroupJSONSearchView"
       permission="schooltool.view"
       />
 

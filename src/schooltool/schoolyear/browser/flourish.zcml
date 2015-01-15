@@ -88,14 +88,6 @@
       permission="schooltool.edit"
       />
 
-  <flourish:viewlet
-      name="activate.html"
-      title="Activate New Year"
-      class=".schoolyear.FlourishActivateNewYearLink"
-      manager="schooltool.app.browser.app.CustomizeSchoolLinks"
-      permission="schooltool.view"
-      />
-
   <flourish:breadcrumb
       for="schooltool.schoolyear.interfaces.ISchoolYear"
       />
@@ -108,7 +100,7 @@
 
   <flourish:viewlet
       name="manage-year-overview"
-      before="manage-people-overview"
+      before="*"
       view="schooltool.app.browser.app.ManageSchool"
       permission="schooltool.edit"
       manager="schooltool.skin.flourish.page.IPageContentManager"
@@ -210,11 +202,12 @@
       />
 
   <flourish:viewlet
-      name="add-schoolyear"
-      manager="schooltool.app.browser.app.SchoolAddLinks"
+      name="schoolyears"
+      before="*"
+      title="School Years"
+      class="schooltool.skin.flourish.page.LinkViewlet"
+      manager="schooltool.app.browser.app.CustomizeSchoolLinks"
       permission="schooltool.edit"
-      title="School Year"
-      class=".schoolyear.SchoolYearAddLink"
       />
 
 </configure>

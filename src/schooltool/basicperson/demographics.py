@@ -189,6 +189,7 @@ def setUpDefaultDemographics(app):
     dfs['language'] = TextFieldDescription('language', _('Language'))
     dfs['placeofbirth'] = TextFieldDescription('placeofbirth', _('Place of birth'))
     dfs['citizenship'] = TextFieldDescription('citizenship', _('Citizenship'))
+    setUpLeaveSchoolDemographics(app)
 
 
 class DemographicsAppStartup(StartUpBase):

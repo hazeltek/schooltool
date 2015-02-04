@@ -22,6 +22,8 @@ __docformat__ = 'restructuredtext'
 
 from persistent import Persistent
 
+from zope.catalog.text import TextIndex
+from zope.index.text.interfaces import ISearchableText
 from zope.component import adapts, adapter
 from zope.interface import implements, implementer
 from zope.annotation.interfaces import IAttributeAnnotatable
@@ -30,6 +32,7 @@ from zope.container.btree import BTreeContainer
 
 from schooltool.app.app import Asset
 from schooltool.app.app import InitBase, StartUpBase
+from schooltool.app.catalog import AttributeCatalog
 from schooltool.app.utils import vocabulary
 from schooltool.app.security import LeaderCrowd
 from schooltool.app.interfaces import ICalendarParentCrowd
@@ -213,3 +216,30 @@ def getLimitKeyVocabularyForResourceFields(resource_field_description_container)
         ('location', _('Location')),
         ('equipment', _('Equipment')),
         ])
+
+
+class ResourceCatalog(AttributeCatalog):
+
+    version = '1 - initial'
+    interface = interfaces.IResource
+    attributes = ('title',)
+
+    def setIndexes(self, catalog):
+        super(ResourceCatalog, self).setIndexes(catalog)
+        catalog['text'] = TextIndex('getSearchableText', ISearchableText, True)
+
+
+getResourceCatalog = ResourceCatalog.get
+
+
+class SearchableTextResource(object):
+
+    adapts(interfaces.IResource)
+    implements(ISearchableText)
+
+    def __init__(self, context):
+        self.context = context
+
+    def getSearchableText(self):
+        result = [self.context.title, self.context.description or '']
+        return ' '.join(result)

@@ -150,20 +150,10 @@ class DemographicsFields(OrderedContainer):
         return result
 
 
-def setUpDefaultDemographics(app):
-    dfs = DemographicsFields()
-    app['schooltool.basicperson.demographics_fields'] = dfs
-    locate(dfs, app, 'schooltool.basicperson.demographics_fields')
-    dfs['ID'] = TextFieldDescription('ID', _('ID'))
-    dfs['ethnicity'] = EnumFieldDescription('ethnicity', _('Ethnicity'))
-    dfs['ethnicity'].items = [_('American Indian or Alaska Native'),
-                              _('Asian'),
-                              _('Black or African American'),
-                              _('Native Hawaiian or Other Pacific Islander'),
-                              _('White')]
-    dfs['language'] = TextFieldDescription('language', _('Language'))
-    dfs['placeofbirth'] = TextFieldDescription('placeofbirth', _('Place of birth'))
-    dfs['citizenship'] = TextFieldDescription('citizenship', _('Citizenship'))
+def setUpLeaveSchoolDemographics(app):
+    dfs = app.get('schooltool.basicperson.demographics_fields')
+    if dfs is None:
+        return
     dfs['leave_date'] = DateFieldDescription(
         'leave_date', _('Date of un-enrollment'),
         limit_keys=['students'])
@@ -183,6 +173,23 @@ def setUpDefaultDemographics(app):
     for name in LEAVE_SCHOOL_FIELDS:
         if name in dfs:
             IDependable(dfs[name]).addDependent('')
+
+
+def setUpDefaultDemographics(app):
+    dfs = DemographicsFields()
+    app['schooltool.basicperson.demographics_fields'] = dfs
+    locate(dfs, app, 'schooltool.basicperson.demographics_fields')
+    dfs['ID'] = TextFieldDescription('ID', _('ID'))
+    dfs['ethnicity'] = EnumFieldDescription('ethnicity', _('Ethnicity'))
+    dfs['ethnicity'].items = [_('American Indian or Alaska Native'),
+                              _('Asian'),
+                              _('Black or African American'),
+                              _('Native Hawaiian or Other Pacific Islander'),
+                              _('White')]
+    dfs['language'] = TextFieldDescription('language', _('Language'))
+    dfs['placeofbirth'] = TextFieldDescription('placeofbirth', _('Place of birth'))
+    dfs['citizenship'] = TextFieldDescription('citizenship', _('Citizenship'))
+    setUpLeaveSchoolDemographics(app)
 
 
 class DemographicsAppStartup(StartUpBase):

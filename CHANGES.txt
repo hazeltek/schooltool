@@ -2,91 +2,44 @@
 CHANGES
 =======
 
-2.8.11 (unreleased)
--------------------
+2.8.4 (unreleased)
+------------------
 
 - Nothing changed yet.
 
 
-2.8.10 (2014-11-18)
--------------------
-
-- Updated report links styles
-
-
-2.8.9 (2014-08-08)
+2.8.3 (2014-11-11)
 ------------------
 
-- Updated teacher attendance states
-- Set active accordion on person view
-- Moved Un-enroll link above Delete link in person view
-- Removed parentheses around grade level subtitle in person view
+- Specified 24 hour format for slots in timetable wizard (https://bugs.launchpad.net/bugs/892941)
+- Moved custom CSS handling to /etc/schooltool/standard/custom-css
 
 
-2.8.8 (2014-06-20)
+2.8.2 (2014-10-14)
 ------------------
 
-- Added view for editing student level
-- Added accordion to list student level
-- Showed level subtitle only for students
-- Made gender required in forms and the XLS importer
-- Used section enrollment/group membership for showing un-enroll link
+- Added Sign In & Out report for groups/sections
+- Added Mailing Labels report for groups/sections
+- Added Name Labels report for groups
+- Updated Roster report for sections
 
 
-2.8.7 (2014-06-17)
+2.8.1 (2014-08-25)
 ------------------
 
-- Fixed reorder demographics view
-
-
-2.8.6 (2014-06-15)
-------------------
-
-- Sync'ed teacher states with new teacher score system
-- Added viewlet extra parameter to reports links manager
-
-
-2.8.5 (2014-06-13)
-------------------
-
-- Set user logging information in web-access.log file
-- Made leave school feature available only for students
-- Updated wording and default values as requested by PEAS
-- Set None as default for integer columns in importer
-
-
-2.8.4 (2014-06-03)
-------------------
-
-- Fixed section/group lookup in school leave view
-- Added jstree for groups accordion in person view
-
-
-2.8.3 (2014-06-02)
-------------------
-
-- Fixed row indexing in group importer after relationship change in sample data
-- Removed student from future years in the leave school view
-- Used student-enrollment states in remove temporal relationship table and state dialog
-
-
-2.8.2 (2014-06-01)
-------------------
-
-- Removed redundant paste templates
-
-
-2.8.1 (2014-05-29)
-------------------
-
-Initial ARK release
-+++++++++++++++++++
-
-- Added peas-manager user
-- Added leave school view
-- Added zc.zrs configuration templates
-- Added Substitute Teachers built-in group
-- Added Teacher Attendance states
+- Added un-enroll functionality for students
+- Added accordion and edit view for student level
+- Added custom CSS handling
+- Fixed row indexing in group importer after relationship change
+- Added relationship states to group accordion in person view
+- Fixed permissions for school year report links and manage year link
+- Fixed page numbers in pdf reports
+- Avoid insecure content warning for fonts.googleapis.com when accessing
+  schooltool through https (https://launchpad.net/bugs/1330106)
+- Fixed email forms
+- Ampersand breaks student detail report (https://launchpad.net/bugs/1328619)
+- Fixed reorder demographics view (https://launchpad.net/bugs/1341514)
+- Updated translations
 
 
 2.8.0 (2014-05-08)

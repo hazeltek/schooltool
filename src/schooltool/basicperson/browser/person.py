@@ -1863,7 +1863,8 @@ class ReEnrollSchoolView(flourish.form.Form,
             data, errors = self.extractData()
             person = removeSecurityProxy(self.context)
             date = data['date']
-            person.levels.on(date).relate(removeSecurityProxy(data['level']))
+            if data['level'] is not None:
+                person.levels.on(date).relate(removeSecurityProxy(data['level']))
             demographics = IDemographics(person)
             for name in LEAVE_SCHOOL_FIELDS:
                 demographics[name] = None

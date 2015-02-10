@@ -589,7 +589,7 @@ class SearchableTextSection(object):
 
     def getSearchableText(self):
         result = [
-            self.context.title,
+            self.context.title or '',
             self.context.description or '',
         ]
         return ' '.join(result)

@@ -1,0 +1,40 @@
+<div i18n:domain="schooltool">
+  <form method="post" tal:attributes="action request/getURL">
+    <table>
+      <thead>
+        <tr>
+          <th i18n:translate="">Last name</th>
+          <th i18n:translate="">First name</th>
+          <th i18n:translate="">Enrollment</th>
+          <th i18n:translate="">Current year</th>
+          <th i18n:translate="">Next year</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr tal:repeat="student view/students">
+          <td tal:content="student/obj/last_name" />
+          <td tal:content="student/obj/first_name" />
+          <td>
+            <select style="width: 100px">
+              <option tal:content="student/enrollment/title" />
+            </select>
+          </td>
+          <td tal:content="student/level/title" />
+          <td>
+            <select style="width: 100px">
+              <option tal:condition="student/next_level"
+                      tal:content="student/next_level/title" />
+              <option tal:condition="not:student/next_level">
+                -----
+              </option>
+            </select>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="buttons">
+      <input type="submit" class="button-ok" value="Submit" />
+      <input type="submit" class="button-cancel" value="Cancel" />
+    </div>
+  </form>
+</div>

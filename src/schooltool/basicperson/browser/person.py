@@ -2009,3 +2009,51 @@ class BasicPersonContainerJSONSearchView(JSONSearchViewBase):
             'value': label,
             'url': absoluteURL(item, self.request),
         }
+
+
+from schooltool.level.interfaces import ILevelContainer
+
+
+class PromoteStudentsView(flourish.page.Page,
+                          ActiveSchoolYearContentMixin):
+
+    content_template = ViewPageTemplateFile('templates/promote.pt')
+    container_class = 'container widecontainer'
+
+    @property
+    def current_level(self):
+        result = {}
+        levels = self.context.levels.all().any(ACTIVE)
+        if levels:
+            result['level'] = removeSecurityProxy(list(levels)[0])
+            dt, code, meaning = list(levels.relationships)[0].state.all()[0]
+            result['date'] = dt
+        return result
+
+    def students(self):
+        app = ISchoolToolApplication(None)
+        level_container = ILevelContainer(app)
+        level_keys = level_container.keys()
+        persons = app['persons']
+        states = IRelationshipStateContainer(app)['student-levels']
+        result = []
+        for person in persons.values():
+            active_levels = person.levels.all().any(ACTIVE)
+            if active_levels:
+                current_level = list(active_levels)[0]
+                dt, code, meaning = list(active_levels.relationships)[0].state.all()[0]
+                enrollment = states.getState((meaning, code))
+                current_level_key = level_keys.index(current_level.__name__)
+                next_level = None
+                if current_level_key < (len(level_keys) - 1):
+                    next_level_key = level_keys[current_level_key + 1]
+                    next_level = level_container[next_level_key]
+                result.append({
+                    'obj': person,
+                    'level': current_level,
+                    'enrollment': enrollment,
+                    'next_level': next_level,
+                })
+        # XXX: i18n
+        return sorted(result, key=lambda i: (i['obj'].last_name,
+                                             i['obj'].first_name))

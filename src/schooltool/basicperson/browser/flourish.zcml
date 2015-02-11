@@ -993,4 +993,12 @@
       permission="schooltool.view"
       />
 
+  <flourish:page
+      name="promote.html"
+      for="schooltool.person.interfaces.IPersonContainer"
+      class=".person.PromoteStudentsView"
+      title="Promote Students"
+      permission="schooltool.edit"
+      />
+
 </configure>

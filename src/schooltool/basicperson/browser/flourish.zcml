@@ -1001,4 +1001,12 @@
       permission="schooltool.edit"
       />
 
+  <flourish:viewlet
+      name="promote_students"
+      title="Promote Students"
+      class=".person.PromoteStudentsLinkViewlet"
+      manager="schooltool.app.browser.app.CustomizeYearLinks"
+      permission="schooltool.edit"
+      />
+
 </configure>

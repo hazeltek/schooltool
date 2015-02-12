@@ -361,7 +361,8 @@ class FlourishCompletedCoursesViewlet(Viewlet, ActiveSchoolYearContentMixin):
         completed_sections = [
             relationship.target
             for relationship in Membership.relationships(member=student)
-            if relationship.state.has(today, codes)
+            if relationship.state.has(today, codes) and
+            ISection.providedBy(relationship.target)
             ]
         schoolyears_data = {}
         for section in completed_sections:

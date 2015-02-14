@@ -2580,7 +2580,7 @@ msgstr ""
 #: /src/schooltool/level/browser/configure.zcml:7
 #: /src/schooltool/level/security.zcml:7
 msgid "Levels"
-msgstr ""
+msgstr "Classes"
 
 #: /src/schooltool/app/browser/templates/login.pt:3
 #: /src/schooltool/app/browser/templates/menu_view.pt:3
@@ -3120,7 +3120,7 @@ msgstr ""
 
 #: /src/schooltool/app/states.py:280
 msgid "Student Levels"
-msgstr ""
+msgstr "Student Classes"
 
 #: /src/schooltool/app/states.py:286
 #: /src/schooltool/app/states.py:290
@@ -3585,7 +3585,7 @@ msgstr ""
 #: /src/schooltool/course/browser/course.py:621
 #: /src/schooltool/group/browser/group.py:1233
 msgid "Grade Level"
-msgstr ""
+msgstr "Class"
 
 #: /src/schooltool/basicperson/browser/person.py:242
 msgid "This username is already in use"
@@ -3677,7 +3677,7 @@ msgstr ""
 #: /src/schooltool/course/browser/templates/f_course_table_filter.pt:35
 #: /src/schooltool/level/browser/flourish.zcml:62
 msgid "Level"
-msgstr ""
+msgstr "Class"
 
 #: /src/schooltool/basicperson/browser/person.py:1057
 msgid "Relationships"
@@ -3767,15 +3767,15 @@ msgstr ""
 
 #: /src/schooltool/basicperson/browser/person.py:1903
 msgid "Grade Level: ${level}"
-msgstr ""
+msgstr "Class: ${level}"
 
 #: /src/schooltool/basicperson/browser/person.py:1922
 msgid "Level Information"
-msgstr ""
+msgstr "Class Information"
 
 #: /src/schooltool/basicperson/browser/person.py:1962
 msgid "No Level"
-msgstr ""
+msgstr "No Class"
 
 #: /src/schooltool/basicperson/browser/templates/container.pt:18
 msgid "To add teachers, students or administrators, please set up a ${school_year}."
@@ -3916,7 +3916,7 @@ msgstr ""
 
 #: /src/schooltool/basicperson/browser/templates/f_levelViewlet.pt:6
 msgid "Manage this person's level"
-msgstr ""
+msgstr "Manage this person's class"
 
 #: /src/schooltool/basicperson/browser/templates/f_person_add_multiple.pt:10
 #: /src/schooltool/basicperson/browser/templates/person_add_multiple.pt:13
@@ -5289,7 +5289,7 @@ msgstr "The above example will create 4 subjects titled 'Ancient History', 'US H
 
 #: /src/schooltool/course/browser/templates/f_course_table_filter.pt:41
 msgid "All levels"
-msgstr ""
+msgstr "All classes"
 
 #: /src/schooltool/course/browser/templates/f_course_view.pt:4
 msgid "Edit this course"
@@ -6127,7 +6127,7 @@ msgstr ""
 #: /src/schooltool/level/browser/templates/levels.pt:3
 #: /src/schooltool/level/browser/templates/levels.pt:6
 msgid "Grade Levels"
-msgstr ""
+msgstr "Classes"
 
 #: /src/schooltool/export/export.py:888
 msgid "Section Schedules"
@@ -6308,7 +6308,7 @@ msgstr ""
 
 #: /src/schooltool/export/importer.py:140
 msgid "is not a valid grade level id"
-msgstr ""
+msgstr "is not a valid grade class id"
 
 #: /src/schooltool/export/importer.py:141
 msgid "Username cannot contain non-ascii characters"
@@ -6950,40 +6950,40 @@ msgstr ""
 #: /src/schooltool/level/browser/flourish.zcml:82
 #: /src/schooltool/level/browser/level.py:50
 msgid "Add new level"
-msgstr ""
+msgstr "Add new class"
 
 #: /src/schooltool/level/browser/flourish.zcml:92
 msgid "Edit level"
-msgstr ""
+msgstr "Edit class"
 
 #: /src/schooltool/level/browser/flourish.zcml:120
 msgid "Reorder or Delete Levels"
-msgstr ""
+msgstr "Reorder or Delete Classes"
 
 #: /src/schooltool/level/browser/level.py:226
 #: /src/schooltool/level/browser/level.py:235
 msgid "Level information"
-msgstr ""
+msgstr "Class information"
 
 #: /src/schooltool/level/browser/templates/f_levels_related.pt:6
 msgid "Grade levels are the traditional means of tracking student progress across years and the sequence of curriculum."
-msgstr ""
+msgstr "Classes are the traditional means of tracking student progress across years and the sequence of curriculum."
 
 #: /src/schooltool/level/browser/templates/f_levels_view.pt:12
 msgid "Edit this level"
-msgstr ""
+msgstr "Edit this class"
 
 #: /src/schooltool/level/browser/templates/levels.pt:11
 msgid "Levels (student learning years) taught in ${school_name}"
-msgstr ""
+msgstr "Classes (student learning years) taught in ${school_name}"
 
 #: /src/schooltool/level/browser/templates/link_to_levels.pt:1
 msgid "Grade levels"
-msgstr ""
+msgstr "Classes"
 
 #: /src/schooltool/level/security.zcml:7
 msgid "The grade levels (student learning years)."
-msgstr ""
+msgstr "The classes (student learning years)."
 
 #: /src/schooltool/level/security.zcml:12
 msgid "Add/Remove"

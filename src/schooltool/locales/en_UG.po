@@ -2438,11 +2438,11 @@ msgstr ""
 
 #: /src/schooltool/app/browser/templates/f_section_csvimport_description.pt:21
 msgid "Each section description's first row contains the <strong>course SchoolTool ID</strong> and the <strong>instructor username</strong> for the new section."
-msgstr ""
+msgstr "Each section description's first row contains the <strong>subject SchoolTool ID</strong> and the <strong>instructor username</strong> for the new section."
 
 #: /src/schooltool/app/browser/templates/f_section_csvimport_description.pt:27
 msgid "If you want to update the sections instead, in section description's first row you should specify: <strong>course SchoolTool ID</strong>, <strong>instructor username</strong> and then <strong>section SchoolTool ID</strong> for corresponding sections in each term. <strong>Note:</strong> if your school has, say, 5 consecutive terms and you specify terms \"2\", \"4\" in the top of csv, you will need to provide 3 section ids, for terms \"2\", \"3\" and \"4\" respectively."
-msgstr ""
+msgstr "If you want to update the sections instead, in section description's first row you should specify: <strong>subject SchoolTool ID</strong>, <strong>instructor username</strong> and then <strong>section SchoolTool ID</strong> for corresponding sections in each term. <strong>Note:</strong> if your school has, say, 5 consecutive terms and you specify terms \"2\", \"4\" in the top of csv, you will need to provide 3 section ids, for terms \"2\", \"3\" and \"4\" respectively."
 
 #: /src/schooltool/app/browser/templates/f_section_csvimport_description.pt:34
 msgid "Then a number of rows specifying the section schedule <strong>may</strong> follow. First there's a row containing the <strong>timetable id</strong>. Then, several rows containing a <strong>day title</strong> and a <strong>period title</strong>, follows. Section schedule description is terminated by three asterisks ('***') in the first column."
@@ -2560,7 +2560,7 @@ msgstr ""
 #: /src/schooltool/export/export.py:882
 #: /src/schooltool/export/importer.py:1166
 msgid "Courses"
-msgstr ""
+msgstr "Subjects"
 
 #: /src/schooltool/app/browser/templates/index.pt:13
 #: /src/schooltool/export/export.py:890
@@ -2648,7 +2648,7 @@ msgstr ""
 
 #: /src/schooltool/app/browser/templates/timetables-csvimport.pt:43
 msgid "Each section description's first row contains the <strong>course id</strong> and the <strong>instructor id</strong> for the new section. Then a number of rows, each containing a <strong>day id</strong> and a <strong>period id</strong>, follows. The list of period descriptions is terminated by three asterisks ('***') in the first column. After the terminator, any number of <strong>person ids</strong> may follow, the denoted persons will be added to the section as learners."
-msgstr ""
+msgstr "Each section description's first row contains the <strong>subject id</strong> and the <strong>instructor id</strong> for the new section. Then a number of rows, each containing a <strong>day id</strong> and a <strong>period id</strong>, follows. The list of period descriptions is terminated by three asterisks ('***') in the first column. After the terminator, any number of <strong>person ids</strong> may follow, the denoted persons will be added to the section as learners."
 
 #: /src/schooltool/app/browser/templates/timetables-csvimport.pt:56
 #. Default: "\"three-day\" \"\",\"\",\"\" \"philosophy\",\"lorch\" \"Monday\",\"A\" \"Monday\",\"B\" \"Tuesday\",\"C\" \"***\" \"johnny\" \"billy\" \"\" \"literature\",\"guzman\" \"Wednesday\",\"B\" \"Wednesday\",\"C\" \"***\" \"johnny\" \"pete\""
@@ -2816,7 +2816,7 @@ msgstr ""
 
 #: /src/schooltool/app/browser/timetablecsvimport.py:519
 msgid "Courses not found: ${args}."
-msgstr ""
+msgstr "Subjects not found: ${args}."
 
 #: /src/schooltool/app/browser/timetablecsvimport.py:520
 msgid "Sections not found: ${args}."
@@ -4800,16 +4800,16 @@ msgstr ""
 #: /src/schooltool/course/browser/configure.zcml:96
 #: /src/schooltool/course/browser/flourish.zcml:299
 msgid "Add Course"
-msgstr ""
+msgstr "Add Subject"
 
 #: /src/schooltool/course/browser/configure.zcml:25
 msgid "Edit Course Information"
-msgstr ""
+msgstr "Edit Subject Information"
 
 #: /src/schooltool/course/browser/configure.zcml:85
 #: /src/schooltool/course/browser/templates/course-csvimport.pt:21
 msgid "Import Courses"
-msgstr ""
+msgstr "Import Subjects"
 
 #: /src/schooltool/course/browser/configure.zcml:183
 #: /src/schooltool/course/browser/configure.zcml:193
@@ -4847,7 +4847,7 @@ msgstr ""
 
 #: /src/schooltool/course/browser/course.py:108
 msgid "Course index"
-msgstr ""
+msgstr "Subject index"
 
 #: /src/schooltool/course/browser/course.py:481
 msgid "Delete ${course}"
@@ -4859,26 +4859,26 @@ msgstr ""
 #: /src/schooltool/course/browser/course.py:770
 #: /src/schooltool/course/browser/templates/course_container.pt:12
 msgid "Courses for ${schoolyear}"
-msgstr ""
+msgstr "Subjects for ${schoolyear}"
 
 #: /src/schooltool/course/browser/course.py:552
 #: /src/schooltool/course/interfaces.py:52
 msgid "Course ID"
-msgstr ""
+msgstr "Subject ID"
 
 #: /src/schooltool/course/browser/course.py:718
 #: /src/schooltool/course/browser/course.py:778
 msgid "Course Information"
-msgstr ""
+msgstr "Subject Information"
 
 #: /src/schooltool/course/browser/course.py:844
 #: /src/schooltool/course/browser/templates/f_course_filter.pt:6
 msgid "Title or course ID"
-msgstr ""
+msgstr "Title or subject ID"
 
 #: /src/schooltool/course/browser/course.py:893
 msgid "Manage courses"
-msgstr ""
+msgstr "Manage subjects"
 
 #: /src/schooltool/course/browser/csvimport.py:56
 #: /src/schooltool/group/browser/csvimport.py:51
@@ -4888,11 +4888,11 @@ msgstr ""
 
 #: /src/schooltool/course/browser/csvimport.py:87
 msgid "Course \"${course_title}\" credits \"${invalid_credits}\" value must be a number."
-msgstr ""
+msgstr "Subject \"${course_title}\" credits \"${invalid_credits}\" value must be a number."
 
 #: /src/schooltool/course/browser/csvimport.py:102
 msgid "Course \"${course_title}\" id \"${invalid_id}\" is invalid. ${error_message}"
-msgstr ""
+msgstr "Subject \"${course_title}\" id \"${invalid_id}\" is invalid. ${error_message}"
 
 #: /src/schooltool/course/browser/csvimport.py:170
 #: /src/schooltool/group/browser/csvimport.py:108
@@ -4915,7 +4915,7 @@ msgstr ""
 #: /src/schooltool/course/browser/templates/link_existing.pt:15
 #: /src/schooltool/course/browser/templates/unlink_section.pt:14
 msgid "Course"
-msgstr ""
+msgstr "Subject"
 
 #: /src/schooltool/course/browser/flourish.zcml:239
 #: /src/schooltool/course/browser/flourish.zcml:252
@@ -5056,7 +5056,7 @@ msgstr ""
 
 #: /src/schooltool/course/browser/section.py:1315
 msgid "If no title is specified, one will be created based on the course title."
-msgstr ""
+msgstr "If no title is specified, one will be created based on the subject title."
 
 #: /src/schooltool/course/browser/section.py:1323
 #: /src/schooltool/course/browser/section.py:1546
@@ -5069,7 +5069,7 @@ msgstr ""
 
 #: /src/schooltool/course/browser/section.py:1482
 msgid "Select a course"
-msgstr ""
+msgstr "Select a subject"
 
 #: /src/schooltool/course/browser/section.py:1499
 msgid "Additional locations can be added via the section view."
@@ -5193,11 +5193,11 @@ msgstr ""
 
 #: /src/schooltool/course/browser/templates/course-csvimport.pt:4
 msgid "Upload schooltool courses as CSV"
-msgstr ""
+msgstr "Upload schooltool subjects as CSV"
 
 #: /src/schooltool/course/browser/templates/course-csvimport.pt:24
 msgid "CSV data <strong>must</strong> include a course title,<strong>may</strong> include an optional course description, <strong>may</strong> include an optional course id, <strong>may</strong> include an optional government id and <strong>may</strong> include an optional credits value."
-msgstr ""
+msgstr "CSV data <strong>must</strong> include a subject title,<strong>may</strong> include an optional subject description, <strong>may</strong> include an optional subject id, <strong>may</strong> include an optional government id and <strong>may</strong> include an optional credits value."
 
 #: /src/schooltool/course/browser/templates/course-csvimport.pt:33
 #: /src/schooltool/course/browser/templates/f_course_csvimport_description.pt:12
@@ -5212,12 +5212,12 @@ msgstr ""
 
 #: /src/schooltool/course/browser/templates/course-csvimport.pt:39
 msgid "The above example will create 4 courses titled 'Ancient History', 'US History', 'World History' and 'Spanish'. The first and third courses will have the descriptions 'Pre-history through 1000 A.D.' and '1000 A.D. through the 20th century' respectively. The second and forth courses will have no description. The second, third and forth courses will have their course ids set to us-history and history-world. The forth course will have its government id set to spanish-gov and its credits value set to 5. If you will upload a CSV with titles or course ids that are already present in the database, existing courses will be updated. Course Ids take precedence when determining which course should be updated."
-msgstr ""
+msgstr "The above example will create 4 subjects titled 'Ancient History', 'US History', 'World History' and 'Spanish'. The first and third subjects will have the descriptions 'Pre-history through 1000 A.D.' and '1000 A.D. through the 20th century' respectively. The second and forth subjects will have no description. The second, third and forth subjects will have their subject ids set to us-history and history-world. The forth subject will have its government id set to spanish-gov and its credits value set to 5. If you will upload a CSV with titles or subject ids that are already present in the database, existing subjects will be updated. Subject Ids take precedence when determining which subject should be updated."
 
 #: /src/schooltool/course/browser/templates/course.pt:9
 #: /src/schooltool/course/browser/templates/section_linkage.pt:17
 msgid "${course} course for ${schoolyear}"
-msgstr ""
+msgstr "${course} subject for ${schoolyear}"
 
 #: /src/schooltool/course/browser/templates/course.pt:52
 #: /src/schooltool/person/browser/home.pt:20
@@ -5265,7 +5265,7 @@ msgstr ""
 
 #: /src/schooltool/course/browser/templates/f_completedcoursesviewlet.pt:6
 msgid "Completed Courses"
-msgstr ""
+msgstr "Completed Subjects"
 
 #: /src/schooltool/course/browser/templates/f_completedcoursesviewlet.pt:28
 msgid "${amount} credits"
@@ -5273,7 +5273,7 @@ msgstr ""
 
 #: /src/schooltool/course/browser/templates/f_confirm_delete_course.pt:1
 msgid "Deleting a course is permanent, irreversible, and destroys all data associated with the course. It is strongly recommended that you only delete a course that has been created in error or has no data associated with it."
-msgstr ""
+msgstr "Deleting a subject is permanent, irreversible, and destroys all data associated with the subject. It is strongly recommended that you only delete a subject that has been created in error or has no data associated with it."
 
 #: /src/schooltool/course/browser/templates/f_confirm_delete_section.pt:1
 msgid "Deleting a section is permanent, irreversible, and destroys all data associated with the section. It is strongly recommended that you only delete a section that has been created in error or has no data associated with it."
@@ -5281,11 +5281,11 @@ msgstr ""
 
 #: /src/schooltool/course/browser/templates/f_course_csvimport_description.pt:3
 msgid "CSV data <strong>must</strong> include a course title,<strong>may</strong> include an optional course description, <strong>may</strong> include an optional course SchoolTool ID, <strong>may</strong> include an optional Alternate ID and <strong>may</strong> include an optional credits value."
-msgstr ""
+msgstr "CSV data <strong>must</strong> include a subject title,<strong>may</strong> include an optional subject description, <strong>may</strong> include an optional subject SchoolTool ID, <strong>may</strong> include an optional Alternate ID and <strong>may</strong> include an optional credits value."
 
 #: /src/schooltool/course/browser/templates/f_course_csvimport_description.pt:19
 msgid "The above example will create 4 courses titled 'Ancient History', 'US History', 'World History' and 'Spanish'. The first and third courses will have the descriptions 'Pre-history through 1000 A.D.' and '1000 A.D. through the 20th century' respectively. The second and forth courses will have no description. The second, third and forth courses will have their SchoolTool IDs set to us-history and history-world. The forth course will have its Alternate ID set to spanish-gov and its credits value set to 5. If you will upload a CSV with titles or course ids that are already present in the database, existing courses will be updated. Course Ids take precedence when determining which course should be updated."
-msgstr ""
+msgstr "The above example will create 4 subjects titled 'Ancient History', 'US History', 'World History' and 'Spanish'. The first and third subjects will have the descriptions 'Pre-history through 1000 A.D.' and '1000 A.D. through the 20th century' respectively. The second and forth subjects will have no description. The second, third and forth subjects will have their SchoolTool IDs set to us-history and history-world. The forth subject will have its Alternate ID set to spanish-gov and its credits value set to 5. If you will upload a CSV with titles or subject ids that are already present in the database, existing subjects will be updated. Subject Ids take precedence when determining which subject should be updated."
 
 #: /src/schooltool/course/browser/templates/f_course_table_filter.pt:41
 msgid "All levels"
@@ -5293,31 +5293,31 @@ msgstr ""
 
 #: /src/schooltool/course/browser/templates/f_course_view.pt:4
 msgid "Edit this course"
-msgstr ""
+msgstr "Edit this subject"
 
 #: /src/schooltool/course/browser/templates/f_course_view.pt:78
 msgid "This course has no sections"
-msgstr ""
+msgstr "This subject has no sections"
 
 #: /src/schooltool/course/browser/templates/f_course_view.pt:84
 msgid "Edit responsible parties for this course"
-msgstr ""
+msgstr "Edit responsible parties for this subject"
 
 #: /src/schooltool/course/browser/templates/f_course_view.pt:92
 msgid "These users can modify the course."
-msgstr ""
+msgstr "These users can modify the subject."
 
 #: /src/schooltool/course/browser/templates/f_course_view.pt:95
 msgid "This course has no responsible parties"
-msgstr ""
+msgstr "This subject has no responsible parties"
 
 #: /src/schooltool/course/browser/templates/f_courses_related.pt:6
 msgid "A course in SchoolTool describes the curriculum taught in a section."
-msgstr ""
+msgstr "A subject in SchoolTool describes the curriculum taught in a section."
 
 #: /src/schooltool/course/browser/templates/f_courses_related.pt:10
 msgid "For example, Algebra I, American History, 3rd Grade Reading, and Advanced Physics are all courses."
-msgstr ""
+msgstr "For example, Algebra I, American History, 3rd Grade Reading, and Advanced Physics are all subject."
 
 #: /src/schooltool/course/browser/templates/f_coursesviewlet.pt:7
 msgid "Sections taught"
@@ -5415,7 +5415,7 @@ msgstr ""
 
 #: /src/schooltool/course/browser/templates/f_section_table_filter.pt:41
 msgid "All courses"
-msgstr ""
+msgstr "All subjects"
 
 #: /src/schooltool/course/browser/templates/f_section_view.pt:4
 msgid "Edit this section"
@@ -5423,7 +5423,7 @@ msgstr ""
 
 #: /src/schooltool/course/browser/templates/f_section_view.pt:77
 msgid "This section has no courses"
-msgstr ""
+msgstr "This section has no subjects"
 
 #: /src/schooltool/course/browser/templates/f_section_view.pt:83
 msgid "Edit terms for this section"
@@ -5583,11 +5583,11 @@ msgstr ""
 
 #: /src/schooltool/course/interfaces.py:37
 msgid "An internal identifier of this course."
-msgstr ""
+msgstr "An internal identifier of this subject."
 
 #: /src/schooltool/course/interfaces.py:53
 msgid "School identifier of this course."
-msgstr ""
+msgstr "School identifier of this subject."
 
 #: /src/schooltool/course/interfaces.py:58
 msgid "Alternate ID"
@@ -5607,7 +5607,7 @@ msgstr ""
 
 #: /src/schooltool/course/interfaces.py:92
 msgid "An identifier for a section, made up of instructor names, courses, and meeting time."
-msgstr ""
+msgstr "An identifier for a section, made up of instructor names, subjects, and meeting time."
 
 #: /src/schooltool/course/interfaces.py:130
 msgid "An internal identifier of this section."
@@ -5708,7 +5708,7 @@ msgstr ""
 
 #: /src/schooltool/course/security.zcml:94
 msgid "A course in SchoolTool describes a set curriculum taught in a section."
-msgstr ""
+msgstr "A subject in SchoolTool describes a set curriculum taught in a section."
 
 #: /src/schooltool/course/security.zcml:99
 #: /src/schooltool/course/security.zcml:132
@@ -6172,7 +6172,7 @@ msgstr ""
 
 #: /src/schooltool/export/flourish.zcml:153
 msgid "A single .xls spreadsheet containing the basic structure of the school, including students, contacts, years, terms, courses, groups and timetables.  Can be modified and re-imported."
-msgstr ""
+msgstr "A single .xls spreadsheet containing the basic structure of the school, including students, contacts, years, terms, subjects, groups and timetables.  Can be modified and re-imported."
 
 #: /src/schooltool/export/flourish.zcml:153
 msgid "School Export"
@@ -6272,11 +6272,11 @@ msgstr ""
 
 #: /src/schooltool/export/importer.py:131
 msgid "is not a valid course in the given school year"
-msgstr ""
+msgstr "is not a valid subject in the given school year"
 
 #: /src/schooltool/export/importer.py:132
 msgid "has no courses"
-msgstr ""
+msgstr "has no subjects"
 
 #: /src/schooltool/export/importer.py:133
 msgid "is not a valid username"
@@ -6328,7 +6328,7 @@ msgstr ""
 
 #: /src/schooltool/export/importer.py:145
 msgid "must have a course"
-msgstr ""
+msgstr "must have a subject"
 
 #: /src/schooltool/export/importer.py:146
 msgid "must have a term"
@@ -6364,7 +6364,7 @@ msgstr ""
 
 #: /src/schooltool/export/importer.py:154
 msgid "course credits need to be a valid number"
-msgstr ""
+msgstr "subject credits need to be a valid number"
 
 #: /src/schooltool/export/importer.py:155
 msgid "gender must be male or female"
@@ -6380,7 +6380,7 @@ msgstr ""
 
 #: /src/schooltool/export/importer.py:158
 msgid "has an invalid course id for the given school year"
-msgstr ""
+msgstr "has an invalid subject id for the given school year"
 
 #: /src/schooltool/export/importer.py:159
 msgid "end term cannot be before start term"
@@ -7843,7 +7843,7 @@ msgstr ""
 
 #: /src/schooltool/schoolyear/browser/templates/f_confirm_delete_schoolyear.pt:1
 msgid "Deleting a school year is permanent, irreversible, and destroys all data associated with the school year, including all courses, sections of courses, timetables and groups. It is strongly recommended that you only delete school year that has been created in error or has no data associated with it."
-msgstr ""
+msgstr "Deleting a school year is permanent, irreversible, and destroys all data associated with the school year, including all subjects, sections of subjects, timetables and groups. It is strongly recommended that you only delete school year that has been created in error or has no data associated with it."
 
 #: /src/schooltool/schoolyear/browser/templates/f_manage_schoolyears_overview.pt:4
 #: /src/schooltool/schoolyear/browser/templates/f_manage_schoolyears_overview.pt:15
@@ -7887,7 +7887,7 @@ msgstr ""
 
 #: /src/schooltool/schoolyear/browser/templates/f_schoolyear_add.pt:47
 msgid "Copy courses from active year?"
-msgstr ""
+msgstr "Copy subjects from active year?"
 
 #: /src/schooltool/schoolyear/browser/templates/f_schoolyear_add.pt:56
 msgid "Copy timetable schemas from active year?"
@@ -7911,7 +7911,7 @@ msgstr ""
 
 #: /src/schooltool/schoolyear/browser/templates/schoolyear_add.pt:40
 msgid "All Courses"
-msgstr ""
+msgstr "All Subjects"
 
 #: /src/schooltool/schoolyear/browser/templates/schoolyear_add.pt:50
 msgid "All Timetable Schemas"
@@ -8388,7 +8388,7 @@ msgstr ""
 
 #: /src/schooltool/term/browser/templates/f_confirm_delete_term.pt:1
 msgid "Deleting a term is permanent, irreversible, and destroys all data associated with the term, including all sections of courses. It is strongly recommended that you only delete a term that has been created in error or has no data associated with it."
-msgstr ""
+msgstr "Deleting a term is permanent, irreversible, and destroys all data associated with the term, including all sections of subjects. It is strongly recommended that you only delete a term that has been created in error or has no data associated with it."
 
 #: /src/schooltool/term/browser/templates/f_term.pt:4
 msgid "Edit this term's information"

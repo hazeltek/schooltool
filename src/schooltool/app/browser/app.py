@@ -1002,7 +1002,8 @@ class FlourishApplicationPreferencesView(Form, form.EditForm):
 
 class FlourishSchoolNameEditView(FlourishApplicationPreferencesView):
 
-    fields = field.Fields(IApplicationPreferences).select('title', 'logo')
+    fields = field.Fields(IApplicationPreferences).select(
+        'title', 'logo', 'code', 'peas_region')
     legend = _('School Name')
 
     def updateActions(self):

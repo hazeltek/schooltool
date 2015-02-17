@@ -916,7 +916,7 @@ class PersonImporter(ImporterBase):
     def process(self):
         sh = self.sheet
         nrows = sh.nrows
-
+        levels = ILevelContainer(self.context)
         fields = IDemographicsFields(ISchoolToolApplication(None))
         if self.group_name:
             num_errors = len(self.errors)
@@ -970,28 +970,35 @@ class PersonImporter(ImporterBase):
             else:
                 person = BasicPerson('name', 'first_name', 'last_name')
 
+            data ['level_id'] = self.getTextFromCell(sh, row, 10)
+            if data['level_id'] and data['level_id'] not in levels:
+                self.error(row, 10, ERROR_INVALID_LEVEL_ID)
+            level = levels.get(data['level_id'])
+            if data['level_id']:
+                data['level_date'] = self.getDateFromCell(sh, row, 11)
+
             demographics = IDemographics(person)
             for n, field in enumerate(fields):
                 # /me wraps head in tinfoil for protection:
                 if field.required:
                     if isinstance(field, DateFieldDescription):
-                        value = self.getDateFromCell(sh, row, n + 10)
+                        value = self.getDateFromCell(sh, row, n + 12)
                     elif isinstance(field, BoolFieldDescription):
-                        value = self.getRequiredBoolFromCell(sh, row, n + 10)
+                        value = self.getRequiredBoolFromCell(sh, row, n + 12)
                     elif isinstance(field, IntFieldDescription):
-                        value = self.getRequiredIntFromCell(sh, row, n + 10)
+                        value = self.getRequiredIntFromCell(sh, row, n + 12)
                     else:
-                        value = self.getRequiredTextFromCell(sh, row, n + 10)
+                        value = self.getRequiredTextFromCell(sh, row, n + 12)
                 else:
                     if isinstance(field, DateFieldDescription):
-                        value = self.getDateFromCell(sh, row, n + 10,
+                        value = self.getDateFromCell(sh, row, n + 12,
                                                      default=None)
                     elif isinstance(field, BoolFieldDescription):
-                        value = self.getBoolFromCell(sh, row, n + 10)
+                        value = self.getBoolFromCell(sh, row, n + 12)
                     elif isinstance(field, IntFieldDescription):
-                        value = self.getIntFromCell(sh, row, n + 10)
+                        value = self.getIntFromCell(sh, row, n + 12)
                     else:
-                        value = self.getTextFromCell(sh, row, n + 10)
+                        value = self.getTextFromCell(sh, row, n + 12)
                     if value == '':
                         value = None
                 demographics[field.name] = value
@@ -1000,6 +1007,9 @@ class PersonImporter(ImporterBase):
                 person = self.addPerson(person, data)
                 if group and person not in group.members:
                     group.members.add(removeSecurityProxy(person))
+                if level is not None and data['level_date']:
+                    removeSecurityProxy(person).levels.on(
+                        data['level_date']).relate(removeSecurityProxy(level))
             self.progress(row, nrows)
 
 

@@ -400,18 +400,13 @@
       />
 
   <flourish:viewlet
-      name="manage-timetables-overview"
-      after="manage-years-overview"
-      view="schooltool.app.browser.app.ManageSchool"
+      name="timetables"
+      after="terms"
+      title="Timetables"
+      class="schooltool.app.browser.app.YearLinkViewlet"
+      manager="schooltool.app.browser.app.CustomizeYearLinks"
       permission="schooltool.view"
-      manager="schooltool.skin.flourish.page.IPageContentManager"
-      class=".app.FlourishManageTimetablesOverview"
       />
-
-  <security:allow
-     interface=".app.FlourishManageTimetablesOverview"
-     crowds="managers administrators clerks"
-     permission="schooltool.view" />
 
   <!-- misplaced integration -->
 

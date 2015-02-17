@@ -314,10 +314,10 @@
 
   <flourish:viewlet
       name="manage-resources-overview"
-      after="manage-timetables-overview"
+      after="manage-contacts-overview"
       view="schooltool.app.browser.app.ManageSchool"
       permission="schooltool.view"
-      manager="schooltool.skin.flourish.page.IPageContentManager"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
       class=".resource.FlourishManageResourcesOverview"
       />
 
@@ -480,6 +480,13 @@
       class=".resource.ResourceReportPDFView"
       content_template="rml/resource_report.pt"
       permission="schooltool.edit"
+      />
+
+  <flourish:page
+      name="json"
+      for="schooltool.resource.interfaces.IResourceContainer"
+      class=".resource.ResourceContainerJSONSearchView"
+      permission="schooltool.view"
       />
 
 </configure>

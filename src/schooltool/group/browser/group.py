@@ -18,19 +18,27 @@
 """
 group views.
 """
+
+from reportlab.lib import units, pagesizes
+
 import zc.table.table
 import zc.table.column
 from zope.app.dependable.interfaces import IDependable
 from zope.cachedescriptors.property import Lazy
+from zope.catalog.interfaces import ICatalog
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
+from zope.interface import Attribute
+from zope.interface import Interface
 from zope.intid.interfaces import IIntIds
 from zope.traversing.browser.interfaces import IAbsoluteURL
 from zope.interface import implements, directlyProvides
 from zope.publisher.interfaces.browser import IBrowserRequest
 from zope.publisher.browser import BrowserView
 from zope.component import adapts
+from zope.component import getAdapter
 from zope.component import getUtility
 from zope.component import getMultiAdapter
+from zope.component import getAdapters
 from zope.security.checker import canAccess
 from zope.i18n.interfaces.locales import ICollator
 from zope.viewlet.viewlet import ViewletBase
@@ -38,11 +46,15 @@ from zope.container.interfaces import INameChooser
 from zope.security import checkPermission
 from zope.security.proxy import removeSecurityProxy
 from zope.traversing.browser.absoluteurl import absoluteURL
+from zope.proxy import sameProxiedObjects
 from zope.i18n import translate
 from z3c.form import field, button, form
 from z3c.form.interfaces import HIDDEN_MODE
 from zc.table.interfaces import ISortableColumn
 from zope.security.interfaces import Unauthorized
+from zope.schema import Choice, Int
+from zope.schema.interfaces import IContextSourceBinder
+from zope.schema.vocabulary import SimpleVocabulary
 
 from schooltool.app.browser.app import ActiveSchoolYearContentMixin
 from schooltool.app.interfaces import ISchoolToolApplication
@@ -54,6 +66,7 @@ from schooltool.app.browser.states import EditTemporalRelationships
 from schooltool.app.browser.states import TemporalRelationshipAddTableMixin
 from schooltool.app.browser.states import TemporalRelationshipRemoveTableMixin
 from schooltool.app.browser.app import RelationshipViewBase
+from schooltool.app.browser.app import ContainerSearchContent
 from schooltool.app.membership import Membership
 from schooltool.person.interfaces import IPerson
 from schooltool.person.interfaces import IPersonFactory
@@ -61,10 +74,19 @@ from schooltool.person.browser.person import PersonTableFilter
 from schooltool.basicperson.browser.person import StatusPersonListTable
 from schooltool.basicperson.browser.person import EditPersonTemporalRelationships
 from schooltool.basicperson.browser.person import BasicPersonTable
+from schooltool.basicperson.browser.person import BasicPersonContainerJSONSearchView
+from schooltool.basicperson.demographics import LEAVE_SCHOOL_FIELDS
+from schooltool.basicperson.interfaces import IDemographics
+from schooltool.basicperson.interfaces import IDemographicsFields
+from schooltool.basicperson.interfaces import IBasicPerson
+from schooltool.contact.interfaces import IAddress
+from schooltool.contact.interfaces import IContact
+from schooltool.contact.interfaces import IContactable
 from schooltool.course.interfaces import ISection
 from schooltool.schoolyear.interfaces import ISchoolYear
 from schooltool.schoolyear.interfaces import ISchoolYearContainer
 from schooltool.group.group import Group
+from schooltool.group.group import defaultGroups
 from schooltool.group.interfaces import IGroup
 from schooltool.group.interfaces import IGroupMember
 from schooltool.group.interfaces import IGroupContainer, IGroupContained
@@ -73,6 +95,9 @@ from schooltool.common.inlinept import InheritTemplate
 from schooltool.common.inlinept import InlineViewPageTemplate
 from schooltool.skin import flourish
 from schooltool import table
+from schooltool.app.utils import vocabulary
+from schooltool.term.interfaces import IDateManager
+from schooltool.relationship.temporal import ACTIVE
 
 from schooltool.common import SchoolToolMessage as _
 from schooltool.basicperson.browser.person import FlourishPersonIDCardsViewBase
@@ -830,18 +855,76 @@ class FlourishMemberViewPersons(EditPersonTemporalRelationships):
         return self.context.members
 
 
+class FlourishManageStudentsOverview(ContainerSearchContent):
+
+    add_view_name = 'addStudent.html'
+    hint = _('Manage students')
+    group_id = 'students'
+
+    @property
+    def title(self):
+        return self.container.title
+
+    @Lazy
+    def container(self):
+        groups = IGroupContainer(self.schoolyear)
+        return groups[self.group_id]
+
+    def add_url(self):
+        persons = ISchoolToolApplication(None)['persons']
+        return self.url_with_schoolyear_id(persons, view_name=self.add_view_name)
+
+    def count(self):
+        return len(self.container.members)
+
+
+class FlourishManageTeachersOverview(FlourishManageStudentsOverview):
+
+    add_view_name = 'addTeacher.html'
+    hint = _('Manage teachers')
+    group_id = 'teachers'
+
+
 class FlourishManageGroupsOverview(flourish.page.Content,
                                    ActiveSchoolYearContentMixin):
 
     body_template = ViewPageTemplateFile(
         'templates/f_manage_groups_overview.pt')
 
-    @property
+    @Lazy
     def groups(self):
         return IGroupContainer(self.schoolyear, None)
 
+    @Lazy
     def groups_url(self):
         return self.url_with_schoolyear_id(self.context, view_name='groups')
+
+    def groups_info(self):
+        persons = self.context['persons']
+        result = []
+        order = [
+            ('clerks', 'addClerk'),
+            ('administrators', 'addAdministrator'),
+            ('manager', 'addManager'),
+        ]
+        for group_id, add_view_name in order:
+            group = self.groups.get(group_id)
+            if group is not None:
+                add_url = self.url_with_schoolyear_id(
+                    persons, view_name='%s.html' % add_view_name)
+                result.append({
+                    'title': group.title,
+                    'url': self.url_with_schoolyear_id(group),
+                    'add_url': add_url,
+                })
+        groups_add_url = '%s/addSchoolToolGroup.html' % (
+            absoluteURL(self.groups, self.request))
+        result.append({
+            'title': _('Other Groups'),
+            'url': self.groups_url,
+            'add_url': groups_add_url,
+        })
+        return result
 
 
 class FlourishRequestGroupIDCardsView(RequestRemoteReportDialog):
@@ -938,3 +1021,481 @@ class PersonProfileGroupsPart(table.pdf.RMLTablePart):
     table_name = "groups_table"
     title = _("Group memberships")
 
+
+class GroupPDFViewBase(flourish.report.PlainPDFPage):
+
+    pass
+
+
+class SignInOutPDFView(GroupPDFViewBase):
+
+    name = _("Sign In & Out")
+
+    @property
+    def message_title(self):
+        return _("group ${title} sign in & out",
+                 mapping={'title': self.context.title})
+
+    @property
+    def scope(self):
+        schoolyear = ISchoolYear(self.context.__parent__)
+        return schoolyear.title
+
+    @property
+    def title(self):
+        return self.context.title
+
+    @property
+    def base_filename(self):
+        return 'group_sign_in_out_%s' % self.context.__name__
+
+
+class RequestSignInOutReportView(RequestRemoteReportDialog):
+
+    report_builder = 'sign_in_out.pdf'
+
+
+def number_getter(person, formatter):
+    for i, item in enumerate(formatter.items):
+        if sameProxiedObjects(person, item):
+            return i + 1
+
+
+class SignInOutTable(table.ajax.Table):
+
+    batch_size = 0
+    visible_column_names = ['number', 'title', 'time_in', 'signing_in',
+                            'time_out', 'signing_out']
+
+    def items(self):
+        return self.context.members
+
+    def sortOn(self):
+        return getUtility(IPersonFactory).sortOn()
+
+    def columns(self):
+        first_name = table.column.LocaleAwareGetterColumn(
+            name='first_name',
+            title=_(u'First Name'),
+            getter=lambda i, f: i.first_name,
+            subsort=True)
+        last_name = table.column.LocaleAwareGetterColumn(
+            name='last_name',
+            title=_(u'Last Name'),
+            getter=lambda i, f: i.last_name,
+            subsort=True)
+        number = zc.table.column.GetterColumn(
+            name='number',
+            title=u'#',
+            getter=number_getter)
+        title = table.column.LocaleAwareGetterColumn(
+            name='title',
+            title=_(u'Name'),
+            getter=lambda i, f: i.title,
+            subsort=True)
+        time_in = zc.table.column.GetterColumn(
+            name='time_in',
+            title=_(u'Time In'),
+            getter=lambda i, f: None)
+        signing_in = zc.table.column.GetterColumn(
+            name='signing_in',
+            title=_(u'Person signing in'),
+            getter=lambda i, f: None)
+        time_out = zc.table.column.GetterColumn(
+            name='time_out',
+            title=_(u'Time Out'),
+            getter=lambda i, f: None)
+        signing_out = zc.table.column.GetterColumn(
+            name='signing_out',
+            title=_(u'Person signing out'),
+            getter=lambda i, f: None)
+        return [first_name, last_name, number, title,
+                time_in, signing_in, time_out, signing_out]
+
+
+class SignInOutTablePart(table.pdf.RMLTablePart):
+
+    table_name = 'sign_in_out_table'
+    table_style = 'sign-in-out'
+    template = flourish.templates.XMLFile('rml/sign_in_out.pt')
+
+    def getColumnWidths(self, rml_columns):
+        return '5% 25% 10% 25% 10% 25%'
+
+
+class OptionalRowVocabulary(SimpleVocabulary):
+
+    implements(IContextSourceBinder)
+
+    def __init__(self, context):
+        self.context = context
+        terms = self.createTerms(self.context.get('options'))
+        SimpleVocabulary.__init__(self, terms)
+
+    def createTerms(self, options):
+        result = []
+        for option in options:
+            result.append(self.createTerm(
+                option['value'],
+                option['token'],
+                option['title'],
+            ))
+        return result
+
+
+def OptionalRowVocabularyFactory():
+    return OptionalRowVocabulary
+
+
+class IRequestStudentNameLabels(Interface):
+
+    optional = Choice(
+        title=_('Optional row'),
+        source='schooltool.group.student_name_labels_optional_row',
+        required=False)
+
+
+class IColumnProvider(Interface):
+
+    order = Int(title=u'Order', required=True)
+
+    columns = Attribute('Iterable with zc.table columns')
+
+
+class ColumnProvider(object):
+
+    implements(IColumnProvider)
+    adapts(flourish.page.PageBase)
+
+    def __init__(self, view):
+        self.context = view
+
+    def columns(self):
+        raise NotImplemented()
+
+
+class DetailsColumnProvider(ColumnProvider):
+
+    order = 0
+
+    @Lazy
+    def columns(self):
+        result = []
+        fields = ['preferred_name', 'birth_date']
+        for name in fields:
+            result.append(zc.table.column.GetterColumn(
+                name=name,
+                title=IBasicPerson[name].title,
+                getter=self.get_person_detail(name)
+                ))
+        return result
+
+    def get_person_detail(self, field):
+        def getter(person, formatter):
+            return getattr(person, field, None) or ''
+        return getter
+
+
+class DemographicsColumnProvider(ColumnProvider):
+
+    order = 1
+
+    @Lazy
+    def columns(self):
+        result = []
+        limit_keys = ['students']
+        dfs = IDemographicsFields(ISchoolToolApplication(None))
+        for df in dfs.filter_keys(limit_keys):
+            name = df.name
+            if name not in LEAVE_SCHOOL_FIELDS:
+                result.append(zc.table.column.GetterColumn(
+                    name=name,
+                    title=df.title,
+                    getter=self.get_person_demographics(name)
+                    ))
+        return result
+
+    def get_person_demographics(self, field):
+        def getter(person, formatter):
+            return IDemographics(person).get(field) or ''
+        return getter
+
+
+class LevelColumnProvider(ColumnProvider):
+
+    order = 2
+
+    @Lazy
+    def columns(self):
+        return [
+            zc.table.column.GetterColumn(
+                name='level',
+                title=_('Grade Level'),
+                getter=self.get_person_level)
+        ]
+
+    def get_person_level(self, person, formatter):
+        result = []
+        today = getUtility(IDateManager).today
+        for level in person.levels.on(today).any(ACTIVE):
+            result.append(level)
+        return ', '.join([level.title for level in result])
+
+
+class GroupTitleColumnProvider(ColumnProvider):
+
+    order = 3
+
+    @Lazy
+    def columns(self):
+        return [
+            zc.table.column.GetterColumn(
+                name='group',
+                title=_('Group title'),
+                getter=self.get_group_title)
+        ]
+
+    def get_group_title(self, person, formatter):
+        view = self.context
+        group = view.context
+        return group.title
+
+
+class RequestStudentNameLabelsReportView(RequestRemoteReportDialog):
+
+    report_builder = 'student_name_labels.pdf'
+
+    fields = field.Fields(IRequestStudentNameLabels)
+
+    def resetForm(self):
+        RequestRemoteReportDialog.resetForm(self)
+        self.form_params['options'] = self.options()
+
+    def options(self):
+        result = []
+        providers = sorted(getAdapters((self,), IColumnProvider),
+                           key=lambda (name, provider): provider.order)
+        for name, provider in providers:
+            for column in provider.columns:
+                token = '%s.%s' % (name, column.name)
+                result.append({
+                    'token': token,
+                    'title': column.title,
+                    'value': token,
+                    })
+        return result
+
+    def updateTaskParams(self, task):
+        optional = self.form_params.get('optional')
+        if optional is not None:
+            task.request_params['optional'] = optional
+
+
+class StudentNameLabelsPDFView(GroupPDFViewBase):
+
+    page_size = pagesizes.LETTER
+    margin = flourish.report.Box(0.5*units.inch, (3.0/16.0)*units.inch)
+
+    @property
+    def message_title(self):
+        return _("group ${title} student name labels",
+                 mapping={'title': self.context.title})
+
+    @property
+    def scope(self):
+        schoolyear = ISchoolYear(self.context.__parent__)
+        return schoolyear.title
+
+    @property
+    def title(self):
+        return self.context.title
+
+    @property
+    def base_filename(self):
+        return 'group_student_name_labels_%s' % self.context.__name__
+
+
+class StudentNameLabelsTablePart(table.pdf.RMLTablePart):
+
+    table_name = 'student_name_labels_table'
+    table_style = 'student-name-labels'
+    paragraph_style = 'label-attr-center'
+    template = flourish.templates.XMLFile('rml/student_name_labels.pt')
+    column_count = 3
+    row_height = 0.99 * units.inch
+
+    def getColumnWidths(self, rml_columns):
+        result = ['%.1f%%' % (100.0/self.column_count)] * self.column_count
+        return ' '.join(result)
+
+    def getRowHeights(self, rows):
+        result = ['%.2f' % self.row_height] * len(rows)
+        return ' '.join(result)
+
+    def getRows(self, table):
+        rows = table['rows']
+        return [rows[i:i+self.column_count]
+                for i in range(0, len(rows), self.column_count)]
+
+
+class StudentNameLabelsTable(table.ajax.Table):
+
+    batch_size = 0
+
+    def items(self):
+        return self.context.members
+
+    def sortOn(self):
+        return getUtility(IPersonFactory).sortOn()
+
+    def columns(self):
+        first_name = table.column.LocaleAwareGetterColumn(
+            name='first_name',
+            title=_(u'First Name'),
+            getter=lambda i, f: i.first_name,
+            subsort=True)
+        last_name = table.column.LocaleAwareGetterColumn(
+            name='last_name',
+            title=_(u'Last Name'),
+            getter=lambda i, f: i.last_name,
+            subsort=True)
+        result = [first_name, last_name]
+        optional_column_token = self.request.get('optional')
+        if optional_column_token is not None:
+            provider_name, column_name = optional_column_token.split('.')
+            provider = getAdapter(self.view, IColumnProvider,
+                                  name=provider_name)
+            optional_column = None
+            for column in provider.columns:
+                if column.name == column_name:
+                    optional_column = column
+                    break
+            if optional_column is not None:
+                result.append(optional_column)
+        return result
+
+
+class StudentNameLabelsPageTemplate(flourish.report.PlainPageTemplate):
+
+    @Lazy
+    def frame(self):
+        doc_w, doc_h = self.manager.page_size
+        margin = flourish.report.Box(0, 0)
+        width = (doc_w - self.manager.margin.left - self.manager.margin.right
+                 - margin.left - margin.right)
+        height = (doc_h - self.manager.margin.top - self.manager.margin.bottom
+                  - margin.top - margin.bottom)
+        x = self.manager.margin.left + margin.left
+        y = self.manager.margin.bottom + margin.bottom
+        return {
+            'height': height,
+            'margin': margin,
+            'width': width,
+            'x': x,
+            'y': y,
+            }
+
+
+class RequestMailingLabelsReportView(RequestRemoteReportDialog):
+
+    report_builder = 'mailing_labels.pdf'
+
+
+class MailingLabelsPDFView(StudentNameLabelsPDFView):
+
+    @property
+    def message_title(self):
+        return _("group ${title} mailing labels",
+                 mapping={'title': self.context.title})
+
+    @property
+    def scope(self):
+        schoolyear = ISchoolYear(self.context.__parent__)
+        return schoolyear.title
+
+    @property
+    def title(self):
+        return self.context.title
+
+    @property
+    def base_filename(self):
+        return 'group_mailing_labels_%s' % self.context.__name__
+
+
+class MailingLabelsTablePart(StudentNameLabelsTablePart):
+
+    table_name = 'mailing_labels_table'
+    table_style = 'mailing-labels'
+    paragraph_style = 'label-attr-left'
+    column_count = 2
+    row_height = 1.99 * units.inch
+
+
+def city_getter(contact, formatter):
+    contact = IContact(contact)
+    city = contact.city
+    if city is not None:
+        city += ','
+    state = contact.state
+    postal_code = contact.postal_code
+    return ' '.join(filter(None, [city, state, postal_code]))
+
+
+class MailingLabelsTable(table.ajax.Table):
+
+    batch_size = 0
+
+    def has_address(self, contact):
+        for field_name in IAddress:
+            if getattr(contact, field_name):
+                return True
+        return False
+            
+    def items(self):
+        result = []
+        for member in self.context.members:
+            if self.has_address(IContact(member)):
+                result.append(member)
+            for contact in IContactable(member).contacts:
+                if self.has_address(contact):
+                    result.append(contact)
+        return result
+
+    def columns(self):
+        title = table.column.LocaleAwareGetterColumn(
+            name='title',
+            title=_(u'Name'),
+            getter=lambda i, f: i.title,
+            subsort=True)
+        address_1 = zc.table.column.GetterColumn(
+            name='address_1',
+            title=_(u'Address 1'),
+            getter=lambda i, f: IContact(i).address_line_1)
+        address_2 = zc.table.column.GetterColumn(
+            name='address_2',
+            title=_(u'Address 2'),
+            getter=lambda i, f: IContact(i).address_line_2)
+        city = zc.table.column.GetterColumn(
+            name='city',
+            title=_(u'City'),
+            getter=city_getter)
+        country = zc.table.column.GetterColumn(
+            name='country',
+            title=_(u'Country'),
+            getter=lambda i, f: IContact(i).country)
+        return [title, address_1, address_2, city, country]
+
+
+class GroupJSONSearchView(BasicPersonContainerJSONSearchView):
+
+    @property
+    def items(self):
+        result = []
+        int_ids = getUtility(IIntIds)
+        items = super(GroupJSONSearchView, self).items
+        if items:
+            for person_id in items.uids:
+                person = int_ids.getObject(person_id)
+                if person in self.context.members:
+                    result.append(person)
+        return result

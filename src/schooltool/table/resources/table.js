@@ -277,8 +277,36 @@ ST.table = function() {
           var element = event.target;
           $(element).closest('form').find('tbody input[type="checkbox"]').attr('checked', false);
           event.preventDefault();
-      }
-
+      },
+      add_autocomplete: function(selector, json_url) {
+          $(ST.dialogs.jquery_id(selector)).autocomplete({
+              minLength: 3,
+              focus: function(event, ui) {
+                  return false;
+              },
+              source: function(request, response) {
+                  var form = $(ST.dialogs.jquery_id(selector)).closest('form'),
+                      data = form.serializeArray();
+                  data.push({
+                      name: 'search',
+                      value: request.term
+                  });
+                  $.ajax({
+                      url: json_url,
+                      data: data,
+                      dataType: 'json',
+                      success: response,
+                      error: function() {
+                          response([]);
+                      }
+                  });
+              },
+              select: function(event, ui) {
+                  window.location.href = ui.item.url;
+                  return false;
+              }
+          });
+       }
   };
 
 }();

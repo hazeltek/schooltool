@@ -1,0 +1,59 @@
+<div tal:attributes="id view/container_id" i18n:domain="schooltool">
+</div>
+<form>
+  <div class="select">
+    <select size="4" tal:attributes="id view/select_id">
+      <option disabled="disabled" class="separator"
+              tal:content="view/title" />
+      <tal:block tal:repeat="item view/items">
+        <tal:block define="url item/url;
+                           link_id item/link_id;
+                           title item/title">
+          <option tal:content="title"
+                  tal:condition="item/is_report_link"
+                  tal:attributes="value link_id;
+                                  id link_id;
+                                  title item/description;" />
+	  <script>ST.state.push()</script>
+	  <tal:script replace="structure scriptlocal:
+			       url;
+			       title;
+			       link_id;" />
+	  <script>
+	    $(ST.dialogs.jquery_id(ST.local.link_id)).data(
+	        'info',
+		{title: ST.local.title, url: ST.local.url});
+	  </script>
+	  <script>ST.state.pop()</script>
+        </tal:block>
+      </tal:block>
+    </select>
+  </div>
+  <div class="buttons">
+    <input type="button" class="button-cancel" value="Get Report"
+           i18n:attributes="value"
+           tal:attributes="id view/button_id" />
+    <script>ST.state.push()</script>
+    <tal:script replace="structure scriptlocal:
+                         button_id view/button_id;
+                         select_id view/select_id;
+                         container_id view/container_id" />
+    <script>
+      $(ST.dialogs.jquery_id(ST.local.button_id)).click(
+          function(){
+              var container_id = ST.local.container_id,
+                  select_id = ST.local.select_id;
+              return function(button) {
+                  var option = $(ST.dialogs.jquery_id(select_id) + ' option:selected'),
+                      option_value = option.val();
+                  if (option_value) {
+                      ST.dialogs.open_modal_form(option.data('info').url,
+                                                 container_id,
+                                                 option.data('info').title);
+                  }
+                  return false;
+              }}());
+    </script>
+    <script>ST.state.pop()</script>
+  </div>
+</form>

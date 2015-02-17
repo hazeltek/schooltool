@@ -29,6 +29,7 @@ from zc.table.column import GetterColumn
 
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from zope.cachedescriptors.property import Lazy
+from zope.catalog.interfaces import ICatalog
 from zope.component import adapter, adapts
 from zope.component import getUtilitiesFor
 from zope.component import queryAdapter
@@ -51,10 +52,11 @@ from zope.traversing.browser.interfaces import IAbsoluteURL
 
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.app.interfaces import IApplicationPreferences
-from schooltool.app.browser.app import ActiveSchoolYearContentMixin
+from schooltool.app.browser.app import ContainerSearchContent
 from schooltool.app.browser.app import EditRelationships
 from schooltool.app.browser.app import RelationshipAddTableMixin
 from schooltool.app.browser.app import RelationshipRemoveTableMixin
+from schooltool.app.browser.app import JSONSearchViewBase
 from schooltool.basicperson.browser.demographics import (
     DemographicsView,
     FlourishDemographicsView, FlourishReorderDemographicsView)
@@ -70,7 +72,6 @@ from schooltool.report.browser.report import RequestRemoteReportDialog
 from schooltool.resource.resource import Resource, Location, Equipment
 from schooltool.person.browser.person import PersonFilterWidget
 from schooltool.resource.interfaces import IResourceFactoryUtility
-from schooltool.schoolyear.interfaces import ISchoolYearContainer
 from schooltool.skin import flourish
 from schooltool import table
 
@@ -920,31 +921,15 @@ class FlourishResourceDeleteLink(flourish.page.ModalFormLinkViewlet):
         return translate(title, context=self.request)
 
 
-class FlourishManageResourcesOverview(flourish.page.Content,
-                                      ActiveSchoolYearContentMixin):
+class FlourishManageResourcesOverview(ContainerSearchContent):
 
-    body_template = ViewPageTemplateFile(
-        'templates/f_manage_resources_overview.pt')
+    add_view_name = 'addResource.html'
+    hint = _('Manage resources')
+    title = _('Resources')
 
     @property
-    def resources(self):
+    def container(self):
         return self.context['resources']
-
-    @Lazy
-    def resource_types(self):
-        types = defaultdict(lambda:dict(amount=0, title=None, id=None))
-        for resource in self.resources.values():
-            info = IResourceTypeInformation(resource)
-            if types[info.id]['title'] is None:
-                types[info.id]['title'] = info.title
-            if types[info.id]['id'] is None:
-                types[info.id]['id'] = info.id
-            types[info.id]['amount'] += 1
-        return types
-
-    def resources_url(self):
-        return self.url_with_schoolyear_id(self.context,
-                                           view_name='resources')
 
 
 class FlourishRequestResourceReportView(RequestRemoteReportDialog):
@@ -993,3 +978,26 @@ class ResourceReportPDFView(flourish.report.PlainPDFPage):
         return [ptos_dict[k] for k in sorted(ptos_dict.keys(),
                                              key=lambda x:collator.key(x))]
 
+
+class ResourceContainerJSONSearchView(JSONSearchViewBase):
+
+    @property
+    def catalog(self):
+        return ICatalog(self.context)
+
+    @property
+    def items(self):
+        if self.text_query:
+            params = {
+                'text': self.text_query,
+            }
+            return self.catalog.searchResults(**params)
+        return []
+
+    def encode(self, item):
+        label = item.title
+        return {
+            'label': label,
+            'value': label,
+            'url': absoluteURL(item, self.request),
+        }

@@ -2,10 +2,10 @@
 CHANGES
 =======
 
-2.8.11 (unreleased)
+2.9.0 (2015-02-17)
 -------------------
 
-- Nothing changed yet.
+- New release.
 
 
 2.8.10 (2014-11-18)

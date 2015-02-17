@@ -1,3 +1,9 @@
+schooltool (1:2.9.1-0ubuntu1) trusty; urgency=emergency
+
+  * New upstream release.
+
+ -- Douglas Cerna (Soy Douglas) <douglascerna@yahoo.com>  Tue, 17 Feb 2015 11:48:10 -0600
+
 schooltool (1:2.9.0-0ubuntu1) trusty; urgency=emergency
 
   * New upstream release.

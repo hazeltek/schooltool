@@ -46,9 +46,13 @@ def evolve(context):
         states.describe(INACTIVE+IGNORED, _('Ignored'))
         # Update existing states
         states.states['s'].title = _('Absent - sick')
-        states.states['z'].title = _('Absent - authorised')
         states.states['i'].title = _('Absent - unauthorised')
         states.states['l'].title = _('Present but late and / or left early')
+        # Some instances didn't get the August update
+        if 'z' in states.states:
+            states.states['z'].title = _('Absent - authorised')
+        else:
+            states.add(_('Absent - authorised'), INACTIVE, 'z')
         # Update order
         order = ['a', 'l', 'c', 's', 'z', 'i', 't', 'u']
         states.states.updateOrder(order)

@@ -50,6 +50,7 @@ from schooltool.report.browser.report import ProgressReportPage
 from schooltool.report.report import ReportLinkViewlet
 from schooltool.task.progress import TaskProgress
 from schooltool.task.progress import normalized_progress
+from schooltool.relationship.temporal import ACTIVE
 from schooltool.report.report import AbstractReportTask
 from schooltool.report.report import NoReportException
 from schooltool.report.report import ReportMessage
@@ -292,6 +293,20 @@ class ContactRelationship(object):
         self.relationship = relationship
 
 
+def person_level_id_getter(person):
+    levels = person.levels.all().any(ACTIVE)
+    if levels:
+        current = list(levels)[0]
+        return current.__name__
+
+
+def person_level_date_getter(person):
+    levels = person.levels.all().any(ACTIVE)
+    if levels:
+        dt, code, meaning = list(levels.relationships)[0].state.all()[0]
+        return dt
+
+
 class MegaExporter(SchoolTimetableExportView):
 
     overall_line_id = 'overall'
@@ -452,7 +467,9 @@ class MegaExporter(SchoolTimetableExportView):
                   ('Preferred Name', Text, attrgetter('preferred_name')),
                   ('Birth Date', Date, attrgetter('birth_date')),
                   ('Gender', Text, attrgetter('gender')),
-                  ('Password', Text, lambda p: None)]
+                  ('Password', Text, lambda p: None),
+                  ('Level ID', Text, person_level_id_getter),
+                  ('Level date', Date, person_level_date_getter)]
 
         def demographics_getter(attribute):
             def getter(person):

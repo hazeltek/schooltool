@@ -46,6 +46,7 @@ from zope.proxy import getProxiedObject
 from z3c.form import button
 
 import schooltool.traverser.traverser
+from schooltool.app.browser.app import ActiveSchoolYearContentMixin
 from schooltool.common import format_message
 from schooltool.person.interfaces import IPerson
 from schooltool.report.interfaces import IReportLinksURL
@@ -58,7 +59,6 @@ from schooltool.report.report import ReportTask
 from schooltool.report.report import ArchiveReportTask
 from schooltool.skin import flourish
 from schooltool.skin.flourish.page import WideContainerPage
-from schooltool.skin.flourish.page import RefineLinksViewlet
 from schooltool.skin.flourish import IFlourishLayer
 from schooltool.skin.flourish.form import DialogForm
 from schooltool.task.tasks import query_message
@@ -180,27 +180,29 @@ class FlourishReportReferenceView(WideContainerPage, ReportReferenceView):
         return self.collator.key(row['group']), self.collator.key(row['title'])
 
 
-class ReportsLinks(RefineLinksViewlet):
+class ReportsLinksBase(flourish.page.RefineLinksSortedByTitleViewlet):
     """Reports links viewlet."""
 
     implements(IFlourishReportLinkViewletManager)
 
     list_class = "filter reports-links"
+
     body_template = ViewPageTemplateFile('templates/f_report_links_body.pt')
 
     @Lazy
     def items(self):
-        items = super(ReportsLinks, self).items
+        items = super(ReportsLinksBase, self).items
         result = []
         for item in items:
             viewlet = item['viewlet']
             url = viewlet.link
             is_report_link = bool(getattr(viewlet, 'file_type', ''))
+            description = translate(viewlet.description,
+                                    context=self.request)
+            title = translate(viewlet.title, context=self.request)
             if is_report_link:
                 file_type = translate(viewlet.file_type,
                                       context=self.request)
-                description = translate(viewlet.description,
-                                        context=self.request)
                 params = {
                     'file_type': file_type.encode('utf-8').upper(),
                     'description': description.encode('utf-8'),
@@ -216,10 +218,16 @@ class ReportsLinks(RefineLinksViewlet):
                     'is_report_link': is_report_link,
                     'link_id': viewlet.link.replace('.', '_'),
                     'form_id': viewlet.link.replace('.', '_') + '_form',
-                    'title': translate(viewlet.title, context=self.request),
+                    'title': title,
                     'url': url,
+                    'description': description or title,
                     })
         return result
+
+
+class ReportsLinks(ReportsLinksBase):
+
+    implements(IFlourishReportLinkViewletManager)
 
 
 class ReportLinkViewletProxy(flourish.viewlet.ViewletProxy):
@@ -668,3 +676,40 @@ class RequestReportArchiveDialog(RequestRemoteReportDialog):
 
 class ReportReferenceLinkViewlet(flourish.page.LinkViewlet):
     pass
+
+
+class SchoolReportsLinksBase(ReportsLinksBase, ActiveSchoolYearContentMixin):
+
+    css_class = 'content school-reports'
+    select_id = None
+    button_id = None
+    container_id = None
+
+    template = ViewPageTemplateFile(
+        'templates/f_school_report_links_body.pt')
+
+    def render(self, *args, **kw):
+        if self.schoolyear is None:
+            return ''
+        return super(SchoolReportsLinksBase, self).render(*args, **kw)
+
+
+class SchoolReportsLinks(SchoolReportsLinksBase, ReportsLinks):
+
+    select_id = 'school-reports-select'
+    button_id = 'school-reports-button'
+    container_id = 'school-reports-dialog-container'
+
+
+class IFlourishYearReportLinkViewletManager(Interface):
+
+    pass
+
+
+class YearReportsLinks(SchoolReportsLinksBase):
+
+    implements(IFlourishYearReportLinkViewletManager)
+
+    select_id = 'school-year-reports-select'
+    button_id = 'school-year-reports-button'
+    container_id = 'school-year-reports-dialog-container'

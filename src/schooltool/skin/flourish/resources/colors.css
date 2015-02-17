@@ -237,6 +237,11 @@ h3.done-link a:active {
     background-color: #f7f7f7;
 }
 
+.manage-page > .body > .sidebar,
+.manage-page > .body > .container {
+    border-color: #d9d9d9;
+}
+
 .page > .body > .sidebar .content > .header {
     border-bottom-color: #00abb3;
     color: #333333;

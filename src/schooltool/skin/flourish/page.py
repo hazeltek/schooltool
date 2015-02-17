@@ -24,6 +24,8 @@ import urllib
 
 from zope.cachedescriptors.property import Lazy
 from zope.component import getMultiAdapter, queryMultiAdapter
+from zope.i18n import translate
+from zope.i18n.interfaces.locales import ICollator
 from zope.interface import implements
 from zope.publisher.browser import BrowserPage
 from zope.publisher.interfaces import NotFound
@@ -31,6 +33,8 @@ from zope.browser.interfaces import IBrowserView
 from zope.traversing.api import getParent
 from zope.traversing.browser.interfaces import IAbsoluteURL
 from zope.traversing.browser.absoluteurl import absoluteURL, AbsoluteURL
+
+import zc.resourcelibrary
 
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.app.interfaces import IApplicationTabs
@@ -144,7 +148,7 @@ class WideContainerPage(Page):
 class ContentViewletManager(ViewletManager):
     template = templates.Inline("""
         <tal:block repeat="viewlet view/viewlets">
-          <div class="content"
+          <div tal:attributes="class viewlet/css_class|string:content"
                tal:define="rendered viewlet;
                            stripped rendered/strip|nothing"
                tal:condition="stripped"
@@ -362,6 +366,19 @@ class RefineLinksViewlet(Refine, ListNavigationViewlet):
         return Refine.render(self, *args, **kw)
 
 
+class RefineLinksSortedByTitleViewlet(RefineLinksViewlet):
+
+    def buildOrder(self, viewlet_dict):
+        result = []
+        collator = ICollator(self.request.locale)
+        for name, viewlet in viewlet_dict.items():
+            title = getattr(viewlet, 'title', '')
+            if title:
+                title = translate(title, context=self.request)
+            result.append((collator.key(title), name))
+        return [name for key, name in sorted(result)]
+
+
 class IHTMLHeadManager(interfaces.IViewletManager):
     pass
 
@@ -522,3 +539,18 @@ class ModalFormLinkViewlet(LinkIdViewlet):
     @property
     def form_container_id(self):
         return '%s-container' % self.html_id
+
+
+class HTMLHeadViewletManager(ViewletManager):
+
+    def update(self):
+        zc.resourcelibrary.need('schooltool.flourish.custom')
+        super(HTMLHeadViewletManager, self).update()
+
+
+class CustomCSSViewlet(Viewlet):
+
+    render = templates.Inline('''
+      <link rel="stylesheet" type="text/css" href="layout.css" media="screen"
+            tal:attributes="href context/++resource++schooltool.flourish.custom/custom.css" />
+    ''')

@@ -32,16 +32,6 @@
             <span class="ui-icon ui-icon-alert">icon</span>
             <tal:block content="view/status" />
           </div>
-          <ul class="errors"
-              tal:condition="errors"
-              metal:define-macro="form-errors">
-            <li tal:repeat="error errors">
-              <tal:block condition="error/widget">
-                <span tal:replace="error/widget/label" />:
-              </tal:block>
-              <span tal:replace="structure error/render">Error Type</span>
-            </li>
-          </ul>
         </div>
       </metal:header>
       <metal:info define-slot="info">

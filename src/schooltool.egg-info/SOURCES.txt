@@ -127,6 +127,7 @@ src/schooltool/app/browser/templates/event_info_viewlet.pt
 src/schooltool/app/browser/templates/f_about.pt
 src/schooltool/app/browser/templates/f_about_related.pt
 src/schooltool/app/browser/templates/f_calendar_settings_overview.pt
+src/schooltool/app/browser/templates/f_container_search.pt
 src/schooltool/app/browser/templates/f_csvimport.pt
 src/schooltool/app/browser/templates/f_default_report_template.pt
 src/schooltool/app/browser/templates/f_default_style_template.pt
@@ -242,7 +243,6 @@ src/schooltool/basicperson/browser/templates/f_demographics_view.pt
 src/schooltool/basicperson/browser/templates/f_generalViewlet.pt
 src/schooltool/basicperson/browser/templates/f_id_cards_template.pt
 src/schooltool/basicperson/browser/templates/f_levelViewlet.pt
-src/schooltool/basicperson/browser/templates/f_manage_people_overview.pt
 src/schooltool/basicperson/browser/templates/f_person_add_multiple.pt
 src/schooltool/basicperson/browser/templates/f_person_add_subform.pt
 src/schooltool/basicperson/browser/templates/f_person_form.pt
@@ -260,6 +260,7 @@ src/schooltool/basicperson/browser/templates/person_edit.pt
 src/schooltool/basicperson/browser/templates/person_form.pt
 src/schooltool/basicperson/browser/templates/person_groups.pt
 src/schooltool/basicperson/browser/templates/person_view.pt
+src/schooltool/basicperson/browser/templates/promote.pt
 src/schooltool/basicperson/browser/tests/__init__.py
 src/schooltool/basicperson/browser/tests/test_demographics.py
 src/schooltool/basicperson/browser/tests/test_person.py
@@ -361,7 +362,6 @@ src/schooltool/contact/browser/templates/f_contact_table_filter.pt
 src/schooltool/contact/browser/templates/f_contact_view.pt
 src/schooltool/contact/browser/templates/f_contactsViewlet.pt
 src/schooltool/contact/browser/templates/f_contacts_related.pt
-src/schooltool/contact/browser/templates/f_manage_contacts_overview.pt
 src/schooltool/contact/browser/templates/filter.pt
 src/schooltool/contact/browser/templates/manage_contacts.pt
 src/schooltool/contact/browser/templates/noteacheremail.pt
@@ -398,7 +398,6 @@ src/schooltool/course/browser/ftests/propagate_roster_changes.txt
 src/schooltool/course/browser/ftests/section_linkage.txt
 src/schooltool/course/browser/ftests/sections_and_courses.txt
 src/schooltool/course/browser/ftests/test_all.py
-src/schooltool/course/browser/rml/section_roster.pt
 src/schooltool/course/browser/stests/__init__.py
 src/schooltool/course/browser/stests/course_delete.txt
 src/schooltool/course/browser/stests/multi_term_initial_location.txt
@@ -428,7 +427,6 @@ src/schooltool/course/browser/templates/f_courses_related.pt
 src/schooltool/course/browser/templates/f_coursesviewlet.pt
 src/schooltool/course/browser/templates/f_extend_term.pt
 src/schooltool/course/browser/templates/f_link_existing.pt
-src/schooltool/course/browser/templates/f_manage_courses_overview.pt
 src/schooltool/course/browser/templates/f_section_add.pt
 src/schooltool/course/browser/templates/f_section_filter.pt
 src/schooltool/course/browser/templates/f_section_linkage.pt
@@ -585,6 +583,8 @@ src/schooltool/generations/evolve40.py
 src/schooltool/generations/evolve41.py
 src/schooltool/generations/evolve42.py
 src/schooltool/generations/evolve43.py
+src/schooltool/generations/evolve44.py
+src/schooltool/generations/evolve45.py
 src/schooltool/generations/linkcatalogs.py
 src/schooltool/generations/evolve36/__init__.py
 src/schooltool/generations/evolve36/calendar_builders.py
@@ -598,7 +598,6 @@ src/schooltool/generations/tests/__init__.py
 src/schooltool/generations/tests/test_evolve28.py
 src/schooltool/generations/tests/test_evolve29.py
 src/schooltool/generations/tests/test_evolve30.py
-src/schooltool/generations/tests/test_evolve31.py
 src/schooltool/generations/tests/test_evolve32.py
 src/schooltool/generations/tests/test_evolve33.py
 src/schooltool/generations/tests/test_evolve34.py
@@ -618,6 +617,10 @@ src/schooltool/group/browser/csvimport.py
 src/schooltool/group/browser/flourish.zcml
 src/schooltool/group/browser/group.py
 src/schooltool/group/browser/tests.py
+src/schooltool/group/browser/rml/group_pdf_styles.pt
+src/schooltool/group/browser/rml/sign_in_out.pt
+src/schooltool/group/browser/rml/student_name_labels.pt
+src/schooltool/group/browser/rml/student_name_labels_page_template.pt
 src/schooltool/group/browser/stests/__init__.py
 src/schooltool/group/browser/stests/selenium_extensions.txt
 src/schooltool/group/browser/stests/smart_done_link.txt
@@ -672,6 +675,7 @@ src/schooltool/locales/el.po
 src/schooltool/locales/en_AU.po
 src/schooltool/locales/en_CA.po
 src/schooltool/locales/en_GB.po
+src/schooltool/locales/en_UG.po
 src/schooltool/locales/es.po
 src/schooltool/locales/es_AR.po
 src/schooltool/locales/es_CL.po
@@ -717,6 +721,7 @@ src/schooltool/locales/el/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/en_AU/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/en_CA/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/en_GB/LC_MESSAGES/schooltool.mo
+src/schooltool/locales/en_UG/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/es/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/es_AR/LC_MESSAGES/schooltool.mo
 src/schooltool/locales/es_CL/LC_MESSAGES/schooltool.mo
@@ -849,6 +854,7 @@ src/schooltool/report/browser/templates/f_report_links.pt
 src/schooltool/report/browser/templates/f_report_links_body.pt
 src/schooltool/report/browser/templates/f_report_reference.pt
 src/schooltool/report/browser/templates/f_request_report_download.pt
+src/schooltool/report/browser/templates/f_school_report_links_body.pt
 src/schooltool/report/browser/templates/f_short_report_message.pt
 src/schooltool/report/browser/templates/report_links.pt
 src/schooltool/report/browser/templates/report_reference.pt
@@ -897,7 +903,6 @@ src/schooltool/resource/browser/stests/__init__.py
 src/schooltool/resource/browser/stests/bug_953454.txt
 src/schooltool/resource/browser/stests/non_ascii_titles.txt
 src/schooltool/resource/browser/stests/test_selenium.py
-src/schooltool/resource/browser/templates/f_manage_resources_overview.pt
 src/schooltool/resource/browser/templates/f_resource_container_related.pt
 src/schooltool/resource/browser/templates/f_resource_csvimport_description.pt
 src/schooltool/resource/browser/templates/f_resource_delete_confirmation.pt
@@ -1055,6 +1060,7 @@ src/schooltool/skin/flourish/zcml_breadcrumb.py
 src/schooltool/skin/flourish/zcml_content.py
 src/schooltool/skin/flourish/zcml_report.py
 src/schooltool/skin/flourish/zcml_resource.py
+src/schooltool/skin/flourish/custom/custom.css
 src/schooltool/skin/flourish/instance/__init__.py
 src/schooltool/skin/flourish/instance/configure.zcml
 src/schooltool/skin/flourish/instance/skin.zcml
@@ -1117,6 +1123,7 @@ src/schooltool/skin/flourish/resources/ckeditor/images/sprites_ie6.png
 src/schooltool/skin/flourish/resources/ckeditor/images/toolbar_start.gif
 src/schooltool/skin/flourish/resources/jquery/css/schooltool/jquery-ui-overrides.css
 src/schooltool/skin/flourish/resources/jquery/css/schooltool/jquery-ui.css
+src/schooltool/skin/flourish/resources/jquery/css/schooltool/images/spinner.gif
 src/schooltool/skin/flourish/resources/jquery/css/schooltool/images/ui-bg_diagonals-small_10_00abb3_40x40.png
 src/schooltool/skin/flourish/resources/jquery/css/schooltool/images/ui-bg_diagonals-small_10_540000_40x40.png
 src/schooltool/skin/flourish/resources/jquery/css/schooltool/images/ui-bg_diagonals-small_10_ffffff_40x40.png
@@ -1403,7 +1410,6 @@ src/schooltool/term/browser/stests/test_selenium.py
 src/schooltool/term/browser/templates/emergency2.pt
 src/schooltool/term/browser/templates/emergency_select.pt
 src/schooltool/term/browser/templates/f_confirm_delete_term.pt
-src/schooltool/term/browser/templates/f_manage_years_overview.pt
 src/schooltool/term/browser/templates/f_term.pt
 src/schooltool/term/browser/templates/f_term_add.pt
 src/schooltool/term/browser/templates/f_terms.pt
@@ -1485,7 +1491,6 @@ src/schooltool/timetable/browser/templates/f_confirm_delete_timetable.pt
 src/schooltool/timetable/browser/templates/f_confirm_make_default.pt
 src/schooltool/timetable/browser/templates/f_daytemplates_selected_table.pt
 src/schooltool/timetable/browser/templates/f_daytemplates_table.pt
-src/schooltool/timetable/browser/templates/f_manage_timetables_overview.pt
 src/schooltool/timetable/browser/templates/f_multi_schedule_periods_edit.pt
 src/schooltool/timetable/browser/templates/f_schedule_container_view.pt
 src/schooltool/timetable/browser/templates/f_schedule_event_add.pt

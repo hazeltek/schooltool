@@ -1,0 +1,33 @@
+<div class="manage-view container-search ui-helper-clearfix"
+     i18n:domain="schooltool"
+     tal:condition="view/has_schoolyear">
+  <div class="info">
+    <h3 class="title">
+      <a tal:attributes="href view/container_url;
+                         title view/hint"
+         tal:content="view/title" />
+      <span class="count" tal:content="view/count" />
+    </h3>
+    <h3 class="add-button">
+      <a tal:attributes="href view/add_url;">+</a>
+    </h3>
+  </div>
+  <div class="form">
+    <form>
+      <script>ST.state.push()</script>
+      <tal:script
+          tal:replace="structure scriptlocal:
+                       search_id view/search_id;
+                       json_url view/json_url;" />
+      <input type="text" placeholder="Search..." class="text-widget"
+             tal:attributes="id view/search_id"
+             i18n:attributes="placeholder"/>
+      <input type="hidden" name="schoolyear_id"
+             tal:attributes="value view/schoolyear/__name__" />
+      <script>
+        ST.table.add_autocomplete(ST.local.search_id, ST.local.json_url);
+      </script>
+      <script>ST.state.pop()</script>
+    </form>
+  </div>
+</div>

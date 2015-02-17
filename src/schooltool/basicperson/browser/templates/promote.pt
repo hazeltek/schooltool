@@ -1,0 +1,51 @@
+<div i18n:domain="schooltool">
+  <form method="post" tal:attributes="action request/getURL">
+    <table>
+      <thead>
+        <tr>
+          <th i18n:translate="">Last name</th>
+          <th i18n:translate="">First name</th>
+          <th i18n:translate="">Enrollment</th>
+          <th tal:content="view/schoolyear/title" />
+          <th tal:content="view/next_year/title" />
+        </tr>
+      </thead>
+      <tbody>
+        <tr tal:repeat="student view/students">
+          <td tal:content="student/obj/last_name" />
+          <td tal:content="student/obj/first_name" />
+          <td>
+            <select tal:attributes="name student/enrollment_selector_id"
+                    style="width: 100px">
+              <tal:loop repeat="state student/enrollment_states">
+                <option tal:content="state/title"
+                        tal:attributes="selected state/selected;
+                                        value state/value" />
+              </tal:loop>
+            </select>
+          </td>
+          <td tal:content="student/level/title" />
+          <td>
+            <select tal:attributes="name student/level_selector_id"
+                    style="width: 100px">
+              <option value="">
+                -----
+              </option>
+              <tal:loop repeat="level student/levels">
+                <option tal:content="level/title"
+                        tal:attributes="selected level/selected;
+                                        value level/value;" />
+              </tal:loop>
+            </select>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="buttons">
+      <input type="submit" class="button-ok" value="Submit" name="SUBMIT" />
+      <input type="submit" class="button-cancel" value="Cancel" name="CANCEL" />
+    </div>
+    <input type="hidden" name="schoolyear_id"
+           tal:attributes="value request/schoolyear_id" />
+  </form>
+</div>

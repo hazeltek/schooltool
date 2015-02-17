@@ -24,6 +24,7 @@ from urllib import urlencode
 
 import zc.table.table
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
+from zope.catalog.interfaces import ICatalog
 from zope.component import adapts, adapter
 from zope.component import getMultiAdapter, getAdapter
 from zope.component import getUtility
@@ -55,8 +56,11 @@ from zc.table.interfaces import ISortableColumn
 
 from schooltool.app.browser.app import ActiveSchoolYearContentMixin
 from schooltool.app.browser.app import BaseEditView
+from schooltool.app.browser.app import ContainerSearchContent
 from schooltool.app.browser.app import RelationshipViewBase
+from schooltool.app.browser.app import JSONSearchViewBase
 from schooltool.app.interfaces import ISchoolToolApplication
+from schooltool.app.relationships import Instruction
 from schooltool.app.utils import vocabulary_titled
 from schooltool.basicperson.browser.person import EditPersonTemporalRelationships
 from schooltool.basicperson.browser.person import StatusPersonListTable
@@ -68,9 +72,13 @@ from schooltool.course.interfaces import ICourse, ICourseContainer
 from schooltool.course.interfaces import ISection, ISectionContainer
 from schooltool.course.section import Section
 from schooltool.course.section import copySection
+from schooltool.group.browser.group import MailingLabelsPDFView
+from schooltool.group.browser.group import SignInOutPDFView
+from schooltool.group.browser.group import number_getter
 from schooltool.person.interfaces import IPerson
 from schooltool.person.interfaces import IPersonFactory
 from schooltool.report.browser.report import RequestRemoteReportDialog
+from schooltool.relationship.temporal import ACTIVE
 from schooltool.resource.browser.resource import EditLocationRelationships
 from schooltool.resource.browser.resource import EditEquipmentRelationships
 from schooltool.resource.interfaces import ILocation, IEquipment
@@ -1025,10 +1033,7 @@ class SectionsTable(SectionsTableBase):
 
 class SectionListTable(SectionsTableBase):
 
-    def columns(self):
-        default = super(SectionListTable, self).columns()
-        title, term, courses, instructors, size = default
-        return [title, term, instructors]
+    visible_column_names = ['title', 'term', 'instructors']
 
     def sortOn(self):
         return (('term', True), ('title', False))
@@ -1172,9 +1177,16 @@ class SectionListTableFilter(SectionsTableFilter):
     def schoolyear(self):
         return ISchoolYear(self.context)
 
+    @Lazy
+    def sections_by_term(self):
+        result = {}
+        for section in self.context.sections:
+            term = ITerm(section)
+            result.setdefault(term, []).append(1)
+        return result
+
     def getSectionCount(self, term):
-        return len([section for section in ISectionContainer(term).values()
-                    if section in self.context.sections])
+        return sum(self.sections_by_term.get(term, []))
 
 
 class SectionsTableSchoolYear(flourish.viewlet.Viewlet):
@@ -1844,78 +1856,6 @@ class SectionsYearNavBreadcrumbs(SchoolyearNavBreadcrumbs):
     title = _('Sections')
 
 
-class SectionRosterPDFView(flourish.report.PlainPDFPage):
-
-    name = _("Section Roster")
-
-    content_template = flourish.templates.XMLFile('rml/section_roster.pt')
-
-    @property
-    def message_title(self):
-        return _("section ${title} roster",
-                 mapping={'title': self.context.title})
-
-    def formatDate(self, date, format='mediumDate'):
-        if date is None:
-            return ''
-        formatter = getMultiAdapter((date, self.request), name=format)
-        return formatter()
-
-    @property
-    def scope(self):
-        term = ITerm(self.context)
-        first = self.formatDate(term.first)
-        last = self.formatDate(term.last)
-        return '%s | %s - %s' % (term.title, first, last)
-
-    @property
-    def subtitles_left(self):
-        section = removeSecurityProxy(self.context)
-        instructors = '; '.join([person.title
-                                 for person in section.instructors])
-        instructors_message = _('Instructors: ${instructors}',
-                                mapping={'instructors': instructors})
-        subtitles = [
-            '%s (%s)' % (section.title, section.__name__),
-            instructors_message,
-            ]
-        return subtitles
-
-    @property
-    def title(self):
-        return ', '.join([course.title for course in self.context.courses])
-
-    @property
-    def base_filename(self):
-        courses = [c.__name__ for c in self.context.courses]
-        return 'section_roster_%s' % '_'.join(courses)
-
-    @property
-    def term(self):
-        return ITerm(self.context)
-
-    def rows(self):
-        result = []
-        collator = ICollator(self.request.locale)
-        factory = getUtility(IPersonFactory)
-        sorting_key = lambda x: factory.getSortingKey(x, collator)
-        for student in sorted(self.context.members, key=sorting_key):
-            demographics = IDemographics(student)
-            result.append({
-                    'full_name': self.full_name(student),
-                    'ID': demographics.get('ID', '')
-                    })
-        return result
-
-    def full_name(self, person):
-        return person.title
-
-
-class FlourishRequestSectionRosterView(RequestRemoteReportDialog):
-
-    report_builder = SectionRosterPDFView
-
-
 class SectionMembershipPersonListTable(StatusPersonListTable):
 
     app_states_name = 'section-membership'
@@ -1924,3 +1864,240 @@ class SectionMembershipPersonListTable(StatusPersonListTable):
 class SectionInstructionPersonListTable(StatusPersonListTable):
 
     app_states_name = 'section-instruction'
+
+
+class SectionPDFViewBase(object):
+
+    @property
+    def subtitles_left(self):
+        section = removeSecurityProxy(self.context)
+        instructors = '; '.join([person.title
+                                 for person in section.instructors])
+        locations =  '; '.join([r.title for r in self.context.resources
+                                if ILocation(r, None) is not None])
+        instructors_message = _('Instructors: ${instructors}',
+                                mapping={'instructors': instructors})
+        locations_message = _('Locations: ${locations}',
+                              mapping={'locations': locations})
+        subtitles = [
+            '%s (%s)' % (section.title, section.__name__),
+            instructors_message,
+            locations_message,
+            ]
+        return subtitles
+
+    @property
+    def scope(self):
+        term = ITerm(self.context)
+        schoolyear = term.__parent__
+        return '%s | %s' % (term.title, schoolyear.title)
+
+    @property
+    def title(self):
+        return ', '.join([course.title for course in self.context.courses])
+
+
+class SectionSignInOutPDFView(SectionPDFViewBase, SignInOutPDFView):
+
+    @property
+    def message_title(self):
+        return _("section ${title} sign in & out",
+                 mapping={'title': self.context.title})
+
+    @property
+    def base_filename(self):
+        courses = [c.__name__ for c in self.context.courses]
+        return 'section_sign_in_out_%s' % '_'.join(courses)
+
+
+class FlourishRequestSectionRosterView(RequestRemoteReportDialog):
+
+    report_builder = 'section_roster.pdf'
+
+
+class SectionRosterPDFView(SectionPDFViewBase, flourish.report.PlainPDFPage):
+
+    name = _('Section Roster')
+
+    @property
+    def message_title(self):
+        return _("section ${title} roster",
+                 mapping={'title': self.context.title})
+
+    @property
+    def base_filename(self):
+        courses = [c.__name__ for c in self.context.courses]
+        return 'section_roster_%s' % '_'.join(courses)
+
+
+def level_getter(today):
+    def getter(person, formatter):
+        result = []
+        levels = person.levels
+        for level in levels.on(today).any(ACTIVE):
+            result.append(level)
+        if result:
+            return ', '.join([level.title for level in result])
+    return getter
+
+
+class SectionRosterTable(table.ajax.Table):
+
+    batch_size = 0
+    visible_column_names = ['number', 'left_bracket', 'right_bracket',
+                            'title', 'level']
+
+    def items(self):
+        return self.context.members
+
+    def sortOn(self):
+        return getUtility(IPersonFactory).sortOn()
+
+    def columns(self):
+        today = getUtility(IDateManager).today
+        first_name = table.column.LocaleAwareGetterColumn(
+            name='first_name',
+            title=_(u'First Name'),
+            getter=lambda i, f: i.first_name,
+            subsort=True)
+        last_name = table.column.LocaleAwareGetterColumn(
+            name='last_name',
+            title=_(u'Last Name'),
+            getter=lambda i, f: i.last_name,
+            subsort=True)
+        number = zc.table.column.GetterColumn(
+            name='number',
+            title=u'#',
+            getter=number_getter)
+        left_bracket = zc.table.column.GetterColumn(
+            name='left_bracket',
+            title=u'',
+            getter=lambda i, f: u'[')
+        right_bracket = zc.table.column.GetterColumn(
+            name='right_bracket',
+            title=u'',
+            getter=lambda i, f: u']')
+        title = table.column.LocaleAwareGetterColumn(
+            name='title',
+            title=_(u'Name'),
+            getter=lambda i, f: i.title,
+            subsort=True)
+        level = zc.table.column.GetterColumn(
+            name='level',
+            title=_(u'Level'),
+            getter=level_getter(today))
+        return [first_name, last_name, number, left_bracket, right_bracket,
+                title, level]
+
+
+class SectionRosterTablePart(table.pdf.RMLTablePart):
+
+    table_name = 'section_roster_table'
+
+    def getColumnWidths(self, rml_columns):
+        return '5% 3% 3% 54% 35%'
+
+
+class SectionMailingLabelsPDFView(SectionPDFViewBase, MailingLabelsPDFView):
+
+    @property
+    def message_title(self):
+        return _("section ${title} mailing labels",
+                 mapping={'title': self.context.title})
+
+    @property
+    def base_filename(self):
+        courses = [c.__name__ for c in self.context.courses]
+        return 'section_mailing_labels_%s' % '_'.join(courses)
+
+
+class FlourishManageSectionsOverview(ContainerSearchContent):
+
+    add_view_name = 'addSection.html'
+    hint = _('Manage sections')
+    title = _('Sections')
+
+    @property
+    def container(self):
+        return self.schoolyear
+
+    def container_url(self):
+        return self.url_with_schoolyear_id(self.context, view_name='sections')
+
+    def count(self):
+        result = 0
+        if self.schoolyear:
+            schoolyear_id = getUtility(IIntIds).getId(self.schoolyear)
+            first = self.schoolyear.keys()[0]
+            container = ISectionContainer(self.schoolyear[first])
+            catalog = ICatalog(container)
+            query = {'any_of': [schoolyear_id]}
+            result = len(catalog['schoolyear_id'].apply(query))
+        return result
+
+    @property
+    def json_url(self):
+        app = ISchoolToolApplication(None)
+        return '%s/sections_json' % absoluteURL(app, self.request)
+
+    @property
+    def render_sections_link(self):
+        courses = ICourseContainer(self.schoolyear, None)
+        return (self.schoolyear is not None and
+                self.schoolyear and
+                courses is not None and
+                courses)
+
+    def render(self,*args, **kw):
+        if not self.render_sections_link:
+            return ''
+        return super(FlourishManageSectionsOverview, self).render(*args, **kw)
+
+
+class SectionsJSONSearchView(JSONSearchViewBase,
+                             ActiveSchoolYearContentMixin):
+
+    @property
+    def catalog(self):
+        first = self.schoolyear.keys()[0]
+        container = ISectionContainer(self.schoolyear[first])
+        return ICatalog(container)
+
+    @property
+    def items(self):
+        result = set()
+        if self.text_query and self.schoolyear:
+            int_ids = getUtility(IIntIds)
+            schoolyear_id = int_ids.getId(self.schoolyear)
+            schoolyear_query = {'any_of': [schoolyear_id]}
+            params = {
+                'text': self.text_query,
+                'schoolyear_id': schoolyear_query,
+            }
+            for section in self.catalog.searchResults(**params):
+                result.add(section)
+            persons_catalog = ICatalog(ISchoolToolApplication(None)['persons'])
+            for person in persons_catalog.searchResults(text=self.text_query):
+                relationships = Instruction.bind(instructor=person).relationships
+                for link_info in relationships:
+                    if not ISection.providedBy(link_info.target):
+                        continue
+                    section = removeSecurityProxy(link_info.target)
+                    if ISchoolYear(ITerm(section)) == self.schoolyear:
+                        result.add(section)
+            course_container = ICourseContainer(self.schoolyear)
+            course_container_id = int_ids.getId(course_container)
+            course_catalog = ICatalog(course_container)
+            for course in course_catalog.searchResults(
+                    text=self.text_query, container_id={'any_of': [course_container_id]}):
+                for section in course.sections:
+                    result.add(section)
+        return result
+
+    def encode(self, section):
+        label = '%s, %s' % (section.title, ITerm(section).title)
+        return {
+            'label': label,
+            'value': label,
+            'url': absoluteURL(section, self.request),
+        }

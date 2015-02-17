@@ -150,6 +150,34 @@ class DemographicsFields(OrderedContainer):
         return result
 
 
+def setUpLeaveSchoolDemographics(app):
+    dfs = app.get('schooltool.basicperson.demographics_fields')
+    if dfs is None:
+        return
+    if 'leave_date' not in dfs:
+        dfs['leave_date'] = DateFieldDescription(
+            'leave_date', _('Date of un-enrollment'),
+            limit_keys=['students'])
+    if 'leave_reason' not in dfs:
+        dfs['leave_reason'] = EnumFieldDescription(
+            'leave_reason', _('Reason for un-enrollment'),
+            limit_keys=['students'])
+        dfs['leave_reason'].items = [_('Transferred'),
+                                     _('Dropped-out - fees'),
+                                     _('Dropped-out - pregnancy'),
+                                     _('Dropped-out - family'),
+                                     _('Left school - unknown')]
+    if 'leave_destination' not in dfs:
+        dfs['leave_destination'] = EnumFieldDescription(
+            'leave_destination', _('Destination school'),
+            limit_keys=['students'])
+        dfs['leave_destination'].items = [_('Example School A'),
+                                          _('Example School B')]
+    for name in LEAVE_SCHOOL_FIELDS:
+        if name in dfs:
+            IDependable(dfs[name]).addDependent('')
+
+
 def setUpDefaultDemographics(app):
     dfs = DemographicsFields()
     app['schooltool.basicperson.demographics_fields'] = dfs
@@ -164,25 +192,7 @@ def setUpDefaultDemographics(app):
     dfs['language'] = TextFieldDescription('language', _('Language'))
     dfs['placeofbirth'] = TextFieldDescription('placeofbirth', _('Place of birth'))
     dfs['citizenship'] = TextFieldDescription('citizenship', _('Citizenship'))
-    dfs['leave_date'] = DateFieldDescription(
-        'leave_date', _('Date of un-enrollment'),
-        limit_keys=['students'])
-    dfs['leave_reason'] = EnumFieldDescription(
-        'leave_reason', _('Reason for un-enrollment'),
-        limit_keys=['students'])
-    dfs['leave_reason'].items = [_('Transferred'),
-                                 _('Dropped-out - fees'),
-                                 _('Dropped-out - pregnancy'),
-                                 _('Dropped-out - family'),
-                                 _('Left school - unknown')]
-    dfs['leave_destination'] = EnumFieldDescription(
-        'leave_destination', _('Destination school'),
-        limit_keys=['students'])
-    dfs['leave_destination'].items = [_('Example School A'),
-                                      _('Example School B')]
-    for name in LEAVE_SCHOOL_FIELDS:
-        if name in dfs:
-            IDependable(dfs[name]).addDependent('')
+    setUpLeaveSchoolDemographics(app)
 
 
 class DemographicsAppStartup(StartUpBase):

@@ -150,3 +150,11 @@
     line-height: 1;
     padding: 0.3em 0 0.3em 0.1em;
 }
+
+.ui-widget select {
+    font-size: 12px;
+}
+
+.ui-autocomplete-loading {
+    background: white url('images/spinner.gif') right center no-repeat;
+}

@@ -44,7 +44,7 @@
       name="import.html"
       title="Import XLS"
       class=".export.ImportLinkViewlet"
-      manager="schooltool.app.browser.app.SchoolActionsLinks"
+      manager="schooltool.app.browser.app.CustomizeSchoolLinks"
       permission="schooltool.edit"
       />
 

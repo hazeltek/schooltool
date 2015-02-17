@@ -290,6 +290,9 @@ class StudentLevelsStatesStartup(StateStartUpBase):
         states.describe(INACTIVE+GRADUATED, _('Graduated'))
 
 
+IGNORED = 'g'
+
+
 class TeacheAttendanceStatesStartUp(StateStartUpBase):
 
     states_name = 'teacher-attendance'
@@ -298,7 +301,11 @@ class TeacheAttendanceStatesStartUp(StateStartUpBase):
     def populate(self, states):
         super(TeacheAttendanceStatesStartUp, self).populate(states)
         states.add(_('Present'), ACTIVE, 'a')
-        states.add(_('Absent - because sick'), INACTIVE, 's')
-        states.add(_('Absent - authorized'), INACTIVE, 'z')
-        states.add(_('Absent - unknown'), INACTIVE, 'i')
-        states.add(_('Late'), ACTIVE, 'l')
+        states.add(_('Present but late and / or left early'), ACTIVE, 'l')
+        states.add(_('Present but at Internal commitments or CPD'), ACTIVE, 'c')
+        states.add(_('Absent - sick'), INACTIVE, 's')
+        states.add(_('Absent - authorised'), INACTIVE, 'z')
+        states.add(_('Absent - unauthorised'), INACTIVE, 'i')
+        states.add(_('Not timetabled'), INACTIVE+IGNORED, 't')
+        states.add(_('Suspended'), INACTIVE+IGNORED, 'u')
+        states.describe(INACTIVE+IGNORED, _('Ignored'))

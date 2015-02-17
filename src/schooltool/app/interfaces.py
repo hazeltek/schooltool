@@ -152,6 +152,19 @@ class IApplicationPreferences(ICalendarDisplayPreferences):
         vocabulary=vocabulary([('first_name', _('First name')),
                                ('last_name', _('Last name'))]))
 
+    code = zope.schema.TextLine(
+        title=_('School Code'),
+        required=False)
+
+    peas_region = zope.schema.Choice(
+        title=_('PEAS Region'),
+        vocabulary=vocabulary([
+            ('central', _('Central')),
+            ('eastern', _('Eastern')),
+            ('western', _('Western')),
+        ]),
+        required=False)
+
 
 class IApplicationTabs(Interface):
     """Tab visible settings stored in an annotation on SchoolToolApplication."""

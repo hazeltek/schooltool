@@ -151,6 +151,16 @@
       factory=".booking.ResourceBookingCalendarProvider"
       />
 
+  <adapter factory=".resource.SearchableTextResource" />
+
+  <adapter factory=".resource.ResourceCatalog"
+           name="schooltool.resource.resource.ResourceCatalog" />
+
+  <adapter
+      for="schooltool.resource.interfaces.IResourceContainer"
+      factory=".resource.getResourceCatalog"
+      provides="zope.catalog.interfaces.ICatalog" />
+
   <include package=".browser" />
 
 </configure>

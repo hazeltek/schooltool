@@ -756,23 +756,8 @@ class TermsTertiaryNavigationManager(
         return result
 
 
-class FlourishManageYearsOverview(flourish.page.Content,
-                                  ActiveSchoolYearContentMixin):
-
-    body_template = ViewPageTemplateFile(
-        'templates/f_manage_years_overview.pt')
-
-    @property
-    def terms(self):
-        terms = ITermContainer(self.schoolyear, None)
-        if terms is not None:
-            return sorted(terms.values(), key=lambda t:t.first)
-
-    def terms_url(self):
-        return self.url_with_schoolyear_id(self.context, view_name='terms')
-
-
-class TermContainerBreadcrumb(flourish.breadcrumbs.Breadcrumbs, ActiveSchoolYearContentMixin):
+class TermContainerBreadcrumb(flourish.breadcrumbs.Breadcrumbs,
+                              ActiveSchoolYearContentMixin):
 
     title = _('Terms')
 

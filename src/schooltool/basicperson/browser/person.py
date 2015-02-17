@@ -20,6 +20,7 @@ Basic person browser views.
 """
 
 from zope.interface import Interface, implements
+from zope.catalog.interfaces import ICatalog
 from zope.container.interfaces import INameChooser
 from zope.app.form.browser.interfaces import ITerms
 from zope.authentication.interfaces import IUnauthenticatedPrincipal
@@ -48,6 +49,8 @@ from zc.table.interfaces import ISortableColumn
 from z3c.form.validator import SimpleFieldValidator
 
 from schooltool.app.browser.app import ActiveSchoolYearContentMixin
+from schooltool.app.browser.app import JSONSearchViewBase
+from schooltool.app.browser.app import ContainerSearchContent
 from schooltool.app.browser.app import RelationshipViewBase
 from schooltool.app.browser.app import EditRelationships
 from schooltool.app.browser.app import RelationshipAddTableMixin
@@ -72,7 +75,7 @@ from schooltool.basicperson.interfaces import IDemographicsFields
 from schooltool.basicperson.interfaces import IBasicPerson
 from schooltool.contact.interfaces import IContactable
 from schooltool.group.interfaces import IGroupContainer
-from schooltool.group.interfaces import IGroup
+from schooltool.level.interfaces import ILevelContainer
 from schooltool.person.interfaces import IPerson, IPersonFactory
 from schooltool.person.browser.person import PersonTable, PersonTableFormatter
 from schooltool.person.browser.person import PersonTableFilter
@@ -126,7 +129,7 @@ class FlourishBasicPersonContainerView(flourish.page.Page):
     ''')
 
 
-class PersonContainerLinks(flourish.page.RefineLinksViewlet):
+class PersonContainerLinks(flourish.page.RefineLinksSortedByTitleViewlet):
     """Person container links viewlet."""
 
 
@@ -334,8 +337,8 @@ class FlourishPersonView(flourish.page.Page):
     def subtitle(self):
         if is_student(self.context):
             result = []
-            levels = self.context.levels
-            for level in levels.on(self.request.util.today).any(ACTIVE):
+            levels = self.context.levels.all()
+            for level in levels.any(ACTIVE):
                 result.append(level)
             if result:
                 return ', '.join([level.title for level in result])
@@ -424,7 +427,10 @@ class PersonAddFormBase(PersonForm, form.AddForm):
         name = person.username
         self.context[name] = person
         for group in self._groups:
-            person.groups.add(group)
+            if self._group_date is not None:
+                person.groups.on(self._group_date).add(group)
+            else:
+                person.groups.add(group)
         for advisor in self._advisors:
             person.advisors.add(advisor)
         return person
@@ -910,7 +916,7 @@ class FlourishGeneralViewlet(FormViewlet):
 
 
 ###############  Base class of all group-aware add views ################
-class PersonAddViewBase(PersonAddFormBase):
+class PersonAddViewBase(PersonAddFormBase, ActiveSchoolYearContentMixin):
 
     id = 'person-form'
     template = ViewPageTemplateFile('templates/person_form.pt')
@@ -975,11 +981,9 @@ class PersonAddViewBase(PersonAddFormBase):
 
         self._groups = []
         group = None
-        syc = ISchoolYearContainer(ISchoolToolApplication(None))
-        active_schoolyear = syc.getActiveSchoolYear()
-        if active_schoolyear is not None:
+        if self.schoolyear is not None:
             if self.group_id:
-                group = IGroupContainer(active_schoolyear).get(self.group_id)
+                group = IGroupContainer(self.schoolyear).get(self.group_id)
             else:
                 group = data.get('group')
         if group is not None:
@@ -1023,6 +1027,12 @@ class FlourishPersonAddView(PersonAddViewBase):
         if self.group_id:
             result = result.omit('group')
         result += field.Fields(IPhotoField)
+        result += field.Fields(Date(__name__='level_date',
+                                    title=_('Effective Date'),
+                                    required=False))
+        result += field.Fields(Date(__name__='group_date',
+                                    title=_('Enrollment Date'),
+                                    required=False))
         result += field.Fields(ILevelField)
         return result
 
@@ -1040,7 +1050,7 @@ class FlourishPersonAddView(PersonAddViewBase):
             'details': (
                 _('Details'), ['gender', 'birth_date', 'photo']),
             'level': (
-                _('Level'), ['level']),
+                _('Level'), ['level_date', 'level']),
             'demographics': (
                 _('Demographics'), list(self.getDemoFields())),
             'relationships': (
@@ -1078,22 +1088,33 @@ class FlourishPersonAddView(PersonAddViewBase):
         self.actions['submitadd'].addClass('button-neutral')
 
     def create(self, data):
+        self._level_date = data.pop('level_date')
+        self._group_date = data.pop('group_date')
         self._level = data.pop('level')
         return super(FlourishPersonAddView, self).create(data)
 
     def add(self, person):
         person = super(FlourishPersonAddView, self).add(person)
         if self._level is not None:
-            self.set_person_level(person, self._level)
+            self.set_person_level(person, self._level, self._level_date)
         return person
 
-    def set_person_level(self, person, level):
-        person.levels.on(self.request.util.today).relate(level)
+    def set_person_level(self, person, level, date=None):
+        if date is None:
+            date = self.request.util.today
+        person.levels.on(date).relate(level)
 
     def updateWidgets(self, *args, **kw):
         super(FlourishPersonAddView, self).updateWidgets(*args, **kw)
         self.widgets['gender'].prompt = True
         self.widgets['gender'].promptMessage = _('Select gender')
+        # XXX: this should be done with z3c.form widget
+        dtm = getUtility(IDateManager)
+        today = dtm.today
+        if 'group_date' in self.widgets:
+            self.widgets['group_date'].value = today
+        if 'level_date' in self.widgets:
+            self.widgets['level_date'].value = today
 
 
 ###############  Group-aware add views ################
@@ -1211,30 +1232,15 @@ class BasicPersonTableFormatter(PersonTableFormatter):
         return formatter
 
 
-class FlourishManagePeopleOverview(flourish.page.Content,
-                                   ActiveSchoolYearContentMixin):
+class FlourishManagePeopleOverview(ContainerSearchContent):
 
-    body_template = ViewPageTemplateFile(
-        'templates/f_manage_people_overview.pt')
-
-    built_in_groups = ('administrators', 'clerks', 'manager', 'teachers',
-                       'substitute_teachers', 'students')
+    add_view_name = 'add.html'
+    hint = _('Manage people')
+    title = _('People')
 
     @property
-    def groups(self):
-        return IGroupContainer(self.schoolyear, None)
-
-    @property
-    def persons(self):
+    def container(self):
         return self.context['persons']
-
-    @property
-    def school_name(self):
-        preferences = IApplicationPreferences(self.context)
-        return preferences.title
-
-    def persons_url(self):
-        return self.url_with_schoolyear_id(self.context, view_name='persons')
 
 
 class FlourishRequestPersonIDCardView(RequestRemoteReportDialog):
@@ -1776,6 +1782,10 @@ class LeaveSchoolView(flourish.form.Form,
                         if leave_date < schoolyear.first:
                             link_info.state.replace({})
                         collection.on(leave_date).relate(person, INACTIVE, code)
+            current_level = self.current_level
+            if current_level and current_level['level'] is not None:
+                person.levels.on(leave_date).relate(
+                    current_level['level'], INACTIVE, 'i')
             self.request.response.redirect(self.nextURL())
 
     @button.buttonAndHandler(_("Cancel"))
@@ -1785,13 +1795,100 @@ class LeaveSchoolView(flourish.form.Form,
     def nextURL(self):
         return absoluteURL(self.context, self.request)
 
+    @property
+    def current_level(self):
+        result = {}
+        levels = self.context.levels.all().any(ACTIVE)
+        if levels:
+            result['level'] = removeSecurityProxy(list(levels)[0])
+            dt, code, meaning = list(levels.relationships)[0].state.all()[0]
+            result['date'] = dt
+        return result
+
 
 class LeaveSchoolLinkViewlet(flourish.page.LinkViewlet):
 
     @property
     def enabled(self):
-        return is_student(self.context)
+        return (is_student(self.context) and
+                not IDemographics(self.context).get('leave_date'))
 
+
+class ReEnrollSchoolLinkViewlet(flourish.page.LinkViewlet):
+
+    @property
+    def enabled(self):
+        return IDemographics(self.context).get('leave_date')
+
+
+class ReEnrollSchoolView(flourish.form.Form,
+                         form.EditForm):
+
+    template = InheritTemplate(flourish.page.Page.template)
+    label = None
+    legend = _('Re-enroll Information')
+
+    @property
+    def fields(self):
+        result = field.Fields(Date(__name__='date', title=_('Date')))
+        result += field.Fields(ILevelField)
+        return result
+
+    def getContent(self):
+        return {
+            'date': self.request.util.today,
+            'level': None,
+        }
+
+    @property
+    def title(self):
+        return self.context.title
+
+    def update(self):
+        form.EditForm.update(self)
+
+    def updateActions(self):
+        super(ReEnrollSchoolView, self).updateActions()
+        self.actions['apply'].addClass('button-ok')
+        self.actions['cancel'].addClass('button-cancel')
+
+    def updateWidgets(self, *args, **kw):
+        super(ReEnrollSchoolView, self).updateWidgets(*args, **kw)
+        self.widgets['date'].value = self.request.util.today
+
+    @button.buttonAndHandler(_('Submit'), name='apply')
+    def handleApply(self, action):
+        super(ReEnrollSchoolView, self).handleApply.func(self, action)
+        if (self.status == self.successMessage or
+            self.status == self.noChangesMessage):
+            data, errors = self.extractData()
+            person = removeSecurityProxy(self.context)
+            date = data['date']
+            if data['level'] is not None:
+                person.levels.on(date).relate(removeSecurityProxy(data['level']))
+            demographics = IDemographics(person)
+            for name in LEAVE_SCHOOL_FIELDS:
+                demographics[name] = None
+            self.addAsStudent(person, date)
+            self.request.response.redirect(self.nextURL())
+
+    @button.buttonAndHandler(_("Cancel"))
+    def handle_cancel_action(self, action):
+        self.request.response.redirect(self.nextURL())
+
+    def nextURL(self):
+        return absoluteURL(self.context, self.request)
+
+    def addAsStudent(self, person, date):
+        app = ISchoolToolApplication(None)
+        years = [y for y in ISchoolYearContainer(app).values()
+                 if y.first <= date <= y.last]
+        if years:
+            year = years[0]
+            students = IGroupContainer(year).get('students')
+            if students is not None:
+                students.members.on(date).add(person)
+            
 
 class LevelAccordionViewlet(Viewlet):
 
@@ -1800,9 +1897,8 @@ class LevelAccordionViewlet(Viewlet):
     @property
     def title(self):
         result = _('Grade Level')
-        today = self.request.util.today
         levels = [level.title
-                  for level in self.context.levels.on(today).any(ACTIVE)]
+                  for level in self.context.levels.all().any(ACTIVE)]
         if levels:
             result = _('Grade Level: ${level}',
                        mapping={'level': ', '.join(levels)})
@@ -1833,16 +1929,19 @@ class PersonEditLevelView(flourish.form.Form,
 
     @property
     def current_level(self):
-        today = self.request.util.today
-        levels = [level
-                  for level in self.context.levels.on(today).any(ACTIVE)]
+        result = {}
+        levels = self.context.levels.all().any(ACTIVE)
         if levels:
-            return levels[0]
+            result['level'] = removeSecurityProxy(list(levels)[0])
+            dt, code, meaning = list(levels.relationships)[0].state.all()[0]
+            result['date'] = dt
+        return result
 
     def getContent(self):
+        current_level = self.current_level
         return {
-            'date': self.request.util.today,
-            'level': self.current_level,
+            'date': current_level.get('date', self.request.util.today),
+            'level': current_level.get('level'),
         }
 
     @property
@@ -1870,11 +1969,12 @@ class PersonEditLevelView(flourish.form.Form,
             data, errors = self.extractData()
             person = removeSecurityProxy(self.context)
             date = data['date']
-            current_level = removeSecurityProxy(self.current_level)
+            current_level = self.current_level
             new_level = removeSecurityProxy(data['level'])
-            if current_level != new_level:
-                if current_level is not None:
-                    person.levels.on(date).relate(current_level, INACTIVE, 'i')
+            if current_level.get('level') != new_level:
+                if current_level.get('level') is not None:
+                    person.levels.on(date).relate(
+                        current_level['level'], INACTIVE, 'i')
                 if new_level is not None:
                     person.levels.on(date).relate(new_level)
         self.request.response.redirect(self.nextURL())
@@ -1885,3 +1985,170 @@ class PersonEditLevelView(flourish.form.Form,
 
     def nextURL(self):
         return absoluteURL(self.context, self.request)
+
+
+class BasicPersonContainerJSONSearchView(JSONSearchViewBase):
+
+    @property
+    def catalog(self):
+        app = ISchoolToolApplication(None)
+        return ICatalog(app['persons'])
+
+    @property
+    def items(self):
+        if self.text_query:
+            params = {
+                'text': self.text_query,
+            }
+            return self.catalog.searchResults(**params)
+        return []
+
+    def encode(self, item):
+        label = '%s, %s' % (item.title, item.username)
+        return {
+            'label': label,
+            'value': label,
+            'url': absoluteURL(item, self.request),
+        }
+
+
+class PromoteStudentsView(flourish.page.Page,
+                          ActiveSchoolYearContentMixin):
+
+    content_template = ViewPageTemplateFile('templates/promote.pt')
+    container_class = 'container widecontainer'
+
+    @Lazy
+    def next_year(self):
+        app = ISchoolToolApplication(None)
+        container = ISchoolYearContainer(app)
+        return container.getNextSchoolYear()
+
+    @property
+    def current_level(self):
+        result = {}
+        levels = self.context.levels.all().any(ACTIVE)
+        if levels:
+            result['level'] = removeSecurityProxy(list(levels)[0])
+            dt, code, meaning = list(levels.relationships)[0].state.all()[0]
+            result['date'] = dt
+        return result
+
+    def nextURL(self):
+        app = ISchoolToolApplication(None)
+        return '%s/manage?schoolyear_id=%s' % (
+            absoluteURL(app, self.request),
+            self.schoolyear.__name__)
+
+    def update(self):
+        if 'CANCEL' in self.request:
+            self.request.response.redirect(self.nextURL())
+        if 'SUBMIT' in self.request:
+            app = ISchoolToolApplication(None)
+            level_container = ILevelContainer(app)
+            students = IGroupContainer(self.schoolyear)['students']
+            states = IRelationshipStateContainer(app)['student-enrollment']
+            for student_data in self.students:
+                person = student_data['obj']
+                requested_level = self.request.get(
+                    student_data['level_selector_id'])
+                active_levels = person.levels.all().any(ACTIVE)
+                current_level = list(active_levels)[0]
+                if requested_level != current_level.__name__:
+                    if not requested_level:
+                        person.levels.unrelate(current_level)
+                    else:
+                        new_level = level_container.get(requested_level)
+                        if new_level is not None:
+                            person.levels.unrelate(current_level)
+                            person.levels.relate(new_level)
+                requested_enrollment = self.request.get(
+                    student_data['enrollment_selector_id'])
+                student_state = students.members.state(person)
+                dt, code, meaning = student_state.all()[0]
+                if code != requested_enrollment:
+                    new_state = states.states[requested_enrollment]
+                    students.members.relate(person,
+                                            new_state.active,
+                                            new_state.code)
+            self.request.response.redirect(self.nextURL())
+
+    @Lazy
+    def students(self):
+        app = ISchoolToolApplication(None)
+        level_container = ILevelContainer(app)
+        level_keys = level_container.keys()
+        states = IRelationshipStateContainer(app)['student-enrollment']
+        students = IGroupContainer(self.schoolyear)['students']
+        result = []
+        for person in students.members:
+            active_levels = person.levels.all().any(ACTIVE)
+            if active_levels:
+                current_level = list(active_levels)[0]
+                student_state = students.members.state(person)
+                dt, code, meaning = student_state.all()[0]
+                enrollment_states = []
+                for state in states:
+                    enrollment_states.append({
+                        'title': state.title,
+                        'selected': state.code == meaning,
+                        'value': state.code,
+                    })
+                current_level_key = level_keys.index(current_level.__name__)
+                next_level = None
+                next_level_key = None
+                if current_level_key < (len(level_keys) - 1):
+                    next_level_key = level_keys[current_level_key + 1]
+                    next_level = level_container[next_level_key]
+                student_levels = []
+                for level_id, level in level_container.items():
+                    student_levels.append({
+                        'title': level.title,
+                        'selected': level_id == next_level_key,
+                        'value': level_id,
+                    })
+                result.append({
+                    'levels': student_levels,
+                    'enrollment_selector_id': self.enrollment_selector_id(
+                        person),
+                    'level_selector_id': self.level_selector_id(person),
+                    'obj': person,
+                    'level': current_level,
+                    'enrollment_states': enrollment_states,
+                    'next_level': next_level,
+                })
+            else:
+                continue
+        # XXX: i18n
+        return sorted(result,
+                      key=lambda i: (level_keys.index(i['level'].__name__),
+                                     i['obj'].last_name,
+                                     i['obj'].first_name))
+
+    def enrollment_selector_id(self, person):
+        return 'enrollment-selector-%s' % person.__name__
+
+    def level_selector_id(self, person):
+        return 'level-selector-%s' % person.__name__
+
+
+class PromoteStudentsLinkViewlet(flourish.page.LinkViewlet,
+                                 ActiveSchoolYearContentMixin):
+
+    @property
+    def enabled(self):
+        app = ISchoolToolApplication(None)
+        container = ISchoolYearContainer(app)
+        schoolyears = sorted(container.values(),
+                             key=lambda schoolyear: schoolyear.first)
+        return (self.schoolyear is container.getActiveSchoolYear() and
+                self.schoolyear != schoolyears[-1])
+
+    @property
+    def url(self):
+        app = ISchoolToolApplication(None)
+        persons = app['persons']
+        return '%s/promote.html?schoolyear_id=%s' % (
+            absoluteURL(persons, self.request),
+            self.schoolyear.__name__)
+

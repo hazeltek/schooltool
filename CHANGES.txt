@@ -2,10 +2,10 @@
 CHANGES
 =======
 
-2.9.2 (unreleased)
+2.9.2 (2015-02-18)
 ------------------
 
-- Nothing changed yet.
+- Fixed year reports registration
 
 
 2.9.1 (2015-02-17)

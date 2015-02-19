@@ -155,6 +155,7 @@
        for="schooltool.app.interfaces.ISchoolToolApplication"
        view="schooltool.app.browser.app.ManageSchool"
        class=".export.ExportLinkVielwet"
+       manager="schooltool.report.browser.report.SchoolReportsLinks"
        permission="schooltool.edit"
        group="School"
        description="A single .xls spreadsheet containing the basic structure of the school, including students, contacts, years, terms, courses, groups and timetables.  Can be modified and re-imported."

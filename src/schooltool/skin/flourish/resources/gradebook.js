@@ -103,7 +103,7 @@ function findColumnHeader(td) {
 function isScorable(td) {
     var columnHeader = findColumnHeader(td);
     var rowHeader = td.parent();
-    return columnHeader.hasClass('scorable') && (!rowHeader.hasClass('grade-hint'));
+    return columnHeader.hasClass('scorable') && (!rowHeader.hasClass('grade-hint')) & (!rowHeader.hasClass('column-averages'));
 }
 
 function getScorableInput(td) {

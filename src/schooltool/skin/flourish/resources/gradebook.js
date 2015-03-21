@@ -138,13 +138,17 @@ function setAutoComplete(input, scores) {
                 return false;
             }
         },
-	source: function(request, response) {
+	    source: function(request, response) {
             // match only the beginning of the label
-	    var matcher = new RegExp("^"+$.ui.autocomplete.escapeRegex(request.term), 'i');
-	    response($.grep(scores, function(item) {
-		return matcher.test(item.label);
-	    }));
-	}
+	        var matcher = new RegExp("^"+$.ui.autocomplete.escapeRegex(request.term), 'i');
+	        response($.grep(scores, function(item) {
+		        return matcher.test(item.label);
+	        }));
+	    },
+        position: {
+            my: 'right top',
+            at: 'right bottom'
+        }
     });
 }
 

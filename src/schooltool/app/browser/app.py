@@ -1219,12 +1219,19 @@ class ManageSchool(flourish.page.Page):
 class ActiveSchoolYearContentMixin(object):
 
     @Lazy
+    def _schoolyears(self):
+        return ISchoolYearContainer(ISchoolToolApplication(None))
+
+    @Lazy
+    def active_schoolyear(self):
+        return self._schoolyears.getActiveSchoolYear()
+
+    @Lazy
     def schoolyear(self):
-        schoolyears = ISchoolYearContainer(ISchoolToolApplication(None))
-        result = schoolyears.getActiveSchoolYear()
+        result = self.active_schoolyear
         if 'schoolyear_id' in self.request:
             schoolyear_id = self.request['schoolyear_id']
-            result = schoolyears.get(schoolyear_id, result)
+            result = self._schoolyears.get(schoolyear_id, result)
         return result
 
     @property

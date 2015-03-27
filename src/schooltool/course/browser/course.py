@@ -66,6 +66,7 @@ from schooltool.course.interfaces import ISectionContainer
 from schooltool.course.interfaces import ILearner, IInstructor
 from schooltool.course.interfaces import ISection
 from schooltool.course.course import Course
+from schooltool.group.interfaces import IGroupContainer
 from schooltool.level.interfaces import ILevelContainer
 from schooltool.skin import flourish
 from schooltool.skin.flourish.viewlet import Viewlet
@@ -247,6 +248,16 @@ class FlourishCoursesViewlet(Viewlet, ActiveSchoolYearContentMixin):
         self.instructorOf = self.sectionsAsTeacher()
         self.learnerOf = self.sectionsAsLearner()
 
+    def inTeachersGroup(self):
+        if self.active_schoolyear is not None:
+            group = IGroupContainer(self.active_schoolyear)['teachers']
+            return self.context in group.members
+
+    def inStudentsGroup(self):
+        if self.active_schoolyear is not None:
+            group = IGroupContainer(self.active_schoolyear)['students']
+            return self.context in group.members
+
     def isTeacher(self):
         """Find out if the person is an instructor for any sections."""
         return bool(self.instructorOf)
@@ -326,6 +337,10 @@ class FlourishCoursesViewlet(Viewlet, ActiveSchoolYearContentMixin):
                 'title': title,
                 })
         return states
+
+    @property
+    def canModify(self):
+        return canAccess(self.context.__parent__, '__delitem__')
 
 
 class FlourishCompletedCoursesViewlet(Viewlet, ActiveSchoolYearContentMixin):

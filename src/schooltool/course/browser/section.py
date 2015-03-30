@@ -2228,7 +2228,8 @@ class InstructorSectionsView(MemberSectionsViewBase):
 
 class MemberSectionsTable(SectionsTableBase):
 
-    pass
+    def sortOn(self):
+        return (('term', False), ('courses', False), ('title', False))
 
 
 class MemberSectionsTableSchoolYear(flourish.viewlet.Viewlet):

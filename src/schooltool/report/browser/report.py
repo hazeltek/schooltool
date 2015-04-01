@@ -211,6 +211,8 @@ class ReportsLinksBase(flourish.page.RefineLinksSortedByTitleViewlet):
                 params.update(viewlet_params)
                 querystring = urlencode(params)
                 url = '%s?%s' % (viewlet.report_link, querystring)
+            else:
+                url = viewlet.report_link
             result.append({
                     'class': item['class'],
                     'viewlet': viewlet,

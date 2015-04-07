@@ -58,6 +58,7 @@ from schooltool.app.membership import Membership
 from schooltool.app.relationships import Instruction
 from schooltool.common.inlinept import InheritTemplate
 from schooltool.common.inlinept import InlineViewPageTemplate
+from schooltool.term.interfaces import IDateManager
 from schooltool.term.interfaces import ITerm
 from schooltool.schoolyear.interfaces import ISchoolYear
 from schooltool.skin.containers import ContainerView
@@ -66,6 +67,7 @@ from schooltool.course.interfaces import ISectionContainer
 from schooltool.course.interfaces import ILearner, IInstructor
 from schooltool.course.interfaces import ISection
 from schooltool.course.course import Course
+from schooltool.group.interfaces import IGroupContainer
 from schooltool.level.interfaces import ILevelContainer
 from schooltool.skin import flourish
 from schooltool.skin.flourish.viewlet import Viewlet
@@ -247,6 +249,16 @@ class FlourishCoursesViewlet(Viewlet, ActiveSchoolYearContentMixin):
         self.instructorOf = self.sectionsAsTeacher()
         self.learnerOf = self.sectionsAsLearner()
 
+    def inTeachersGroup(self):
+        if self.active_schoolyear is not None:
+            group = IGroupContainer(self.active_schoolyear)['teachers']
+            return self.context in group.members
+
+    def inStudentsGroup(self):
+        if self.active_schoolyear is not None:
+            group = IGroupContainer(self.active_schoolyear)['students']
+            return self.context in group.members
+
     def isTeacher(self):
         """Find out if the person is an instructor for any sections."""
         return bool(self.instructorOf)
@@ -281,16 +293,20 @@ class FlourishCoursesViewlet(Viewlet, ActiveSchoolYearContentMixin):
                 schoolyears_data[sy][term] = []
             schoolyears_data[sy][term].append((section, link_info))
         result = []
-        for sy in sorted(schoolyears_data, key=lambda x:x.first, reverse=True):
+        for sy in sorted(schoolyears_data, key=lambda x:x.first):
             sy_info = {
                 'obj': sy,
                 'css_class': 'active' if sy is self.schoolyear else 'inactive',
                 'terms': [],
                 }
             for term in sorted(schoolyears_data[sy],
-                               key=lambda x:x.first,
-                               reverse=True):
-                term_info = {'obj': term, 'sections': []}
+                               key=lambda x:x.first):
+                is_active = term == getUtility(IDateManager).current_term
+                term_info = {
+                    'obj': term,
+                    'sections': [],
+                    'css_class': 'active' if is_active else 'inactive',
+                }
                 for section, link_info in sorted(schoolyears_data[sy][term],
                                                  key=self.sortingKey):
                     states = self.section_current_states(
@@ -326,6 +342,10 @@ class FlourishCoursesViewlet(Viewlet, ActiveSchoolYearContentMixin):
                 'title': title,
                 })
         return states
+
+    @property
+    def canModify(self):
+        return canAccess(self.context.__parent__, '__delitem__')
 
 
 class FlourishCompletedCoursesViewlet(Viewlet, ActiveSchoolYearContentMixin):

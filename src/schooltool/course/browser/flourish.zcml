@@ -847,4 +847,79 @@
       permission="schooltool.view"
       />
 
+  <flourish:page
+      name="learner-sections.html"
+      for="schooltool.basicperson.interfaces.IBasicPerson"
+      class=".section.LearnerSectionsView"
+      subtitle="Sections attended"
+      permission="schooltool.edit"
+      />
+
+  <flourish:page
+      name="instructor-sections.html"
+      for="schooltool.basicperson.interfaces.IBasicPerson"
+      class=".section.InstructorSectionsView"
+      subtitle="Sections taught"
+      permission="schooltool.edit"
+      />
+
+  <flourish:content
+      name="tertiary_navigation"
+      class=".section.MemberSectionsTertiaryNavigation"
+      view=".section.MemberSectionsViewBase"
+      permission="zope.Public"
+      />
+
+  <flourish:viewlet
+      name="available_table"
+      class=".section.MemberSectionsAddRelationshipTable"
+      manager="schooltool.skin.flourish.interfaces.IAJAXParts"
+      view=".section.MemberSectionsViewBase"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="filter"
+      manager=".section.MemberSectionsAddRelationshipTable"
+      class=".section.SectionsTableFilter"
+      render="template"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="current_table"
+      class=".section.MemberSectionsRemoveRelationshipTable"
+      manager="schooltool.skin.flourish.interfaces.IAJAXParts"
+      view=".section.MemberSectionsViewBase"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="schoolyear"
+      after="filter"
+      view=".section.MemberSectionsViewBase"
+      manager=".section.MemberSectionsTable"
+      class=".section.MemberSectionsTableSchoolYear"
+      render="template"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="action_dialog_script"
+      after="table"
+      manager=".section.MemberSectionsRemoveRelationshipTable"
+      class=".section.LearnerSectionsRemoveStateActionDialog"
+      view=".section.LearnerSectionsView"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="action_dialog_script"
+      after="table"
+      manager=".section.MemberSectionsRemoveRelationshipTable"
+      class=".section.InstructorSectionsRemoveStateActionDialog"
+      view=".section.InstructorSectionsView"
+      permission="schooltool.view"
+      />
+
 </configure>

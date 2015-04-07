@@ -1,83 +1,112 @@
-<div i18n:domain="schooltool">
-<h2 i18n:translate="">Sections</h2>
-<div>
-<div tal:define="schoolyears view/instructorOf"
-     tal:condition="view/isTeacher"
-     class="info-block">
-  <h3 i18n:translate="">Sections taught</h3>
-  <div class="tree_list" tal:condition="schoolyears">
-    <ul>
-      <li tal:repeat="schoolyear schoolyears">
-        <a tal:attributes="href schoolyear/obj/@@absolute_url;
-                           title schoolyear/obj/title;
-                           class schoolyear/css_class;"
-           tal:content="schoolyear/obj/title"></a>
+<div i18n:domain="schooltool"
+     tal:define="isTeacher view/isTeacher;
+                 isLearner view/isLearner;
+                 inTeachersGroup view/inTeachersGroup;
+                 inStudentsGroup view/inStudentsGroup;
+                 canModify view/canModify">
+  <h2 i18n:translate="">Sections</h2>
+  <div>
+    <div tal:define="schoolyears view/instructorOf"
+         class="info-block">
+      <h3>
+        <tal:block i18n:translate=""
+                   tal:condition="python:isTeacher or inTeachersGroup">
+          Sections taught
+        </tal:block>
+        <a class="modify" href="" title="Edit this person's sections taught"
+           tal:attributes="href string:${context/@@absolute_url}/@@instructor-sections.html"
+           i18n:attributes="title"
+           tal:condition="python: canModify and inTeachersGroup">
+          <img tal:attributes="src context/++resource++schooltool.skin.flourish/edit-icon.png"
+               alt="Edit"
+               i18n:attributes="alt" />
+        </a>
+      </h3>
+      <div class="tree_list" tal:condition="schoolyears">
         <ul>
-          <li tal:repeat="term schoolyear/terms">
-            <a tal:attributes="href term/obj/@@absolute_url;
-                               title term/obj/title"
-               tal:content="term/obj/title"></a>
+          <li tal:repeat="schoolyear schoolyears">
+            <a tal:attributes="href schoolyear/obj/@@absolute_url;
+                               title schoolyear/obj/title;
+                               class schoolyear/css_class;"
+               tal:content="schoolyear/obj/title"></a>
             <ul>
-              <li tal:repeat="section_data term/sections">
-                <a tal:attributes="href section_data/obj/@@absolute_url;
-                                   title section_data/title"
-                   class="leaf_url"
-                   tal:content="section_data/title"></a>
+              <li tal:repeat="term schoolyear/terms">
+                <a tal:attributes="href term/obj/@@absolute_url;
+                                   title term/obj/title;
+                                   class term/css_class"
+                   tal:content="term/obj/title"></a>
                 <ul>
-                  <li tal:repeat="state section_data/states">
-                    <tal:block replace="state/title" />
-                    (<tal:block replace="state/date/@@mediumDate" />)
+                  <li tal:repeat="section_data term/sections">
+                    <a tal:attributes="href section_data/obj/@@absolute_url;
+                                       title section_data/title"
+                       class="leaf_url"
+                       tal:content="section_data/title"></a>
+                    <ul>
+                      <li tal:repeat="state section_data/states">
+                        <tal:block replace="state/title" />
+                        (<tal:block replace="state/date/@@mediumDate" />)
+                      </li>
+                    </ul>
                   </li>
                 </ul>
               </li>
             </ul>
           </li>
         </ul>
-      </li>
-    </ul>
-  </div>
-</div>
-
-<div tal:define="schoolyears view/learnerOf"
-     tal:condition="view/isLearner"
-     class="info-block">
-  <h3 i18n:translate="">Sections attended</h3>
-  <div class="tree_list" tal:condition="schoolyears">
-    <ul>
-      <li tal:repeat="schoolyear schoolyears">
-        <a tal:attributes="href schoolyear/obj/@@absolute_url;
-                           title schoolyear/obj/title;
-                           class schoolyear/css_class"
-           tal:content="schoolyear/obj/title"></a>
+      </div>
+    </div>
+    <div style="clear: both"></div>
+    <div tal:define="schoolyears view/learnerOf"
+         class="info-block">
+      <h3>
+        <tal:block i18n:translate=""
+                   tal:condition="python:isLearner or inStudentsGroup">
+          Sections attended
+        </tal:block>
+        <a class="modify" href="" title="Edit this person's sections attended"
+           tal:attributes="href string:${context/@@absolute_url}/@@learner-sections.html"
+           i18n:attributes="title"
+           tal:condition="python: canModify and inStudentsGroup">
+          <img tal:attributes="src context/++resource++schooltool.skin.flourish/edit-icon.png"
+               alt="Edit"
+               i18n:attributes="alt" />
+        </a>
+      </h3>
+      <div class="tree_list" tal:condition="schoolyears">
         <ul>
-          <li tal:repeat="term schoolyear/terms">
-            <a tal:attributes="href term/obj/@@absolute_url;
-                               title term/obj/title"
-               tal:content="term/obj/title"></a>
+          <li tal:repeat="schoolyear schoolyears">
+            <a tal:attributes="href schoolyear/obj/@@absolute_url;
+                               title schoolyear/obj/title;
+                               class schoolyear/css_class"
+               tal:content="schoolyear/obj/title"></a>
             <ul>
-              <li tal:repeat="section_data term/sections">
-                <a tal:attributes="href section_data/obj/@@absolute_url;
-                                   title section_data/title"
-                   class="leaf_url"
-                   tal:content="section_data/title"></a>
+              <li tal:repeat="term schoolyear/terms">
+                <a tal:attributes="href term/obj/@@absolute_url;
+                                   title term/obj/title;
+                                   class term/css_class"
+                   tal:content="term/obj/title"></a>
                 <ul>
-                  <li tal:repeat="state section_data/states">
-                    <tal:block replace="state/title" />
-                    (<tal:block replace="state/date/@@mediumDate" />)
+                  <li tal:repeat="section_data term/sections">
+                    <a tal:attributes="href section_data/obj/@@absolute_url;
+                                       title section_data/title"
+                       class="leaf_url"
+                       tal:content="section_data/title"></a>
+                    <ul>
+                      <li tal:repeat="state section_data/states">
+                        <tal:block replace="state/title" />
+                        (<tal:block replace="state/date/@@mediumDate" />)
+                      </li>
+                    </ul>
                   </li>
                 </ul>
               </li>
             </ul>
           </li>
         </ul>
-      </li>
-    </ul>
+      </div>
+    </div>
+    <div tal:condition="python: not(isTeacher or isLearner)">
+      <p i18n:translate="">This person has no sections.</p>
+    </div>
   </div>
 </div>
-
-<div tal:condition="python: not(view.isTeacher() or view.isLearner())">
-  <p i18n:translate="">This person has no sections.</p>
-</div>
-</div>
-</div>
-

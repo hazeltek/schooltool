@@ -217,6 +217,8 @@ class ApplicationPreferences(Persistent):
     logo = None
 
     name_sorting = 'last_name'
+    code = None
+    peas_region = None
 
     def initializeTimezone(self):
         self.timezone = self._get_localzone()

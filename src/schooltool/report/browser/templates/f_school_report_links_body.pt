@@ -8,9 +8,9 @@
       <tal:block tal:repeat="item view/items">
         <tal:block define="url item/url;
                            link_id item/link_id;
-                           title item/title">
+                           title item/title;
+                           is_report_link item/is_report_link">
           <option tal:content="title"
-                  tal:condition="item/is_report_link"
                   tal:attributes="value link_id;
                                   id link_id;
                                   title item/description;" />
@@ -18,11 +18,12 @@
 	  <tal:script replace="structure scriptlocal:
 			       url;
 			       title;
-			       link_id;" />
+			       link_id;
+                   is_report_link;" />
 	  <script>
 	    $(ST.dialogs.jquery_id(ST.local.link_id)).data(
 	        'info',
-		{title: ST.local.title, url: ST.local.url});
+		{title: ST.local.title, url: ST.local.url, is_report_link: ST.local.is_report_link});
 	  </script>
 	  <script>ST.state.pop()</script>
         </tal:block>
@@ -47,9 +48,14 @@
                   var option = $(ST.dialogs.jquery_id(select_id) + ' option:selected'),
                       option_value = option.val();
                   if (option_value) {
-                      ST.dialogs.open_modal_form(option.data('info').url,
-                                                 container_id,
-                                                 option.data('info').title);
+                      console.log(option.data('info'));
+                      if (option.data('info').is_report_link) {
+                          ST.dialogs.open_modal_form(option.data('info').url,
+                                                     container_id,
+                                                     option.data('info').title);
+                      } else {
+                          window.location = option.data('info').url;
+                      }
                   }
                   return false;
               }}());

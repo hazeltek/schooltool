@@ -59,7 +59,12 @@ from schooltool.app.browser.app import BaseEditView
 from schooltool.app.browser.app import ContainerSearchContent
 from schooltool.app.browser.app import RelationshipViewBase
 from schooltool.app.browser.app import JSONSearchViewBase
+from schooltool.app.browser.states import EditTemporalRelationships
+from schooltool.app.browser.states import TemporalRelationshipAddTableMixin
+from schooltool.app.browser.states import TemporalRelationshipRemoveTableMixin
+from schooltool.app.browser.states import RemoveStateActionDialog
 from schooltool.app.interfaces import ISchoolToolApplication
+from schooltool.app.membership import Membership
 from schooltool.app.relationships import Instruction
 from schooltool.app.utils import vocabulary_titled
 from schooltool.basicperson.browser.person import EditPersonTemporalRelationships
@@ -79,6 +84,7 @@ from schooltool.person.interfaces import IPerson
 from schooltool.person.interfaces import IPersonFactory
 from schooltool.report.browser.report import RequestRemoteReportDialog
 from schooltool.relationship.temporal import ACTIVE
+from schooltool.app.states import INACTIVE
 from schooltool.resource.browser.resource import EditLocationRelationships
 from schooltool.resource.browser.resource import EditEquipmentRelationships
 from schooltool.resource.interfaces import ILocation, IEquipment
@@ -100,6 +106,7 @@ from schooltool.skin.flourish.page import TertiaryNavigationManager
 from schooltool import table
 from schooltool.term.interfaces import IDateManager
 from schooltool.term.interfaces import ITerm
+from schooltool.term.interfaces import ITermContainer
 from schooltool.term.term import getPreviousTerm, getNextTerm
 from schooltool.term.term import listTerms
 
@@ -2101,3 +2108,242 @@ class SectionsJSONSearchView(JSONSearchViewBase,
             'value': label,
             'url': absoluteURL(section, self.request),
         }
+
+
+class MemberSectionsTertiaryNavigation(flourish.page.Content,
+                                       flourish.page.TertiaryNavigationManager,
+                                       ActiveSchoolYearContentMixin):
+
+    template = InlineViewPageTemplate("""
+        <ul tal:attributes="class view/list_class"
+            tal:condition="view/items">
+          <li tal:repeat="item view/items"
+              tal:attributes="class item/class">
+              <a tal:attributes="href item/url"
+                 tal:content="item/schoolyear/@@title" />
+          </li>
+        </ul>
+    """)
+
+    @property
+    def items(self):
+        result = []
+        active = self.schoolyear
+        schoolyears = active.__parent__ if active is not None else {}
+        name = self.view.__name__
+        for schoolyear in schoolyears.values():
+            url = '%s/%s?schoolyear_id=%s' % (
+                absoluteURL(self.context, self.request),
+                name,
+                schoolyear.__name__)
+            css_class = schoolyear.first == active.first and 'active' or None
+            result.append({
+                    'class': css_class,
+                    'url': url,
+                    'schoolyear': schoolyear,
+                    })
+        return result
+
+
+class MemberSectionsViewBase(EditTemporalRelationships,
+                             ActiveSchoolYearContentMixin):
+
+    app_states_name = None
+    current_title = _('Current sections')
+    available_title = _('Available sections')
+
+    def getCollection(self):
+        result = []
+        for link_info in self.relationships:
+            if not ISection.providedBy(link_info.target):
+                continue
+            section = removeSecurityProxy(link_info.target)
+            sy = ISchoolYear(section)
+            if sy != self.schoolyear:
+                continue
+            result.append(section)
+        return result
+
+    def add(self, item, state=None, code=None, date=None):
+        person = removeSecurityProxy(self.context)
+        collection = self.getItemCollection(removeSecurityProxy(item))
+        active = state.active if state is not None else ACTIVE
+        collection.on(date).relate(person, active, code)
+
+    def remove(self, item, state=None, code=None, date=None):
+        person = removeSecurityProxy(self.context)
+        collection = self.getItemCollection(removeSecurityProxy(item))
+        active = state.active if state is not None else INACTIVE
+        collection.on(date).relate(person, active, code)
+
+    def getSelectedItems(self):
+        return self.getCollection()
+
+    def getAvailableItemsContainer(self):
+        result = {}
+        for term in ITermContainer(self.schoolyear).values():
+            for section in ISectionContainer(term).values():
+                result[self.getKey(section)] = section
+        return result
+
+    def getKey(self, item):
+        schoolyear = ISchoolYear(item)
+        term = ITerm(item)
+        return "%s.%s.%s" % (schoolyear.__name__, term.__name__, item.__name__)
+
+    def getTargets(self, keys):
+        if not keys:
+            return []
+        result = []
+        container = self.getAvailableItemsContainer()
+        for key in keys:
+            if key in container:
+                result.append(container[key])
+        return result
+
+
+class LearnerSectionsView(MemberSectionsViewBase):
+
+    app_states_name = 'section-membership'
+
+    @property
+    def relationships(self):
+        return Membership.bind(member=self.context).all().relationships
+
+    def getItemCollection(self, item):
+        return item.members
+
+
+class InstructorSectionsView(MemberSectionsViewBase):
+
+    app_states_name = 'section-instruction'
+
+    @property
+    def relationships(self):
+        return Instruction.bind(instructor=self.context).all().relationships
+
+    def getItemCollection(self, item):
+        return item.instructors
+
+
+class MemberSectionsTable(SectionsTableBase):
+
+    def sortOn(self):
+        return (('term', False), ('courses', False), ('title', False))
+
+
+class MemberSectionsTableSchoolYear(flourish.viewlet.Viewlet):
+
+    template = InlineViewPageTemplate('''
+      <input type="hidden" name="schoolyear_id"
+             tal:define="schoolyear_id view/view/schoolyear/__name__|nothing"
+             tal:condition="schoolyear_id"
+             tal:attributes="value schoolyear_id" />
+    ''')
+
+
+class MemberSectionsAddRelationshipTable(TemporalRelationshipAddTableMixin,
+                                         MemberSectionsTable):
+
+    visible_column_names = ['action', 'title', 'term', 'courses']
+
+    @property
+    def ignoreRequest(self):
+        return not self.fromPublication
+
+    def updateFormatter(self):
+        ommit = self.view.getOmmitedItems()
+        available = self.view.getAvailableItems()
+        columns = self.columns()
+        self.setUp(formatters=[table.table.url_cell_formatter],
+                   columns=columns,
+                   ommit=ommit,
+                   items=available,
+                   table_formatter=self.table_formatter,
+                   batch_size=self.batch_size,
+                   prefix=self.__name__,
+                   css_classes={'table': 'data relationships-table'})
+
+
+class MemberSectionsRemoveRelationshipTable(
+        TemporalRelationshipRemoveTableMixin,
+        MemberSectionsTable):
+
+    visible_column_names = ['action', 'title', 'term', 'courses', 'state']
+
+    def makeTextGetter(self):
+        states = self.view.states
+        if states is None:
+            return None
+        person = removeSecurityProxy(self.context)
+        def text(item, formatter=None):
+            state = self.view.getItemCollection(item).state(person)
+            if state is None:
+                return ''
+            state_today = state.today
+            if state_today is None:
+                return ''
+            active, code = state_today
+            settings = states
+            description = settings.states.get(code)
+            if description is None:
+                return ''
+            return description.title
+        return text
+
+
+class MemberSectionsRemoveStateActionDialog(RemoveStateActionDialog):
+
+    @Lazy
+    def current_states(self):
+        target = self.target
+        if target is None:
+            return []
+        app_states = self.app_states
+        relationships = self.getRelationship(target)
+        states = []
+        person = removeSecurityProxy(self.context)
+        for date, active, code in relationships.state(person) or ():
+            state = app_states.states.get(code)
+            title = state.title if state is not None else ''
+            states.append({
+                'date': date,
+                'active': app_states.system_titles.get(active, active),
+                'code': code,
+                'title': title,
+                })
+        return states
+
+    @property
+    def default_state(self):
+        target = self.target
+        if target is None:
+            return None
+        app_states = self.app_states
+        relationships = self.getRelationship(target)
+        person = removeSecurityProxy(self.context)
+        target_state = relationships.state(person)
+        if target_state is not None:
+            app_state = app_states.getState(target_state.today)
+            if app_state is not None:
+                return app_state
+        for state in app_states.states.values():
+            if state.active:
+                return state
+        if app_states.states:
+            return app_states.states.values()[0]
+        return None
+
+
+class LearnerSectionsRemoveStateActionDialog(
+        MemberSectionsRemoveStateActionDialog):
+
+    def getRelationship(self, target):
+        return target.members
+
+
+class InstructorSectionsRemoveStateActionDialog(
+        MemberSectionsRemoveStateActionDialog):
+
+    def getRelationship(self, target):
+        return target.instructors

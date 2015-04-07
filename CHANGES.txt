@@ -2,10 +2,13 @@
 CHANGES
 =======
 
-2.9.6 (unreleased)
+2.9.6 (2015-04-07)
 ------------------
 
-- Nothing changed yet
+- Added student/teacher sections management view for persons
+- Changed sorting in sections accordion and member sections tables
+- Expanded only active term in person jstree
+- Allowed non downloadable report links in school page
 
 
 2.9.5 (2015-03-21)

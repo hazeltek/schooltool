@@ -559,6 +559,17 @@ function initFillDown(form) {
     });
 }
 
+function copyConfig(editor) {
+    var config = editor.config;
+    return {
+        height: config.height,
+        width: config.width,
+        customConfig: config.customConfig,
+        skin: config.skin,
+        contentsCss: config.contentsCss
+    };
+}
+
 function initComments(form) {
     // comment-cell
     form.on('click', '.comment-cell', function() {
@@ -576,12 +587,15 @@ function initComments(form) {
         var description = $(activity).find('.activity-description');
         var value = $(this).attr('hidden_value');
         var dialog_title = container.find('#comment-cell-dialog-title').attr('dialog_title')
+        var ckeditor_name = 'form-widgets-value';
+        var config = copyConfig(CKEDITOR.instances[ckeditor_name]);
         container.find('#comment-cell-dialog-title').text(student_title);
         container.find('#comment-student-id').val(student_id);
         container.find('#comment-activity-id').val(activity_id);
         container.find('#form-widgets-value').val(value);
         container.find('label span').html(popup_link.attr('title'));
         container.find('p.hint').html(description.html());
+        CKEDITOR.instances[ckeditor_name].destroy();
         container.dialog({
             'title': dialog_title,
             'resizable': false,
@@ -590,8 +604,9 @@ function initComments(form) {
             'dialogClass': 'narrow-dialog',
             'modal': true
         });
-        CKEDITOR.instances['form-widgets-value'].setData(value)
-        CKEDITOR.instances['form-widgets-value'].focus()
+        var editor = new CKEDITOR.replace(ckeditor_name, config);
+        CKEDITOR.instances[ckeditor_name].setData(value);
+        CKEDITOR.instances[ckeditor_name].focus();
         return false;
     });
     $('body').on('click', '.comment-cell-cancel', function() {

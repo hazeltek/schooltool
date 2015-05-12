@@ -256,7 +256,7 @@
 
     <flourish:page
         name="schoolName.html"
-        title="School Name"
+        title="School Information"
         subtitle="Edit"
         for="schooltool.app.interfaces.ISchoolToolApplication"
         class="schooltool.app.browser.app.FlourishSchoolNameEditView"
@@ -776,7 +776,7 @@
   <flourish:viewlet
       name="schoolName.html"
       after="*"
-      title="School Name"
+      title="School Information"
       class="schooltool.skin.flourish.page.LinkViewlet"
       manager="schooltool.app.browser.app.CustomizeSchoolLinks"
       permission="schooltool.edit"

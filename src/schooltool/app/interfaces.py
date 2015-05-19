@@ -165,6 +165,14 @@ class IApplicationPreferences(ICalendarDisplayPreferences):
         ]),
         required=False)
 
+    student_capacity = zope.schema.Int(
+        title=_('Total student capacity'),
+        required=False)
+
+    boarding_capacity = zope.schema.Int(
+        title=_('Total boarding capacity'),
+        required=False)
+
 
 class IApplicationTabs(Interface):
     """Tab visible settings stored in an annotation on SchoolToolApplication."""

@@ -219,6 +219,8 @@ class ApplicationPreferences(Persistent):
     name_sorting = 'last_name'
     code = None
     peas_region = None
+    student_capacity = None
+    boarding_capacity = None
 
     def initializeTimezone(self):
         self.timezone = self._get_localzone()

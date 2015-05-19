@@ -2,10 +2,11 @@
 CHANGES
 =======
 
-2.9.7 (unreleased)
+2.9.7 (2015-05-18)
 ------------------
 
-- Nothing changed yet
+- Added student and boarding capacity app field
+- Changed School Name to School Information
 
 
 2.9.6 (2015-04-07)

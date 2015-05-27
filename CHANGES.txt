@@ -2,10 +2,10 @@
 CHANGES
 =======
 
-2.9.8 (unreleased)
+2.9.8 (2015-05-27)
 ------------------
 
-- Nothing changed yet
+- Fixed person catalog indexing after update through importer
 
 
 2.9.7 (2015-05-18)

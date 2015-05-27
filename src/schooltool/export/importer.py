@@ -1004,12 +1004,15 @@ class PersonImporter(ImporterBase):
                 demographics[field.name] = value
 
             if num_errors == len(self.errors):
+                existing_person = person.username in self.context['persons']
                 person = self.addPerson(person, data)
                 if group and person not in group.members:
                     group.members.add(removeSecurityProxy(person))
                 if level is not None and data['level_date']:
                     removeSecurityProxy(person).levels.on(
                         data['level_date']).relate(removeSecurityProxy(level))
+                if existing_person:
+                    notify(zope.lifecycleevent.ObjectModifiedEvent(person))
             self.progress(row, nrows)
 
 

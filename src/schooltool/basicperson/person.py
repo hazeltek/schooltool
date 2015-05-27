@@ -161,7 +161,7 @@ class BasicPersonCalendarCrowd(PersonCalendarCrowd):
 
 class PersonCatalog(AttributeCatalog):
 
-    version = '3 - updated title'
+    version = '3.1 - bump after person importer update'
     interface = IBasicPerson
     attributes = ('__name__', 'title', 'first_name', 'last_name')
 

@@ -2,10 +2,10 @@
 CHANGES
 =======
 
-2.9.9 (unreleased)
+2.9.9 (2015-06-03)
 ------------------
 
-- Nothing changed yet
+- Added copy/paste functionality for gradebook activities
 
 
 2.9.8 (2015-05-27)

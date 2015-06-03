@@ -253,6 +253,9 @@ function fillPopupMenu(link) {
             a.text(el.label);
             a.attr('href', el.url);
             if (el.css_class) {
+                if (el.css_class == 'paste' && !sessionStorage.paste) {
+                    return true;
+                }
                 a.addClass(el.css_class);
             }
             li.append(a);
@@ -341,6 +344,19 @@ function preloadFilldown(form) {
 
 function preloadCommentCell(form) {
     var url = buildURL(form.attr('action'), 'comment_cell');
+    $.ajax({
+        url: url,
+        dataType: 'html',
+        type: 'get',
+        context: form,
+        success: function(data) {
+            this.before(data);
+        }
+    });
+}
+
+function preloadCopyPasteDialog(form) {
+    var url = buildURL(form.attr('action'), 'copy_paste_dialog');
     $.ajax({
         url: url,
         dataType: 'html',
@@ -505,6 +521,58 @@ function initGrading(grades) {
     });
 }
 
+function initCopyPaste(grades) {
+    form = grades.closest('form');
+    grades.on('click', '.copy', function() {
+        var th = $(this).closest('th'),
+            columnIndex = th.index(),
+            cells = [];
+        grades.find('tbody').find('tr').each(function(i, row) {
+            cell = $(row).children()[columnIndex];
+            if (isScorable($(cell)))
+                cells.push($(cell).text());
+        });
+        sessionStorage.paste = JSON.stringify(cells);
+        hidePopup(form);
+        return false;
+    });
+    grades.on('click', '.paste', function() {
+        var th = $(this).closest('th'),
+            columnIndex = th.index(),
+            cells = [];
+        if (sessionStorage.paste) {
+            grades.find('tbody').find('tr').each(function(i, row) {
+                cell = $(row).children()[columnIndex];
+                if (isScorable($(cell)))
+                    cells.push(cell);
+            });
+            values = JSON.parse(sessionStorage.paste);
+            if (values.length != cells.length) {
+                var container = $('#copy-paste-dialog-container');
+                var dialog_title = container.find('#copy-paste-dialog-title').attr('dialog_title');
+                container.dialog({
+                    'title': dialog_title,
+                    'modal': true,
+                    'resizable': false,
+                    'width': 306,
+                    'minHeight': 105,
+                    'dialogClass': 'narrow-dialog'
+                });
+            } else {
+                $(cells).each(function(i, cell) {
+                    var cell = $(cell);
+                    var input = getScorableInput(cell);
+                    input.val(values[i]);
+                    input.trigger('keyup');
+                    input.blur();
+                })
+            }
+        }
+        hidePopup(form);
+        return false;
+    });
+}
+
 function initFillDown(form) {
     form.on('click', '.filldown', function() {
         hidePopup(form);
@@ -632,6 +700,7 @@ function initGradebook() {
         if (ST.gradebook.needs_comments) {
             preloadCommentCell(form);
         }
+        preloadCopyPasteDialog(form);
     }
 
     preloadPopups(form);
@@ -673,6 +742,7 @@ function initGradebook() {
     if (!ST.gradebook.readonly) {
         initGrading(grades);
         initFillDown(form);
+        initCopyPaste(grades);
         if (ST.gradebook.needs_comments) {
             initComments(form);
         }

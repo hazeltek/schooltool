@@ -253,6 +253,9 @@ function fillPopupMenu(link) {
             a.text(el.label);
             a.attr('href', el.url);
             if (el.css_class) {
+                if (el.css_class == 'paste' && !sessionStorage.paste) {
+                    return true;
+                }
                 a.addClass(el.css_class);
             }
             li.append(a);

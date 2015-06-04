@@ -521,6 +521,18 @@ function initGrading(grades) {
     });
 }
 
+function removeActivityPopups(form) {
+    var columnHeaders = form.find('#grades-part').find('th');
+    columnHeaders.each(function(i, el) {
+        $(el).find('.popup_menu').remove();
+    });
+}
+
+function refreshActivityPopups(form) {
+    removeActivityPopups(form);
+    preloadActivityPopups(form);
+}
+
 function initCopyPaste(grades) {
     form = grades.closest('form');
     grades.on('click', '.copy', function() {
@@ -534,6 +546,7 @@ function initCopyPaste(grades) {
         });
         sessionStorage.paste = JSON.stringify(cells);
         hidePopup(form);
+        refreshActivityPopups(form);
         return false;
     });
     grades.on('click', '.paste', function() {

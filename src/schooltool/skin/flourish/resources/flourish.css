@@ -13,8 +13,7 @@
 /* General elements */
 
 body, textarea, select, input {
-    font-family: 'Ubuntubeta', 'Ubuntu', 'Bitstream Vera Sans',
-                 'DejaVu Sans', Tahoma, sans-serif;
+    font-family: 'Ubuntu', 'Bitstream Vera Sans', 'DejaVu Sans', Tahoma, sans-serif;
 }
 
 body {

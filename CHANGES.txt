@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+2.9.10 (2015-06-04)
+-------------------
+
+- Fixed gradebook popups not being updated after copying activities
+- Removed fonts.googleapis.com link and served fonts locally
+
+
 2.9.9 (2015-06-03)
 ------------------
 

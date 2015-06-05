@@ -78,6 +78,14 @@
   </zope:resourceLibrary>
 
   <zope:resourceLibrary
+      name="schooltool.skin.flourish-fonts"
+      layer="schooltool.skin.flourish.IFlourishLayer">
+    <directory
+      source="/usr/share/fonts/truetype/ubuntu-font-family"
+      />
+  </zope:resourceLibrary>
+
+  <zope:resourceLibrary
       name="schooltool.skin.flourish"
       require="schooltool.skin.flourish-scripts
                schooltool.task"

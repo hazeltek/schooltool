@@ -253,7 +253,7 @@ function fillPopupMenu(link) {
             a.text(el.label);
             a.attr('href', el.url);
             if (el.css_class) {
-                if (el.css_class == 'paste' && !sessionStorage.paste) {
+                if (el.css_class == 'paste' && !sessionStorage['paste']) {
                     return true;
                 }
                 a.addClass(el.css_class);
@@ -544,7 +544,7 @@ function initCopyPaste(grades) {
             if (isScorable($(cell)))
                 cells.push($(cell).text());
         });
-        sessionStorage.paste = JSON.stringify(cells);
+        sessionStorage['paste'] = JSON.stringify(cells);
         hidePopup(form);
         refreshActivityPopups(form);
         return false;
@@ -553,13 +553,13 @@ function initCopyPaste(grades) {
         var th = $(this).closest('th'),
             columnIndex = th.index(),
             cells = [];
-        if (sessionStorage.paste) {
+        if (sessionStorage['paste']) {
             grades.find('tbody').find('tr').each(function(i, row) {
                 cell = $(row).children()[columnIndex];
                 if (isScorable($(cell)))
                     cells.push(cell);
             });
-            values = JSON.parse(sessionStorage.paste);
+            values = JSON.parse(sessionStorage['paste']);
             if (values.length != cells.length) {
                 var container = $('#copy-paste-dialog-container');
                 var dialog_title = container.find('#copy-paste-dialog-title').attr('dialog_title');

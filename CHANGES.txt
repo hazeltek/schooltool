@@ -2,10 +2,10 @@
 CHANGES
 =======
 
-2.9.11 (unreleased)
+2.9.11 (2015-06-11)
 -------------------
 
-- Nothing changed yet
+- Fixed typo in font-face style
 
 
 2.9.10 (2015-06-04)

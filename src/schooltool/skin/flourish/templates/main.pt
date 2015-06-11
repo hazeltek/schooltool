@@ -16,7 +16,7 @@
     <script>ST.resource_url = ST.base_url+'@@/schooltool.skin.flourish/'</script>
     <script>
       var newStyle = document.createElement('style');
-      newStyle.appendChild(document.createTextNode("@font-face {font-family: 'Ubuntu'; font-weight: 400, src: local('Ubuntu'), url('"+ST.base_url+"@@/schooltool.skin.flourish-fonts/Ubuntu-R.ttf') format('truetype'); }"));
+      newStyle.appendChild(document.createTextNode("@font-face {font-family: 'Ubuntu'; font-weight: 400; src: local('Ubuntu'), url('"+ST.base_url+"@@/schooltool.skin.flourish-fonts/Ubuntu-R.ttf') format('truetype'); }"));
       newStyle.appendChild(document.createTextNode("@font-face {font-family: 'Ubuntu'; font-weight: 700; src: local('Ubuntu Bold'), local('Ubuntu-Bold'), url('"+ST.base_url+"@@/schooltool.skin.flourish-fonts/Ubuntu-B.ttf') format('truetype'); }"));
       document.head.appendChild(newStyle);
     </script>

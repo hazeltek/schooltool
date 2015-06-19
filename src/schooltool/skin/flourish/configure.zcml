@@ -187,6 +187,13 @@
       permission="zope.Public"
       />
 
+  <flourish:content
+      name="header_brand"
+      for="*"
+      layer="schooltool.skin.flourish.IFlourishLayer"
+      template="templates/brand.pt"
+      permission="zope.Public" />
+
   <flourish:viewletManager
       name="header_navigation"
       provides=".page.IHeaderNavigationManager"

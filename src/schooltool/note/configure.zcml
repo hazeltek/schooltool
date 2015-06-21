@@ -1,87 +1,56 @@
-<?xml version="1.0"?>
-<configure
-    xmlns="http://namespaces.zope.org/zope"
-    xmlns:browser="http://namespaces.zope.org/browser"
-    xmlns:security="http://schooltool.org/securitypolicy"
-    i18n_domain="schooltool">
+<?xml version="1.0" encoding="utf-8"?>
+<configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:i18n="http://namespaces.zope.org/i18n"
+           xmlns:security="http://schooltool.org/securitypolicy"
+           i18n_domain="schooltool">
 
-  <adapter
-      for=".interfaces.IHaveNotes"
-      provides=".interfaces.INotes"
-      factory=".note.getNotes"
-      trusted="true"
-      />
-
-  <class class=".note.Notes">
-    <require permission="zope.Public"
-             attributes="__iter__" />
+  <class class=".note.NoteContainer">
+    <allow interface="zope.container.interfaces.ISimpleReadContainer" />
     <require permission="schooltool.view"
-             attributes="add remove clear" />
+             attributes="keys values items __iter__ __len__ has_key" />
+    <require permission="schooltool.edit"
+             interface="zope.container.interfaces.IWriteContainer" />
   </class>
 
   <class class=".note.Note">
-    <require permission="zope.Public"
+    <implements
+        interface="zope.annotation.interfaces.IAttributeAnnotatable" />
+    <require permission="schooltool.view"
              interface=".interfaces.INote" />
     <require permission="schooltool.edit"
              set_schema=".interfaces.INote" />
   </class>
 
-  <class class="schooltool.app.cal.CalendarEvent">
-    <implements interface="schooltool.note.interfaces.IHaveNotes" />
-  </class>
+  <adapter factory=".note.getPersonNoteContainer" trusted="true" />
+  <adapter factory=".note.getNoteContainerPerson" trusted="true" />
 
-  <class class="schooltool.course.course.Course">
-    <implements interface="schooltool.note.interfaces.IHaveNotes" />
-  </class>
-
-  <class class="schooltool.course.section.Section">
-    <implements interface="schooltool.note.interfaces.IHaveNotes" />
-  </class>
-
-  <class class="schooltool.person.person.Person">
-    <implements interface="schooltool.note.interfaces.IHaveNotes" />
-  </class>
-
-  <class class="schooltool.person.person.PersonContainer">
-    <implements interface="schooltool.note.interfaces.IHaveNotes" />
-  </class>
-
-  <class class="schooltool.group.group.Group">
-    <implements interface="schooltool.note.interfaces.IHaveNotes" />
-  </class>
-
-  <class class="schooltool.resource.resource.BaseResource">
-    <implements interface="schooltool.note.interfaces.IHaveNotes" />
-  </class>
-
-
-  <!-- Browser UI -->
-
-  <browser:page
+  <adapterTraverserPlugin
+      for="schooltool.basicperson.interfaces.IBasicPerson"
+      layer="zope.publisher.interfaces.http.IHTTPRequest"
       name="notes"
-      for=".interfaces.IHaveNotes"
-      class=".browser.NotesView"
-      template="notes.pt"
-      permission="zope.Public"
-      />
-
-  <browser:page
-      name="addNote.html"
-      for=".interfaces.IHaveNotes"
-      class=".browser.NoteAddView"
-      template="note_add.pt"
-      permission="schooltool.view"
-      menu="schooltool_actions"
-      title="New Note"
+      adapter=".interfaces.INoteContainer"
+      permission="schooltool.edit"
       />
 
   <security:crowd
-      name="note_viewers"
-      factory=".note.NoteCrowd" />
+      name="note_editors"
+      factory=".note.NoteEditorsCrowd" />
+
+  <security:allow
+      interface=".interfaces.INoteContainer"
+      permission="schooltool.edit"
+      crowds="administrators clerks teachers section_instructors" />
 
   <security:allow
       interface=".interfaces.INote"
       permission="schooltool.view"
-      crowds="note_viewers" />
+      crowds="administrators clerks teachers section_instructors" />
+
+  <security:allow
+      interface=".interfaces.INote"
+      permission="schooltool.edit"
+      crowds="note_editors" />
+
+  <include package=".browser" />
 
 </configure>

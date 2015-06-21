@@ -8,7 +8,6 @@
 
   <class class=".person.BasicPerson">
     <implements interface="schooltool.app.interfaces.IHaveCalendar" />
-    <implements interface="schooltool.note.interfaces.IHaveNotes" />
     <implements interface="schooltool.person.interfaces.IHavePreferences" />
     <implements interface="schooltool.person.interfaces.IPerson" />
     <require

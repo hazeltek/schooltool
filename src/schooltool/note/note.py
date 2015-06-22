@@ -1,6 +1,6 @@
 #
 # SchoolTool - common information systems platform for school administration
-# Copyright (c) 2005 Shuttleworth Foundation
+# Copyright (c) 2015 Shuttleworth Foundation
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,129 +16,96 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 """
-Implementation of notes for IAnnotatable objects.
-
-Notes are stored as a PersistentList of Note objects on IAnnotatable objects.
-A Note is a simple object that stores a brief note or comment about an object
-to be entered by a user.
-
-TODO: It might be a good idea to add some ACL to notes:
-
-    John in Accounting creates an event for the annual employee picnic.  Scott
-    from the Cafeteria group needs to note that the cream will go bad if it
-    sits outside for more than 4 hours.  Nobody in Accounting should really see
-    this, but everyone in the Cafeteria should.
-
-TODO: Notes are basically stupid comments, do we need real discussion items?  A
-      note on a note has a fairly visible use-case (say Jane from the Cafeteria
-      group notes that a new supply of super-fresh cream is due the day before
-      the picnic..)
+Note components
 """
-import datetime
-import random
 
 from persistent import Persistent
-from persistent.list import PersistentList
+
 from zope.annotation.interfaces import IAnnotations
+from zope.component import adapter
+from zope.container.btree import BTreeContainer
+from zope.container.contained import Contained
+from zope.interface import implementer
 from zope.interface import implements
 
-from schooltool.note import interfaces
 from schooltool.person.interfaces import IPerson
+from schooltool.relationship import RelationshipProperty
+from schooltool.relationship import URIObject
+from schooltool.relationship import RelationshipSchema
 from schooltool.securitypolicy.crowds import Crowd
 
-
-def getNotes(context):
-    """Adapt an IAnnotatable object to INotes."""
-    annotations = IAnnotations(context)
-    key = 'schooltool.app.Notes'
-    try:
-        return annotations[key]
-    except KeyError:
-        annotations[key] = Notes()
-        annotations[key].__parent__ = context
-        return annotations[key]
+from schooltool.note.interfaces import INoteContainer
+from schooltool.note.interfaces import INote
 
 
-class Note(Persistent):
-    """A Note.
-
-    Your basic simple content ojbect:
-
-    >>> note = Note(title='Potluck Theme!',
-    ...             body="We're going Mexican! Bring tequila and tacos!",
-    ...             privacy="private")
-    >>> note.title
-    'Potluck Theme!'
-    >>> note.body
-    "We're going Mexican! Bring tequila and tacos!"
-
-    """
-    implements(interfaces.INote)
-
-    def __init__(self, title=None, body=None, privacy=None, owner=None):
-        self.title = title
-        self.body = body
-        self.privacy = privacy
-        self.owner = owner
-        self.unique_id = '%d.%d' %(datetime.datetime.utcnow().microsecond,
-                                   random.randrange(10 ** 6, 10 ** 7))
-
-class Notes(Persistent):
-    """A list of Note objects.
-
-    Notes are just a container for Note objects
-
-    >>> notes = Notes()
-
-    Add a few notes
-
-    >>> note1 = Note(title="note1")
-    >>> note2 = Note(title="note2")
-    >>> notes.add(note1)
-    >>> notes.add(note2)
-
-    Iterate over the notes
-
-    >>> [n.title for n in notes]
-    ['note1', 'note2']
-
-    Remove a note
-
-    >>> notes.remove(note1.unique_id)
-    >>> [n.title for n in notes]
-    ['note2']
-
-    Remove all the notes
-
-    >>> notes.clear()
-    >>> [n for n in notes]
-    []
-
-    """
-    implements(interfaces.INotes)
-
-    def __init__(self):
-        self._notes = PersistentList()
-
-    def __iter__(self):
-        return iter(self._notes)
-
-    def add(self, note):
-        self._notes.append(note)
-
-    def remove(self, unique_id):
-        for note in self._notes:
-            if note.unique_id == unique_id:
-                self._notes.remove(note)
-
-    def clear(self):
-        del self._notes[:]
+PERSON_NOTE_KEY = 'schooltool.peas.note.person'
 
 
-class NoteCrowd(Crowd):
+URINoteEditors = URIObject(
+    'http://schooltool.org/ns/peas/note/note_editors',
+    'Note editors',
+    'Editors of this note.')
+
+
+URINote = URIObject(
+    'http://schooltool.org/ns/peas/note/note',
+    'Note',
+    'A note.')
+
+
+URINoteEditor = URIObject(
+    'http://schooltool.org/ns/peas/note/note_editor',
+    'Note editor',
+    'A note editor.')
+
+
+NoteEditors = RelationshipSchema(
+    URINoteEditors,
+    note=URINote,
+    editor=URINoteEditor)
+
+
+class NoteContainer(BTreeContainer):
+
+    implements(INoteContainer)
+
+
+class Note(Persistent, Contained):
+
+    implements(INote)
+
+    date = None
+    category = None
+    body = None
+
+    editors = RelationshipProperty(URINoteEditors,
+                                   URINote,
+                                   URINoteEditor)
+
+
+class NoteEditorsCrowd(Crowd):
+
     def contains(self, principal):
-        if self.context.privacy == 'private':
-            return IPerson(self.principal) == self.context.owner
-        else:
-            return True
+        person = IPerson(principal, None)
+        if person is not None:
+            return person in self.context.editors
+        return False
 
+
+@implementer(INoteContainer)
+@adapter(IPerson)
+def getPersonNoteContainer(person):
+    ann = IAnnotations(person)
+    try:
+        return ann[PERSON_NOTE_KEY]
+    except (KeyError,):
+        ann[PERSON_NOTE_KEY] = NoteContainer()
+        ann[PERSON_NOTE_KEY].__name__ = 'notes'
+        ann[PERSON_NOTE_KEY].__parent__ = person
+        return ann[PERSON_NOTE_KEY]
+
+
+@implementer(IPerson)
+@adapter(INoteContainer)
+def getNoteContainerPerson(container):
+    return container.__parent__

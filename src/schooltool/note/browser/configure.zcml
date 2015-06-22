@@ -1,0 +1,119 @@
+<?xml version="1.0"?>
+<configure xmlns="http://namespaces.zope.org/browser"
+           xmlns:zope="http://namespaces.zope.org/zope"
+           xmlns:security="http://schooltool.org/securitypolicy"
+           xmlns:flourish="http://schooltool.org/flourish"
+           xmlns:report="http://namespaces.schooltool.org/report"
+           i18n_domain="schooltool">
+
+  <flourish:viewlet
+      name="notes"
+      after="person_level fees"
+      for="schooltool.basicperson.interfaces.IBasicPerson"
+      manager="schooltool.basicperson.browser.person.IFlourishPersonInfoManager"
+      class=".note.PersonNotesViewlet"
+      permission="schooltool.view"
+      />
+
+  <flourish:content
+      name="table"
+      for="schooltool.note.interfaces.INoteContainer"
+      view=".note.PersonNotesViewlet"
+      class=".note.NoteContainerTable"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="filter"
+      class="schooltool.table.table.DoNotFilter"
+      manager=".note.NoteContainerTable"
+      permission="schooltool.view"
+      />
+
+  <configure package="schooltool.skin.flourish">
+
+    <flourish:page
+        name="add_note.html"
+        for="schooltool.note.interfaces.INoteContainer"
+        class="schooltool.note.browser.note.NoteAddView"
+        content_template="templates/z3c_form_edit.pt"
+        permission="schooltool.edit"
+        subtitle="Add Note"
+        />
+
+    <flourish:page
+        name="delete.html"
+        for="schooltool.note.interfaces.INoteContainer"
+        class="schooltool.note.browser.note.NoteContainerDeleteView"
+        content_template="templates/container_delete.pt"
+        permission="schooltool.edit"
+        />
+
+  </configure>
+
+  <zope:adapter
+      factory=".note.AddNoteDefaultDate"
+      name="default"
+      />
+
+  <flourish:page
+      name="edit.html"
+      for="schooltool.note.interfaces.INote"
+      class=".note.NoteEditView"
+      permission="schooltool.edit"
+      subtitle="Edit Note"
+      />
+
+  <flourish:viewlet
+      name="note-action-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class=".note.NoteActionsLinks"
+      title="Actions"
+      permission="schooltool.edit"
+      view=".note.NoteEditView"
+      />
+
+  <flourish:viewlet
+      name="delete.html"
+      view=".note.NoteEditView"
+      title="Delete"
+      class=".note.NoteDeleteLink"
+      manager=".note.NoteActionsLinks"
+      permission="schooltool.edit"
+      />
+
+  <flourish:page
+      name="index.html"
+      for="schooltool.note.interfaces.INote"
+      class=".note.NoteView"
+      permission="schooltool.view"
+      subtitle="Note"
+      />
+
+  <flourish:viewlet
+      name="details"
+      manager="schooltool.skin.flourish.page.IPageContentManager"
+      class=".note.NoteDetails"
+      view=".note.NoteView"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="note-action-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class=".note.NoteActionsLinks"
+      title="Actions"
+      permission="schooltool.edit"
+      view=".note.NoteView"
+      />
+
+  <flourish:viewlet
+      name="delete.html"
+      view=".note.NoteView"
+      title="Delete"
+      class=".note.NoteDeleteLink"
+      manager=".note.NoteActionsLinks"
+      permission="schooltool.edit"
+      />
+
+</configure>

@@ -1,0 +1,4 @@
+<h1 class="brand">
+  <span class="school">school</span><span class="tool">tool</span>
+  <img class="small" tal:attributes="src context/++resource++schooltool.skin.flourish/logo-small.png" />
+</h1>

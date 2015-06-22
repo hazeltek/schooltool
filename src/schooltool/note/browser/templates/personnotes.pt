@@ -1,0 +1,12 @@
+<div i18n:domain="schooltool">
+  <h2 i18n:translate="">Notes</h2>
+  <div>
+    <div tal:replace="structure view/notes/schooltool:content/table" />
+    <div class="buttons" tal:condition="view/canModify">
+      <h3 class="done-link">
+        <a tal:attributes="href string:${context/@@absolute_url}/notes/add_note.html"
+           i18n:translate="">Add Note</a>
+      </h3>
+    </div>
+  </div>
+</div>

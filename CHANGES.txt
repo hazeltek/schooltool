@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+2.9.12 (2015-06-22)
+-------------------
+
+- Added PEAS notes
+- Added content provider for navigation header brand
+
+
 2.9.11 (2015-06-11)
 -------------------
 

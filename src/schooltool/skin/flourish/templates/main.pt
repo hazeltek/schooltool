@@ -42,10 +42,9 @@
   <body>
     <div class="schooltool">
       <div class="header">
-        <h1 class="brand">
-          <span class="school">school</span><span class="tool">tool</span>
-          <img class="small" tal:attributes="src context/++resource++schooltool.skin.flourish/logo-small.png" />
-        </h1>
+        <tal:block replace="structure context/schooltool:content/header_brand">
+          schooltool [logo]
+        </tal:block>
         <tal:block replace="structure view/providers/header_navigation">
           [ | Header | Navigation | Bar | Here | ]
         </tal:block>

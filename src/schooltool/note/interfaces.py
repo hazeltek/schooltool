@@ -1,6 +1,6 @@
 #
 # SchoolTool - common information systems platform for school administration
-# Copyright (c) 2005 Shuttleworth Foundation
+# Copyright (c) 2015 Shuttleworth Foundation
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,74 +16,41 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 """
-Notes support interfaces
+Note related interfaces
 """
-import zope.interface
-import zope.schema
 
-from zope.annotation.interfaces import IAnnotatable
+from zope.container.constraints import contains
+from zope.html.field import HtmlFragment
+from zope.interface import Attribute
+from zope.interface import Interface
+from zope.schema import Choice
+from zope.schema import Date
+
+from schooltool.app.utils import vocabulary
 from schooltool.common import SchoolToolMessage as _
 
 
-class IHaveNotes(IAnnotatable):
-    """An object that can have Notes.
+class INoteContainer(Interface):
 
-    See also INote and INotes.
-    """
+    contains('.INote')
 
 
-class INote(zope.interface.Interface):
-    """A note."""
+class INote(Interface):
 
-    title = zope.schema.TextLine(
-        title=_("Title"),
-        description=_("Title of the note."))
+    date = Date(title=_(u'Date'))
 
-    body = zope.schema.Text(
-        title=_("Body"),
-        description=_("Body of the note."))
+    editors = Attribute('IBasicPerson objects (see IRelationshipProperty)')
 
-    privacy = zope.schema.Choice(
-        title=_("Privacy"),
-        values=('private', 'public'),
-        description=u"""
-        Determines who can view the note.
+    category = Choice(
+        title=_(u'Category'),
+        vocabulary=vocabulary([
+            ('attendance', _('Attendance')),
+            ('attainment', _('Attainment / Performance')),
+            ('behaviour', _('Behaviour')),
+            ('extra', _('Extra responsibilities')),
+            ('fees', _('Fees')),
+            ('lesson', _('Teacher lesson observation')),
+            ('other', _('Other')),
+        ]))
 
-        Can be one of two values: 'private', 'public'
-
-        'private'  the note can only be viewed by the creator of the note.
-
-        'public'   anyone can view the note, including anonymous users.
-
-        """)
-
-    owner = zope.interface.Attribute("""Component that owns this note.""")
-
-    unique_id = zope.schema.TextLine(
-        title=u"UID",
-        required=False,
-        description=u"""A globally unique id for this note.""")
-
-
-class INotes(zope.interface.Interface):
-    """A set of notes.
-
-    Objects that can have notes are those that have an adapter to INotes.
-
-    See also `INote`.
-    """
-
-    def __iter__():
-        """Iterate over all notes."""
-
-    def add(note):
-        """Add a new note."""
-
-    def remove(note):
-        """Remove a note.
-
-        Raises ValueError if note is not in the set.
-        """
-
-    def clear():
-        """Remove all notes."""
+    body = HtmlFragment(title=_('Note'))

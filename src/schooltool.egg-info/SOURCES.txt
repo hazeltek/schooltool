@@ -762,6 +762,7 @@ src/schooltool/note/interfaces.py
 src/schooltool/note/note.py
 src/schooltool/note/browser/__init__.py
 src/schooltool/note/browser/configure.zcml
+src/schooltool/note/browser/flourish.zcml
 src/schooltool/note/browser/note.py
 src/schooltool/note/browser/templates/note.pt
 src/schooltool/note/browser/templates/note_form.pt

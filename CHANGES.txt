@@ -2,10 +2,10 @@
 CHANGES
 =======
 
-2.9.13 (unreleased)
+2.9.13 (2015-06-22)
 -------------------
 
-- Nothing changed yet
+- Added notes to the flourish instance configuration
 
 
 2.9.12 (2015-06-22)

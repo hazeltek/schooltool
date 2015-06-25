@@ -23,9 +23,9 @@ import zope.interface
 from zope.component import getMultiAdapter
 from zope.publisher.browser import BrowserView
 
-from zope.app import basicskin
+from zope.app.basicskin.standardmacros import StandardMacros
 
-class StandardMacros(basicskin.standardmacros.StandardMacros):
+class StandardMacros(StandardMacros):
     macro_pages = ('view_macros', 'dialog_macros', 'rml_macros', )
 
 

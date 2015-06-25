@@ -28,7 +28,6 @@ from zope.interface import implements, implementsOnly, implementer
 from zope.interface import Interface
 from zope.html.field import IHtmlFragmentField
 from zope.publisher.interfaces.browser import IBrowserRequest
-import zope.html.widget
 
 import zc.resourcelibrary
 from zc.datetimewidget.datetimewidget import DateWidget

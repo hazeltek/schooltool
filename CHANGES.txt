@@ -2,10 +2,12 @@
 CHANGES
 =======
 
-2.8.4 (unreleased)
+2.8.4 (2015-07-02)
 ------------------
 
-- Nothing changed yet.
+- Updated footer and about page
+- Fixed ckeditor widget in gradebook overview popup dialog
+  (https://launchpad.net/bugs/1436881)
 
 
 2.8.3 (2014-11-11)

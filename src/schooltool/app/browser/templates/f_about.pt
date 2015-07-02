@@ -17,24 +17,26 @@
     i18n:name="gpl2">GNU General Public License, Version 2.</a>
   </p>
   <p>
-    <strong i18n:translate="">Founder and funder:</strong>
-    <a href="http://markshuttleworth.com">Mark Shuttleworth</a>
-  </p>
-  <p>
     <strong i18n:translate="">Project Manager:</strong> Tom Hoffman
-    (<a href="mailto:hoffman@schooltool.org">email</a>)
+    (<a href="mailto:hoffman@sielibre.com">email</a>)
   </p>
   <p>
     <strong i18n:translate="">Lead Developer:</strong>
     Douglas Cerna
   </p>
-  <p>
-    <strong i18n:translate="">Release Manager:</strong>
-    Gediminas Paulauskas
-  </p>
   <p i18n:translate="">
     <a href="http://sielibre.com" i18n:name="sielibre">SIELibre,
     LLC</a> offers commercial support, customization, hosting and
     other services for SchoolTool.
+  </p>
+  <hr />
+  <p>
+    <strong i18n:translate="">Founder and original funder:</strong>
+    <a href="http://markshuttleworth.com">Mark Shuttleworth</a>
+  </p>
+  <p i18n:translate="">
+    <strong i18n:translate="" i18n:name="thanks">Special thanks
+    to:</strong> Jeffrey Elkner, David Welsh and Glenda Lewis for
+    their support of CanDo development.
   </p>
 </div>

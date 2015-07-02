@@ -460,8 +460,18 @@
       />
 
   <flourish:viewlet
-      name="mailing-list"
+      name="documentation"
       after="launchpad"
+      class="schooltool.skin.flourish.page.LinkViewlet"
+      manager="schooltool.app.browser.app.AboutLinks"
+      title="Documentation"
+      url="http://book.schooltool.org"
+      permission="zope.Public"
+      />
+
+  <flourish:viewlet
+      name="mailing-list"
+      after="documentation"
       class="schooltool.skin.flourish.page.LinkViewlet"
       manager="schooltool.app.browser.app.AboutLinks"
       title="Mailing list"

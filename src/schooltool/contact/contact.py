@@ -231,6 +231,8 @@ class ContactStatesStartup(StateStartUpBase):
 
     def populate(self, states):
         states.add(_('Contact'), ACTIVE, 'a')
+        states.add(_('Father'), ACTIVE+PARENT, 'tp')
+        states.add(_('Mother'), ACTIVE+PARENT, 'mp')
         states.add(_('Parent'), ACTIVE+PARENT, 'p')
         states.add(_('Step-parent'), ACTIVE+PARENT, 'sp')
         states.add(_('Foster parent'), ACTIVE+PARENT, 'fp')

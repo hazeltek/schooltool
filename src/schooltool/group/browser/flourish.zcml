@@ -141,6 +141,11 @@
       class=".group.FlourishManageStudentsOverview"
       />
 
+  <security:allow
+      interface=".group.FlourishManageStudentsOverview"
+      crowds="administrators clerks managers superuser"
+      permission="schooltool.edit" />
+
   <flourish:viewlet
       name="manage-teachers-overview"
       after="manage-students-overview"

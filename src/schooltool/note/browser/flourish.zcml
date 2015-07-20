@@ -15,6 +15,11 @@
       permission="schooltool.view"
       />
 
+  <security:allow
+      interface=".note.PersonNotesViewlet"
+      crowds="administrators clerks managers superuser"
+      permission="schooltool.view" />
+
   <flourish:content
       name="table"
       for="schooltool.note.interfaces.INoteContainer"

@@ -76,7 +76,7 @@ class CustomDateDataConverter(BaseDataConverter):
             return u''
         try:
             return value.strftime("%Y-%m-%d")
-        except (ValueError,):
+        except (AttributeError, ValueError,):
             # XXX: may be evil, but this allows users to fix incorrect
             #      dates entered before we added the >= 1900 check
             return str(value)

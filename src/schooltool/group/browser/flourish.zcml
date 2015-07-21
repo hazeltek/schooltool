@@ -650,4 +650,14 @@
       permission="schooltool.view"
       />
 
+  <flourish:viewlet
+      name="done-link"
+      after="*"
+      view=".group.FlourishGroupView"
+      permission="schooltool.view"
+      manager="schooltool.skin.flourish.page.IPageContentManager"
+      class=".group.GroupDoneLink"
+      render="template"
+      />
+
 </configure>

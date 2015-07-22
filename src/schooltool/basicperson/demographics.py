@@ -162,13 +162,16 @@ def setUpLeaveSchoolDemographics(app):
         dfs['leave_reason'] = EnumFieldDescription(
             'leave_reason', _('Reason for un-enrollment'),
             limit_keys=['students'])
-        dfs['leave_reason'].items = [_('Transferred'),
-                                     _('Dropped-out - fees'),
-                                     _('Dropped-out - pregnancy'),
-                                     _('Dropped-out - family'),
-                                     _('Left school - unknown')]
+        dfs['leave_reason'].items = [
+            _('Transferred'),
+            _('Dropped-out - fees'),
+            _('Dropped-out - pregnancy'),
+            _('Dropped-out - family'),
+            _('Left school - unknown'),
+            _('Other'),
+        ]
     if 'leave_destination' not in dfs:
-        dfs['leave_destination'] = EnumFieldDescription(
+        dfs['leave_destination'] = TextFieldDescription(
             'leave_destination', _('Destination school'),
             limit_keys=['students'])
         dfs['leave_destination'].items = [_('Example School A'),

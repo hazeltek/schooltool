@@ -2,6 +2,17 @@
 CHANGES
 =======
 
+2.9.15 (2015-07-22)
+-------------------
+
+- Fixed date data converter
+- Converted done link in group view into a viewlet
+- Allowed managers to access notes
+- Allowed administration crowds to access students/teachers searches in School tab
+- Added father and mother contact relationship states
+- Updated leave school demographics fields
+
+
 2.9.14 (2015-06-25)
 -------------------
 

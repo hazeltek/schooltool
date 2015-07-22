@@ -107,8 +107,4 @@
       This group has no responsible parties
     </p>
   </tal:block>
-  <h3 class="done-link">
-    <a tal:attributes="href view/done_link"
-       i18n:translate="">Done</a>
-  </h3>
 </tal:block>

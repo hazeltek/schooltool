@@ -1499,3 +1499,13 @@ class GroupJSONSearchView(BasicPersonContainerJSONSearchView):
                 if person in self.context.members:
                     result.append(person)
         return result
+
+
+class GroupDoneLink(flourish.viewlet.Viewlet):
+
+    template = flourish.templates.Inline('''
+      <h3 class="done-link">
+        <a tal:attributes="href view/view/done_link"
+           i18n:translate="">Done</a>
+      </h3>
+    ''')

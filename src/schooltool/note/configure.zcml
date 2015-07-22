@@ -39,12 +39,12 @@
   <security:allow
       interface=".interfaces.INoteContainer"
       permission="schooltool.edit"
-      crowds="administrators clerks teachers section_instructors" />
+      crowds="administrators clerks managers teachers section_instructors" />
 
   <security:allow
       interface=".interfaces.INote"
       permission="schooltool.view"
-      crowds="administrators clerks teachers section_instructors" />
+      crowds="administrators clerks managers teachers section_instructors" />
 
   <security:allow
       interface=".interfaces.INote"

@@ -2,10 +2,10 @@
 CHANGES
 =======
 
-2.9.16 (unreleased)
+2.9.16 (2015-07-31)
 -------------------
 
-- Nothing changed yet.
+- Fixed additional reason for leaving
 
 
 2.9.15 (2015-07-22)

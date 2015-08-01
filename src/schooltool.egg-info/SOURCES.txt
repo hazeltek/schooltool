@@ -587,6 +587,7 @@ src/schooltool/generations/evolve44.py
 src/schooltool/generations/evolve45.py
 src/schooltool/generations/evolve46.py
 src/schooltool/generations/evolve47.py
+src/schooltool/generations/evolve48.py
 src/schooltool/generations/linkcatalogs.py
 src/schooltool/generations/evolve36/__init__.py
 src/schooltool/generations/evolve36/calendar_builders.py

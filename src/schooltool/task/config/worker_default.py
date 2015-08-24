@@ -24,10 +24,10 @@ else:
             "exchange": "default",
             "binding_key": "zodb.report",
             },
-        "zodb.import": {
-            "exchange": "default",
-            "binding_key": "zodb.import",
-            },
+#        "zodb.import": {
+#            "exchange": "default",
+#            "binding_key": "zodb.import",
+#            },
         }
 
 CELERY_DEFAULT_QUEUE = 'default'

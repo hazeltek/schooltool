@@ -270,7 +270,7 @@ class TaskTransactionManager(object):
 
     def abort(self, transaction):
         self.task = None
-        self.optons = None
+        self.options = None
         self.tracker = None
         if self.tpc_result is not None:
             self.tpc_result.revoke()

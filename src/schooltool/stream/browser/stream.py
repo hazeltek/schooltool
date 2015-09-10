@@ -19,6 +19,7 @@
 Stream view components
 """
 
+from zope.cachedescriptors.property import Lazy
 from zope.catalog.interfaces import ICatalog
 from zope.component import adapts
 from zope.component import getMultiAdapter
@@ -26,8 +27,10 @@ from zope.component import getUtility
 from zope.container.interfaces import INameChooser
 from zope.interface import implements
 from zope.intid.interfaces import IIntIds
+from zope.proxy import sameProxiedObjects
 from zope.publisher.browser import BrowserView
 from zope.publisher.interfaces.browser import IBrowserRequest
+from zope.security.proxy import removeSecurityProxy
 from zope.traversing.browser.absoluteurl import absoluteURL
 from zope.traversing.browser.interfaces import IAbsoluteURL
 
@@ -40,11 +43,13 @@ from schooltool import table
 from schooltool.app.browser.app import ActiveSchoolYearContentMixin
 from schooltool.app.browser.app import ContainerSearchContent
 from schooltool.app.browser.app import JSONSearchViewBase
-from schooltool.app.browser.states import EditRelationships
 from schooltool.app.browser.app import RelationshipAddTableMixin
 from schooltool.app.browser.app import RelationshipRemoveTableMixin
+from schooltool.app.browser.states import EditRelationships
 from schooltool.app.catalog import buildQueryString
 from schooltool.app.interfaces import ISchoolToolApplication
+from schooltool.app.states import ACTIVE
+from schooltool.app.states import INACTIVE
 from schooltool.basicperson.browser.person import EditPersonTemporalRelationships
 from schooltool.common import SchoolToolMessage as _
 from schooltool.course.browser.section import SectionsTableBase
@@ -54,6 +59,7 @@ from schooltool.skin import flourish
 from schooltool.stream.interfaces import IStream
 from schooltool.stream.interfaces import IStreamContainer
 from schooltool.stream.stream import Stream
+from schooltool.stream.stream import StreamMembers
 from schooltool.term.interfaces import ITerm
 
 
@@ -388,6 +394,39 @@ class StreamStudentsView(EditPersonTemporalRelationships):
     def getCollection(self):
         return self.context.members
 
+    def add(self, item, state=None, code=None, date=None):
+        super(StreamStudentsView, self).add(item, state, code, date)
+        sections = removeSecurityProxy(self.context.sections)
+        meaning = state.active if state is not None else ACTIVE
+        for section in sections:
+            if item not in section.members.on(date):
+                section.members.on(date).relate(item, meaning, code)
+
+    def remove(self, item, state=None, code=None, date=None):
+        super(StreamStudentsView, self).remove(item, state, code, date)
+        sections = removeSecurityProxy(self.context.sections)
+        meaning = state.active if state is not None else INACTIVE
+        other_streams = self.other_streams(item, date)
+        for section in sections:
+            section_in_other_stream = False
+            for stream in other_streams:
+                if section in stream.sections:
+                    section_in_other_stream = True
+                    break
+            if section_in_other_stream:
+                continue
+            if item in section.members.on(date):
+                section.members.on(date).relate(item, meaning, code)
+
+    def other_streams(self, member, date):
+        result = []
+        links = StreamMembers.bind(member=member).on(date).relationships
+        for link_info in links:
+            if sameProxiedObjects(link_info.target, self.context):
+                continue
+            result.append(link_info.target)
+        return result
+
 
 class StreamSectionsView(EditRelationships):
 
@@ -402,6 +441,10 @@ class StreamSectionsView(EditRelationships):
         return self.context.sections
 
     def getAvailableItemsContainer(self):
+        return self.items_container
+
+    @Lazy
+    def items_container(self):
         sections = {}
         schoolyear = ISchoolYear(self.context)
         for term in schoolyear.values():

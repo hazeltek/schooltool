@@ -6,6 +6,10 @@ Log in as manager:
     >>> manager = browsers.manager
     >>> manager.ui.login('manager', 'schooltool')
 
+Set today's date:
+
+    >>> manager.open('http://localhost/time?value=2015-01-01')
+
 Add a school year and a term:
 
     >>> manager.ui.schoolyear.add('2015', '2015-01-01', '2015-12-31')
@@ -36,7 +40,37 @@ Add a stream:
 
 Go to the stream's Sections page:
 
-    >>> manager.query.css('a[title="Edit sections for this stream"]').click()
 
 # XXX: add a section and check it's displayed in the index page
 # XXX: test subscribers<
+
+    >>> manager.query.css('a[title="Edit sections for this stream"]').click()
+    >>> manager.query.css('input[name="displayed.add_item.tokens"][value="2015.2015.1"]').click() # Math
+    >>> manager.query.css('input[name="displayed.add_item.tokens"][value="2015.2015.2"]').click() # Physics
+    >>> manager.query.css('input[name="ADD_DISPLAYED_RESULTS"]').click()
+    >>> manager.query.link('Done').click()
+
+    >>> manager.query.css('a[title="Edit students for this stream"]').click()
+    >>> manager.query.id('available_table-ajax-available_table--date').clear()
+    >>> manager.query.id('available_table-ajax-available_table--date').ui.set_value('2015-01-01')
+    >>> manager.query.css('input[name="displayed.add_item.tokens"][value="jeffrey"]').click()
+    >>> manager.query.css('input[name="ADD_DISPLAYED_RESULTS"]').click()
+
+    >>> add_stream(manager, '2015', 'Stream B')
+    >>> manager.query.css('a[title="Edit sections for this stream"]').click()
+    >>> manager.query.css('input[name="displayed.add_item.tokens"][value="2015.2015.1"]').click() # Math
+    >>> manager.query.css('input[name="ADD_DISPLAYED_RESULTS"]').click()
+    >>> manager.query.link('Done').click()
+
+    >>> manager.query.css('a[title="Edit students for this stream"]').click()
+    >>> manager.query.id('available_table-ajax-available_table--date').clear()
+    >>> manager.query.id('available_table-ajax-available_table--date').ui.set_value('2015-01-01')
+    >>> manager.query.css('input[name="displayed.add_item.tokens"][value="jeffrey"]').click()
+    >>> manager.query.css('input[name="ADD_DISPLAYED_RESULTS"]').click()
+
+    >>> manager.open('http://localhost/schoolyears/2015/streams/stream-a')
+    >>> manager.query.css('a[title="Edit students for this stream"]').click()
+    >>> manager.query.id('current_table-ajax-current_table--date').clear()
+    >>> manager.query.id('current_table-ajax-current_table--date').ui.set_value('2015-01-01')
+    >>> manager.query.css('input[name="displayed.remove_item.tokens"][value="jeffrey"]').click()
+    >>> manager.query.css('input[name="REMOVE_DISPLAYED_RESULTS"]').click()

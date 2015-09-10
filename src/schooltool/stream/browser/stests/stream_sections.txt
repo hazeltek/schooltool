@@ -1,0 +1,42 @@
+Sections relationship
+=====================
+
+Log in as manager:
+
+    >>> manager = browsers.manager
+    >>> manager.ui.login('manager', 'schooltool')
+
+Add a school year and a term:
+
+    >>> manager.ui.schoolyear.add('2015', '2015-01-01', '2015-12-31')
+    >>> manager.ui.term.add('2015', '2015', '2015-01-01', '2015-12-31')
+
+Add some courses and sections:
+
+    >>> manager.ui.course.add('2015', 'Math')
+    >>> manager.ui.course.add('2015', 'Physics')
+    >>> manager.ui.course.add('2015', 'French')
+
+    >>> manager.ui.section.add('2015', '2015', 'Math')
+    >>> manager.ui.section.add('2015', '2015', 'Physics')
+    >>> manager.ui.section.add('2015', '2015', 'French')
+
+Add people:
+
+    >>> manager.ui.person.add('Tom', 'Hoffman', 'tom', 'pwd',
+    ...                       gender='Male')
+    >>> manager.ui.person.add('Jeffrey', 'Elkner', 'jeffrey', 'pwd',
+    ...                       gender='Male')
+    >>> manager.ui.person.add('David', 'Welsh', 'david', 'pwd',
+    ...                       gender='Male')
+
+Add a stream:
+
+    >>> add_stream(manager, '2015', 'Stream A')
+
+Go to the stream's Sections page:
+
+    >>> manager.query.css('a[title="Edit sections for this stream"]').click()
+
+# XXX: add a section and check it's displayed in the index page
+# XXX: test subscribers<

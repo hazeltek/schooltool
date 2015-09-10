@@ -95,6 +95,7 @@
   <include package="schooltool.level" />
   <include package="schooltool.report" />
   <include package="schooltool.note" />
+  <include package="schooltool.stream" />
 
   <adapter
       for="zope.interface.Interface

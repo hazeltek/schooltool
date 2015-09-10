@@ -47,9 +47,12 @@ from schooltool.app.browser.app import RelationshipAddTableMixin
 from schooltool.app.browser.app import RelationshipRemoveTableMixin
 from schooltool.app.browser.states import EditRelationships
 from schooltool.app.catalog import buildQueryString
+from schooltool.app.interfaces import IRelationshipStateContainer
 from schooltool.app.interfaces import ISchoolToolApplication
-from schooltool.app.states import ACTIVE
-from schooltool.app.states import INACTIVE
+from schooltool.relationship.temporal import ACTIVE
+from schooltool.relationship.temporal import ACTIVE_CODE
+from schooltool.relationship.temporal import INACTIVE
+from schooltool.relationship.temporal import INACTIVE_CODE
 from schooltool.basicperson.browser.person import EditPersonTemporalRelationships
 from schooltool.common import SchoolToolMessage as _
 from schooltool.course.browser.section import SectionsTableBase
@@ -60,6 +63,7 @@ from schooltool.stream.interfaces import IStream
 from schooltool.stream.interfaces import IStreamContainer
 from schooltool.stream.stream import Stream
 from schooltool.stream.stream import StreamMembers
+from schooltool.term.interfaces import IDateManager
 from schooltool.term.interfaces import ITerm
 
 
@@ -378,7 +382,21 @@ class StreamEditView(flourish.form.Form, form.EditForm):
         self.request.response.redirect(url)
 
 
-class StreamStudentsView(EditPersonTemporalRelationships):
+class OtherStreamsBase(object):
+
+    def other_streams(self, member, date):
+        result = []
+        links = StreamMembers.bind(member=member).on(date).relationships
+        for link_info in links:
+            if sameProxiedObjects(link_info.target, self.context):
+                continue
+            result.append(link_info.target)
+        return result
+
+
+
+class StreamStudentsView(EditPersonTemporalRelationships,
+                         OtherStreamsBase):
     """View for adding learners to a Section."""
 
     app_states_name = "section-membership"
@@ -418,20 +436,15 @@ class StreamStudentsView(EditPersonTemporalRelationships):
             if item in section.members.on(date):
                 section.members.on(date).relate(item, meaning, code)
 
-    def other_streams(self, member, date):
-        result = []
-        links = StreamMembers.bind(member=member).on(date).relationships
-        for link_info in links:
-            if sameProxiedObjects(link_info.target, self.context):
-                continue
-            result.append(link_info.target)
-        return result
 
+class StreamSectionsView(EditRelationships,
+                         OtherStreamsBase):
 
-class StreamSectionsView(EditRelationships):
-
+    app_states_name = "section-membership"
     current_title = _('Current sections')
     available_title = _('Available sections')
+    default_active_code = ACTIVE_CODE
+    default_inactive_code = INACTIVE_CODE
 
     @property
     def title(self):
@@ -454,12 +467,70 @@ class StreamSectionsView(EditRelationships):
                 sections[name] = section
         return sections
 
-    def getKey(self, item):
-        term = ITerm(item)
+    def getKey(self, section):
+        term = ITerm(section)
         schoolyear = ISchoolYear(term)
         return '%s.%s.%s' % (
-            schoolyear.__name__, term.__name__, item.__name__
+            schoolyear.__name__, term.__name__, section.__name__
         )
+
+    def add(self, section):
+        super(StreamSectionsView, self).add(section)
+        members = removeSecurityProxy(self.context.members)
+        state = self.default_active_state
+        date = self.today
+        for member in members:
+            if member not in section.members.on(date):
+                section.members.on(date).relate(
+                    member, state.active, state.code)
+
+    def remove(self, section):
+        super(StreamSectionsView, self).remove(section)
+        members = removeSecurityProxy(self.context.members)
+        state = self.default_inactive_state
+        date = self.today
+        for member in members:
+            if member in section.members.on(date):
+                section_in_other_stream = False
+                other_streams = self.other_streams(member, date)
+                for stream in other_streams:
+                    if section in stream.sections:
+                        section_in_other_stream = True
+                        break
+                if section_in_other_stream:
+                    continue
+                section.members.on(date).relate(
+                    member, state.active, state.code)
+
+    @Lazy
+    def today(self):
+        return getUtility(IDateManager).today
+
+    @Lazy
+    def default_active_state(self):
+        app = ISchoolToolApplication(None)
+        container = IRelationshipStateContainer(app)
+        app_states = container.get(self.app_states_name, None)
+        if app_states is not None:
+            for state in app_states.states.values():
+                if state.code == self.default_active_code:
+                    return state
+            for state in app_states.states.values():
+                if state.active == ACTIVE:
+                    return state
+
+    @Lazy
+    def default_inactive_state(self):
+        app = ISchoolToolApplication(None)
+        container = IRelationshipStateContainer(app)
+        app_states = container.get(self.app_states_name, None)
+        if app_states is not None:
+            for state in app_states.states.values():
+                if state.code == self.default_inactive_code:
+                    return state
+            for state in app_states.states.values():
+                if state.active == INACTIVE:
+                    return state
 
 
 class StreamSectionsTableBase(SectionsTableBase):

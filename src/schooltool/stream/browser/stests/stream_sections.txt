@@ -74,3 +74,11 @@ Go to the stream's Sections page:
     >>> manager.query.id('current_table-ajax-current_table--date').ui.set_value('2015-01-01')
     >>> manager.query.css('input[name="displayed.remove_item.tokens"][value="jeffrey"]').click()
     >>> manager.query.css('input[name="REMOVE_DISPLAYED_RESULTS"]').click()
+
+    >>> manager.ui.course.add('2015', 'Running')
+    >>> manager.ui.section.add('2015', '2015', 'Running')
+    >>> manager.open('http://localhost/schoolyears/2015/streams/stream-b')
+    >>> manager.query.css('a[title="Edit sections for this stream"]').click()
+    >>> manager.query.css('input[name="displayed.add_item.tokens"][value="2015.2015.4"]').click() # Running
+    >>> manager.query.css('input[name="ADD_DISPLAYED_RESULTS"]').click()
+    >>> manager.query.link('Done').click()

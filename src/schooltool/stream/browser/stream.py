@@ -101,20 +101,6 @@ class ManageStreamsOverview(ContainerSearchContent):
         app = ISchoolToolApplication(None)
         return '%s/streams_json' % absoluteURL(app, self.request)
 
-    @property
-    def render_streams_link(self):
-        if self.schoolyear:
-            for term in self.schoolyear.values():
-                sections = ISectionContainer(term)
-                if sections:
-                    return True
-        return False
-
-    def render(self,*args, **kw):
-        if not self.render_streams_link:
-            return ''
-        return super(ManageStreamsOverview, self).render(*args, **kw)
-
 
 class StreamsJSONSearchView(JSONSearchViewBase,
                             ActiveSchoolYearContentMixin):

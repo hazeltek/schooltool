@@ -221,6 +221,14 @@ class ApplicationPreferences(Persistent):
     peas_region = None
     student_capacity = None
     boarding_capacity = None
+    address = None
+    phone = None
+    email = None
+    airtel_code = None
+    school_type_pre_primary = None
+    school_type_primary = None
+    school_type_jss = None
+    school_type_sss = None
 
     def initializeTimezone(self):
         self.timezone = self._get_localzone()

@@ -30,6 +30,8 @@ from zope.intid.interfaces import IIntIds
 from zope.proxy import sameProxiedObjects
 from zope.publisher.browser import BrowserView
 from zope.publisher.interfaces.browser import IBrowserRequest
+from zope.schema.interfaces import IContextSourceBinder
+from zope.schema.vocabulary import SimpleVocabulary
 from zope.security.proxy import removeSecurityProxy
 from zope.traversing.browser.absoluteurl import absoluteURL
 from zope.traversing.browser.interfaces import IAbsoluteURL
@@ -37,6 +39,7 @@ from zope.traversing.browser.interfaces import IAbsoluteURL
 from z3c.form import button
 from z3c.form import field
 from z3c.form import form
+from z3c.form import widget
 from z3c.form.interfaces import HIDDEN_MODE
 
 from schooltool import table
@@ -58,6 +61,7 @@ from schooltool.common import SchoolToolMessage as _
 from schooltool.course.browser.section import SectionsTableBase
 from schooltool.course.interfaces import ISectionContainer
 from schooltool.schoolyear.interfaces import ISchoolYear
+from schooltool.schoolyear.interfaces import ISchoolYearContainer
 from schooltool.skin import flourish
 from schooltool.stream.interfaces import IStream
 from schooltool.stream.interfaces import IStreamContainer
@@ -545,3 +549,35 @@ class SectionRemoveRelationshipTable(RelationshipRemoveTableMixin,
                                      StreamSectionsTableBase):
 
     pass
+
+
+class StreamsVocabulary(SimpleVocabulary):
+
+    implements(IContextSourceBinder)
+
+    def __init__(self, context):
+        self.context = context
+        terms = self.createTerms()
+        SimpleVocabulary.__init__(self, terms)
+
+    def createTerms(self):
+        result = []
+        result.append(self.createTerm(
+            None,
+            widget.SequenceWidget.noValueToken,
+            _('Select a stream'),
+        ))
+        app = ISchoolToolApplication(None)
+        schoolyear = ISchoolYearContainer(app).getActiveSchoolYear()
+        container = IStreamContainer(schoolyear)
+        for group in sorted(container.values(), key=lambda g: g.title):
+            result.append(self.createTerm(
+                group,
+                group.__name__.encode('utf-8'),
+                group.title,
+            ))
+        return result
+
+
+def StreamsVocabularyFactory():
+    return StreamsVocabulary

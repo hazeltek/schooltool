@@ -183,4 +183,9 @@
       permission="schooltool.view"
       />
 
+  <zope:utility
+     factory=".stream.StreamsVocabularyFactory"
+     provides="zope.schema.interfaces.IVocabularyFactory"
+     name="schooltool.stream.streams" />
+
 </configure>

@@ -173,6 +173,38 @@ class IApplicationPreferences(ICalendarDisplayPreferences):
         title=_('Total boarding capacity'),
         required=False)
 
+    address = zope.schema.TextLine(
+        title=_('School address'),
+        required=False)
+
+    phone = zope.schema.TextLine(
+        title=_('Phone number'),
+        required=False)
+
+    email = zope.schema.TextLine(
+        title=_('Email'),
+        required=False)
+
+    airtel_code = zope.schema.TextLine(
+        title=_('AirTel  Money code'),
+        required=False)
+
+    school_type_pre_primary = zope.schema.Bool(
+        title=_('School type - Pre-primary'),
+        required=False)
+
+    school_type_primary = zope.schema.Bool(
+        title=_('School type - Primary'),
+        required=False)
+
+    school_type_jss = zope.schema.Bool(
+        title=_('School type - JSS'),
+        required=False)
+
+    school_type_sss = zope.schema.Bool(
+        title=_('School type - SSS'),
+        required=False)
+
 
 class IApplicationTabs(Interface):
     """Tab visible settings stored in an annotation on SchoolToolApplication."""

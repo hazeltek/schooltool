@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<configure xmlns="http://schooltool.org/securitypolicy"
+           xmlns:zope="http://namespaces.zope.org/zope">
+
+  <allow
+      interface="schooltool.stream.interfaces.IStreamContainer"
+      crowds="everybody"
+      permission="schooltool.view"
+      />
+
+  <allow
+      interface="schooltool.stream.interfaces.IStreamContainer"
+      crowds="managers administrators clerks"
+      permission="schooltool.edit"
+      />
+
+  <allow
+      interface="schooltool.stream.interfaces.IStreamContainerContainer"
+      crowds="managers administrators clerks"
+      permission="schooltool.edit"
+      />
+
+  <allow
+      interface="schooltool.stream.interfaces.IStream"
+      crowds="everybody"
+      permission="schooltool.view"
+      />
+
+  <allow
+      interface="schooltool.stream.interfaces.IStream"
+      crowds="managers administrators clerks"
+      permission="schooltool.edit"
+      />
+
+</configure>

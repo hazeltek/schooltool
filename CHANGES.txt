@@ -2,10 +2,11 @@
 CHANGES
 =======
 
-2.9.17 (unreleased)
+2.10.0 (2015-09-20)
 -------------------
 
-- Nothing changed yet
+- Added streams
+- Added new school preferences fields
 
 
 2.9.16 (2015-07-31)

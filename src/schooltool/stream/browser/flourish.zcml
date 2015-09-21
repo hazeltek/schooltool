@@ -1,0 +1,191 @@
+<?xml version="1.0"?>
+<configure xmlns="http://namespaces.zope.org/browser"
+           xmlns:z3c="http://namespaces.zope.org/z3c"
+           xmlns:zope="http://namespaces.zope.org/zope"
+           xmlns:security="http://schooltool.org/securitypolicy"
+           xmlns:flourish="http://schooltool.org/flourish"
+           xmlns:report="http://namespaces.schooltool.org/report"
+           i18n_domain="schooltool">
+
+  <zope:adapterTraverserPlugin
+      for="schooltool.schoolyear.interfaces.ISchoolYear"
+      layer="zope.publisher.interfaces.browser.IBrowserRequest"
+      name="streams"
+      adapter="schooltool.stream.interfaces.IStreamContainer"
+      />
+
+  <zope:adapter
+      factory=".stream.StreamContainerAbsoluteURLAdapter"
+      provides="zope.traversing.browser.interfaces.IAbsoluteURL"
+      />
+
+  <zope:adapter
+      factory=".stream.StreamContainerAbsoluteURLAdapter"
+      provides="zope.interface.Interface"
+      name="absolute_url"
+      />
+
+  <flourish:viewlet
+      name="manage-streams-overview"
+      after="manage-sections-overview"
+      view="schooltool.app.browser.app.ManageSchool"
+      permission="schooltool.view"
+      manager="schooltool.skin.flourish.page.IPageContentManager"
+      class=".stream.ManageStreamsOverview"
+      />
+
+  <security:allow
+     interface=".stream.ManageStreamsOverview"
+     crowds="managers administrators clerks"
+     permission="schooltool.view"
+     />
+
+  <flourish:page
+      name="streams_json"
+      for="schooltool.app.interfaces.ISchoolToolApplication"
+      class=".stream.StreamsJSONSearchView"
+      permission="schooltool.view"
+      />
+
+  <flourish:page
+      name="addStream.html"
+      for="schooltool.stream.interfaces.IStreamContainer"
+      class=".stream.StreamAddView"
+      content_template="templates/form.pt"
+      permission="schooltool.edit"
+      subtitle="Add Stream"
+      />
+
+  <flourish:page
+      name="streams"
+      for="schooltool.app.interfaces.ISchoolToolApplication"
+      class=".stream.StreamsView"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="table"
+      for="schooltool.stream.interfaces.IStreamContainer"
+      view=".stream.StreamsView"
+      manager="schooltool.skin.flourish.interfaces.IAJAXParts"
+      class=".stream.StreamsTable"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="filter"
+      manager=".stream.StreamsTable"
+      class=".stream.StreamsTableFilter"
+      render="template"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewletManager
+      name="tertiary_navigation"
+      provides="schooltool.skin.flourish.page.ITertiaryNavigationManager"
+      class=".stream.StreamsTertiaryNavigationManager"
+      view=".stream.StreamsView"
+      permission="zope.Public"
+      />
+
+  <flourish:viewlet
+      name="done"
+      after="*"
+      manager=".stream.StreamsTable"
+      view=".stream.StreamsView"
+      class="schooltool.app.browser.app.ManageItemDoneLink"
+      render="template"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="streams-add-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class=".stream.StreamsAddLinks"
+      title="Add"
+      permission="schooltool.edit"
+      view=".stream.StreamsView"
+      />
+
+  <flourish:viewlet
+      name="stream-add"
+      title="Stream"
+      class=".stream.StreamAddLinkViewlet"
+      manager=".stream.StreamsAddLinks"
+      permission="schooltool.edit"
+      />
+
+  <flourish:page
+      name="index.html"
+      for="schooltool.stream.interfaces.IStream"
+      class=".stream.StreamView"
+      permission="schooltool.view"
+      />
+
+  <configure package="schooltool.skin.flourish">
+
+    <flourish:page
+        name="edit.html"
+        for="schooltool.stream.interfaces.IStream"
+        class="schooltool.stream.browser.stream.StreamEditView"
+        content_template="templates/z3c-schooltool-form.pt"
+        permission="schooltool.edit"
+        subtitle="Edit"
+        />
+
+  </configure>
+
+  <flourish:page
+      name="members.html"
+      for="schooltool.stream.interfaces.IStream"
+      class=".stream.StreamStudentsView"
+      permission="schooltool.edit"
+      subtitle="Students"
+      />
+
+  <flourish:page
+      name="sections.html"
+      for="schooltool.stream.interfaces.IStream"
+      class=".stream.StreamSectionsView"
+      subtitle="Sections"
+      permission="schooltool.edit"
+      />
+
+  <flourish:viewlet
+      name="available_table"
+      class=".stream.SectionAddRelationshipTable"
+      manager="schooltool.skin.flourish.interfaces.IAJAXParts"
+      view=".stream.StreamSectionsView"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="current_table"
+      class=".stream.SectionRemoveRelationshipTable"
+      manager="schooltool.skin.flourish.interfaces.IAJAXParts"
+      view=".stream.StreamSectionsView"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="sections_table"
+      for="schooltool.stream.interfaces.IStream"
+      class=".stream.StreamSectionsListTable"
+      manager="schooltool.skin.flourish.interfaces.IAJAXParts"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="filter"
+      before="batch table"
+      class="schooltool.table.table.DoNotFilter"
+      manager=".stream.StreamSectionsListTable"
+      permission="schooltool.view"
+      />
+
+  <zope:utility
+     factory=".stream.StreamsVocabularyFactory"
+     provides="zope.schema.interfaces.IVocabularyFactory"
+     name="schooltool.stream.streams" />
+
+</configure>

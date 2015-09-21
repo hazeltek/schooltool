@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<configure xmlns="http://namespaces.zope.org/zope"
+           i18n_domain="schooltool">
+
+  <adapter
+      for="schooltool.app.interfaces.ISchoolToolApplication"
+      factory=".stream.StreamStartUp"
+      name="schooltool.stream"
+      />
+
+  <adapter
+      factory=".stream.SearchableTextStream"
+      />
+
+  <adapter
+      factory=".stream.StreamCatalog"
+      name="schooltool.stream.stream.StreamCatalog"
+      />
+
+  <adapter
+      for="schooltool.stream.interfaces.IStreamContainer"
+      factory=".stream.getStreamCatalog"
+      provides="zope.catalog.interfaces.ICatalog"
+      />
+
+  <adapter
+      for=".interfaces.IStreamContainer"
+      factory="schooltool.app.app.SimpleNameChooser"
+      provides="zope.container.interfaces.INameChooser"
+      />
+
+  <adapter
+      factory=".stream.getSchoolYearForStreamContainer"
+      />
+
+  <adapter
+      factory=".stream.getStreamContainer"
+      />
+
+  <adapter
+      factory=".stream.getStreamContainerForStream"
+      />
+
+  <adapter
+      factory=".stream.getSchoolYearForStream"
+      />
+
+  <class class=".stream.StreamContainerContainer">
+    <allow interface="zope.container.interfaces.ISimpleReadContainer" />
+    <require permission="schooltool.view"
+             attributes="keys values items __iter__ __len__ has_key" />
+    <require permission="schooltool.edit"
+             interface="zope.container.interfaces.IWriteContainer" />
+  </class>
+
+  <class class=".stream.StreamContainer">
+    <allow interface="zope.container.interfaces.ISimpleReadContainer" />
+    <require permission="schooltool.view"
+             attributes="keys values items __iter__ __len__ has_key" />
+    <require permission="schooltool.edit"
+             interface="zope.container.interfaces.IWriteContainer" />
+  </class>
+
+  <class class=".stream.Stream">
+    <require permission="zope.Public"
+             attributes="__name__" />
+    <require permission="schooltool.view"
+             attributes="title description members sections __cmp__" />
+    <require permission="schooltool.edit"
+             set_schema=".interfaces.IStream" />
+  </class>
+
+</configure>

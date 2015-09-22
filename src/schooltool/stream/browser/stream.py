@@ -581,3 +581,20 @@ class StreamsVocabulary(SimpleVocabulary):
 
 def StreamsVocabularyFactory():
     return StreamsVocabulary
+
+
+class StreamDoneLink(flourish.viewlet.Viewlet, ActiveSchoolYearContentMixin):
+
+    template = flourish.templates.Inline('''
+      <h3 class="done-link">
+        <a tal:attributes="href view/done_link"
+           i18n:translate="">Done</a>
+      </h3>
+    ''')
+
+    def done_link(self):
+        url = self.request.get('done_link', None)
+        if url is not None:
+            return url
+        app = ISchoolToolApplication(None)
+        return self.url_with_schoolyear_id(app, view_name='streams')

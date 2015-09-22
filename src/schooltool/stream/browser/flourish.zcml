@@ -198,4 +198,13 @@
      provides="zope.schema.interfaces.IVocabularyFactory"
      name="schooltool.stream.streams" />
 
+  <flourish:viewlet
+      name="streams_accordion"
+      after="groupsinfo"
+      for="schooltool.basicperson.interfaces.IBasicPerson"
+      manager="schooltool.basicperson.browser.person.IFlourishPersonInfoManager"
+      class="schooltool.stream.browser.stream.StreamsAccordionViewlet"
+      permission="schooltool.view"
+      />
+
 </configure>

@@ -27,6 +27,7 @@ from zope.component import getUtility
 from zope.container.interfaces import INameChooser
 from zope.interface import implements
 from zope.intid.interfaces import IIntIds
+from zope.i18n.interfaces.locales import ICollator
 from zope.proxy import sameProxiedObjects
 from zope.publisher.browser import BrowserView
 from zope.publisher.interfaces.browser import IBrowserRequest
@@ -52,6 +53,7 @@ from schooltool.app.browser.states import EditRelationships
 from schooltool.app.catalog import buildQueryString
 from schooltool.app.interfaces import IRelationshipStateContainer
 from schooltool.app.interfaces import ISchoolToolApplication
+from schooltool.course.section import is_student
 from schooltool.relationship.temporal import ACTIVE
 from schooltool.relationship.temporal import ACTIVE_CODE
 from schooltool.relationship.temporal import INACTIVE
@@ -581,3 +583,77 @@ class StreamsVocabulary(SimpleVocabulary):
 
 def StreamsVocabularyFactory():
     return StreamsVocabulary
+
+
+class StreamDoneLink(flourish.viewlet.Viewlet, ActiveSchoolYearContentMixin):
+
+    template = flourish.templates.Inline('''
+      <h3 class="done-link">
+        <a tal:attributes="href view/done_link"
+           i18n:translate="">Done</a>
+      </h3>
+    ''')
+
+    def done_link(self):
+        url = self.request.get('done_link', None)
+        if url is not None:
+            return url
+        app = ISchoolToolApplication(None)
+        return self.url_with_schoolyear_id(app, view_name='streams')
+
+
+class StreamsAccordionViewlet(flourish.viewlet.Viewlet,
+                              ActiveSchoolYearContentMixin):
+
+    template = flourish.templates.File('templates/streams_accordion.pt')
+
+    def render(self, *args, **kw):
+        if is_student(self.context):
+            return self.template(*args, **kw)
+        return ''
+
+    def app_states(self, key):
+        app = ISchoolToolApplication(None)
+        states = IRelationshipStateContainer(app)[key]
+        return states
+
+    def stream_current_states(self, link_info, app_states):
+        states = []
+        for date, active, code in link_info.state.all():
+            state = app_states.states.get(code)
+            title = state.title if state is not None else ''
+            states.append({
+                'date': date,
+                'title': title,
+                })
+        return states
+
+    def update(self):
+        self.collator = ICollator(self.request.locale)
+        relationships = StreamMembers.bind(member=self.context).all().relationships
+        app_states = self.app_states('section-membership')
+        schoolyears_data = {}
+        for link_info in relationships:
+            stream = removeSecurityProxy(link_info.target)
+            sy = ISchoolYear(stream.__parent__)
+            if sy not in schoolyears_data:
+                schoolyears_data[sy] = []
+            schoolyears_data[sy].append((stream, link_info))
+        self.schoolyears = []
+        for sy in sorted(schoolyears_data, key=lambda x:x.first, reverse=True):
+            sy_info = {
+                'obj': sy,
+                'css_class': 'active' if sy is self.schoolyear else 'inactive',
+                'streams': [],
+                }
+            for stream, link_info in sorted(schoolyears_data[sy],
+                                            key=lambda x:self.collator.key(
+                                                x[0].title)):
+                states = self.stream_current_states(link_info, app_states)
+                stream_info = {
+                    'obj': stream,
+                    'title': stream.title,
+                    'states': states,
+                    }
+                sy_info['streams'].append(stream_info)
+            self.schoolyears.append(sy_info)

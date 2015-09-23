@@ -2,10 +2,12 @@
 CHANGES
 =======
 
-2.10.1 (unreleased)
+2.10.1 (2015-09-23)
 -------------------
 
-- Nothing changed yet
+- Added streams accordion to person view
+- Added done button to stream page
+- Added streams importer/exporter
 
 
 2.10.0 (2015-09-20)

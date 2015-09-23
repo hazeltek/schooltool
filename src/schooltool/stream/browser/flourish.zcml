@@ -122,6 +122,16 @@
       permission="schooltool.view"
       />
 
+  <flourish:viewlet
+      name="done-link"
+      after="*"
+      view=".stream.StreamView"
+      permission="schooltool.view"
+      manager="schooltool.skin.flourish.page.IPageContentManager"
+      class=".stream.StreamDoneLink"
+      render="template"
+      />
+
   <configure package="schooltool.skin.flourish">
 
     <flourish:page
@@ -187,5 +197,14 @@
      factory=".stream.StreamsVocabularyFactory"
      provides="zope.schema.interfaces.IVocabularyFactory"
      name="schooltool.stream.streams" />
+
+  <flourish:viewlet
+      name="streams_accordion"
+      after="groupsinfo"
+      for="schooltool.basicperson.interfaces.IBasicPerson"
+      manager="schooltool.basicperson.browser.person.IFlourishPersonInfoManager"
+      class="schooltool.stream.browser.stream.StreamsAccordionViewlet"
+      permission="schooltool.view"
+      />
 
 </configure>

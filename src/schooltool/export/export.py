@@ -48,6 +48,7 @@ from schooltool.level.interfaces import ILevelContainer
 from schooltool.report.browser.report import RequestRemoteReportDialog
 from schooltool.report.browser.report import ProgressReportPage
 from schooltool.report.report import ReportLinkViewlet
+from schooltool.stream.interfaces import IStreamContainer
 from schooltool.task.progress import TaskProgress
 from schooltool.task.progress import normalized_progress
 from schooltool.relationship.temporal import ACTIVE
@@ -877,6 +878,35 @@ class MegaExporter(SchoolTimetableExportView):
                         ))
         self.finish('export_groups')
 
+    def format_stream(self, stream, ws, offset):
+        fields = [lambda i: ("Stream Title", i.title, None),
+                  lambda i: ("ID", i.__name__, None),
+                  lambda i: ("School Year", ISchoolYear(i.__parent__).__name__, None),
+                  lambda i: ("Description", i.description, None)]
+
+        offset = self.listFields(stream, fields, ws, offset)
+
+        offset += self.print_table(
+            self.format_membership_block(stream.members, [Header('Members')]),
+            ws, row=offset, col=0)
+
+        return offset
+
+    def export_streams(self, wb):
+        self.task_progress.force('export_streams', active=True)
+        ws = wb.add_sheet("Streams")
+        school_years = sorted(ISchoolYearContainer(self.context).values(),
+                              key=lambda s: s.first)
+        row = 0
+        for ny, school_year in enumerate(sorted(school_years, key=lambda i: i.last)):
+            streams = IStreamContainer(school_year)
+            for ns, stream in enumerate(sorted(streams.values(), key=lambda i: i.__name__)):
+                row = self.format_stream(stream, ws, row) + 1
+                self.progress('export_streams', normalized_progress(
+                        ny, len(school_years), ns, len(streams)
+                        ))
+        self.finish('export_streams')
+
     def makeProgress(self):
         self.task_progress = TaskProgress(None)
 
@@ -905,6 +935,8 @@ class MegaExporter(SchoolTimetableExportView):
                      title=_('Section Schedules'), progress=0.0)
         progress.add('export_groups', active=False,
                      title=_('Groups'), progress=0.0)
+        progress.add('export_streams', active=False,
+                     title=_('Streams'), progress=0.0)
         progress.add('overall',
                      title=_('School Data'), progress=0.0)
 
@@ -937,6 +969,7 @@ class MegaExporter(SchoolTimetableExportView):
         self.export_sections_enrollment(wb)
         self.export_section_timetables(wb)
         self.export_groups(wb)
+        self.export_streams(wb)
         self.task_progress.title = _("Export complete")
         self.task_progress.force('overall', progress=1.0)
         data = self.render(wb)

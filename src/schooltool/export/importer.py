@@ -90,6 +90,8 @@ from schooltool.report.report import ReportFile, ReportProgressMessage
 from schooltool.report.report import GeneratedReportMessage
 from schooltool.report.report import OnReportGenerated
 from schooltool.report.browser.report import RequestRemoteReportDialog
+from schooltool.stream.interfaces import IStreamContainer
+from schooltool.stream.stream import Stream
 from schooltool.timetable.daytemplates import CalendarDayTemplates
 from schooltool.timetable.daytemplates import WeekDayTemplates
 from schooltool.timetable.daytemplates import SchoolDayTemplates
@@ -2029,6 +2031,99 @@ class GroupImporter(ImporterBase):
                 self.import_group(sh, row)
 
 
+class StreamImporter(ImporterBase):
+
+    title = _('Streams')
+
+    sheet_name = 'Streams'
+
+    def createStream(self, data):
+        syc = ISchoolYearContainer(self.context)
+        stream_container = IStreamContainer(syc[data['school_year']])
+        if data['__name__'] in stream_container:
+            stream = stream_container[data['__name__']]
+        else:
+            stream = Stream()
+            stream.__name__ = data['__name__']
+        stream.title = data['title']
+        stream.description = data['description']
+        return stream
+
+    def addStream(self, stream, data):
+        syc = ISchoolYearContainer(self.context)
+        stream_container = IStreamContainer(syc[data['school_year']])
+        if stream.__name__ is None:
+            chooser = SimpleNameChooser(stream_container)
+            stream.__name__ = chooser.chooseName('', stream)
+
+        if stream.__name__ not in stream_container:
+            stream_container[stream.__name__] = stream
+
+    @Lazy
+    def section_app_states(self):
+        app = ISchoolToolApplication(None)
+        container = IRelationshipStateContainer(app)
+        app_states = container['section-membership']
+        return app_states
+
+    def import_stream(self, sh, row):
+        num_errors = len(self.errors)
+        data = {}
+        data['title'] = self.getRequiredTextFromCell(sh, row, 1)
+        data['__name__'] = self.getRequiredIdFromCell(sh, row+1, 1)
+        data['school_year'] = self.getRequiredIdFromCell(sh, row+2, 1)
+        data['description'] = self.getTextFromCell(sh, row+3, 1)
+        if num_errors < len(self.errors):
+            return
+        if data['school_year'] not in ISchoolYearContainer(self.context):
+            self.error(row+2, 1, ERROR_INVALID_SCHOOL_YEAR)
+            return
+
+        stream = self.createStream(data)
+        self.addStream(stream, data)
+        self.progress(row, sh.nrows)
+
+        row += 4
+
+        app_states = self.section_app_states
+        app_codes = list(app_states.states)
+        persons = self.context['persons']
+        if self.getCellValue(sh, row, 0, '') == 'Members':
+            row += 1
+            nrows = sh.nrows
+            for row in range(row, nrows):
+                if self.isEmptyRow(sh, row):
+                    break
+                num_errors = len(self.errors)
+
+                username = self.getRequiredIdFromCell(sh, row, 0)
+                if num_errors < len(self.errors):
+                    continue
+                if username not in persons:
+                    self.error(row, 0, ERROR_INVALID_PERSON_ID)
+                    continue
+                member = persons[username]
+
+                relationships = {}
+                for rel_date, rel_code in self.iterRelationships(sh, row, 2):
+                    if rel_code not in app_codes:
+                        self.error(row, 2, ERROR_RELATIONSHIP_CODE)
+                    else:
+                        relationships[rel_date] = rel_code
+
+                self.updateRelationships(
+                    stream.members, removeSecurityProxy(member),
+                    app_states, relationships)
+
+                self.progress(row, nrows)
+
+    def process(self):
+        sh = self.sheet
+        for row in range(0, sh.nrows):
+            if sh.cell_value(rowx=row, colx=0) == 'Stream Title':
+                self.import_stream(sh, row)
+
+
 class MegaImporter(BrowserView):
 
     is_xls = True
@@ -2053,6 +2148,7 @@ class MegaImporter(BrowserView):
                 ContactRelationshipImporter,
                 CourseImporter,
                 GroupImporter,
+                StreamImporter,
                 SectionImporter,
                 SectionsImporter,
                 SectionEnrollmentImporter,

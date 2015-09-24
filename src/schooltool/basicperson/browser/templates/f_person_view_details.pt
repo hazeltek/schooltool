@@ -19,8 +19,12 @@ $(document).ready(function() {
     var active_accordion = ST.local.active_accordion;
     return function() {
         // accordion setup
+        var index = $(ST.dialogs.jquery_id(active_accordion)).index();
+        if (index == -1) {
+            index = 0;
+        }
         $( ".person-info" ).accordion({
-            active: active_accordion,
+            active: index,
             header: 'h2',
             collapsible: true,
             autoHeight: false,

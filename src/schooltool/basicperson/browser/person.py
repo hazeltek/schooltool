@@ -371,10 +371,7 @@ class FlourishPersonInfo(flourish.page.Content):
         return absoluteURL(app, self.request) + '/persons'
 
     def active_accordion(self):
-        try:
-            return int(self.request.get('active_accordion'))
-        except (ValueError, TypeError):
-            return 0
+        return self.request.get('active_accordion', '')
 
 
 class PersonAddFormBase(PersonForm, form.AddForm):

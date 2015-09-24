@@ -1,4 +1,4 @@
-<div i18n:domain="schooltool">
+<div i18n:domain="schooltool" tal:attributes="id view/__name__">
   <h2 i18n:translate="">Contacts</h2>
   <div>
 

@@ -2,10 +2,10 @@
 CHANGES
 =======
 
-2.10.3 (unreleased)
+2.10.3 (2015-09-24)
 -------------------
 
-- Nothing changed yet
+- Updated active accordion functionality
 
 
 2.10.2 (2015-09-24)

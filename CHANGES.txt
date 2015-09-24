@@ -2,10 +2,10 @@
 CHANGES
 =======
 
-2.10.2 (unreleased)
+2.10.2 (2015-09-24)
 -------------------
 
-- Nothing changed yet
+- Updated teacher states
 
 
 2.10.1 (2015-09-23)

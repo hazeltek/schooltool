@@ -301,11 +301,13 @@ class TeacheAttendanceStatesStartUp(StateStartUpBase):
     def populate(self, states):
         super(TeacheAttendanceStatesStartUp, self).populate(states)
         states.add(_('Present'), ACTIVE, 'a')
-        states.add(_('Present but late and / or left early'), ACTIVE, 'l')
-        states.add(_('Present but at Internal commitments or CPD'), ACTIVE, 'c')
+        states.add(_('Present but late and / or left early - authorised'),
+                   ACTIVE, 'l')
+        states.add(_('Present but late and / or left early - unauthorised'),
+                   ACTIVE, 'c')
         states.add(_('Absent - sick'), INACTIVE, 's')
         states.add(_('Absent - authorised'), INACTIVE, 'z')
-        states.add(_('Absent - unauthorised'), INACTIVE, 'i')
-        states.add(_('Not timetabled'), INACTIVE+IGNORED, 't')
+        states.add(_('Absent - non-authorised'), INACTIVE, 'i')
         states.add(_('Suspended'), INACTIVE+IGNORED, 'u')
+        states.add(_('Not timetabled'), INACTIVE+IGNORED, 't')
         states.describe(INACTIVE+IGNORED, _('Ignored'))

@@ -83,7 +83,8 @@ def edit_cell_formatter(value, item, formatter):
     request = formatter.request
     library = 'schooltool.skin.flourish'
     item_url = absoluteURL(item, request)
-    person_url = absoluteURL(IPerson(item.__parent__), request)
+    person_url = '%s?active_accordion=notes' % absoluteURL(
+        IPerson(item.__parent__), request)
     return template % {
         'edit_url': '%s/edit.html?camefrom=%s' % (item_url, person_url),
         # XXX translate
@@ -216,14 +217,8 @@ class NoteAddView(flourish.form.AddForm):
         self.request.response.redirect(self.nextURL())
 
     def nextURL(self):
-        if is_student(self.person):
-            active_accordion = 6
-        elif is_teacher(self.person):
-            active_accordion = 4
-        else:
-            active_accordion = 0
-        return '%s?active_accordion=%d' % (
-            absoluteURL(self.person, self.request), active_accordion)
+        return '%s?active_accordion=notes' % (
+            absoluteURL(self.person, self.request))
 
     def create(self, data):
         obj = self.factory()
@@ -274,8 +269,8 @@ class NoteEditView(flourish.form.Form, form.EditForm):
         try:
             return self.request['camefrom']
         except (KeyError,):
-            return '%s?active_accordion=6' % absoluteURL(self.person,
-                                                         self.request)
+            return '%s?active_accordion=notes' % absoluteURL(self.person,
+                                                             self.request)
 
     @button.buttonAndHandler(_('Submit'), name='submit')
     def handle_submit(self, action):
@@ -311,8 +306,8 @@ class NoteContainerDeleteView(flourish.containers.ContainerDeleteView):
 
     def nextURL(self):
         if 'CONFIRM' in self.request:
-            return '%s?active_accordion=6' % absoluteURL(self.person,
-                                                         self.request)
+            return '%s?active_accordion=notes' % absoluteURL(self.person,
+                                                             self.request)
         return flourish.containers.ContainerDeleteView.nextURL(self)
 
 
@@ -342,4 +337,5 @@ class NoteDetails(flourish.form.FormViewlet):
         return self.context.__parent__.__parent__
 
     def done_link(self):
-        return '%s?active_accordion=6' % absoluteURL(self.person, self.request)
+        return '%s?active_accordion=notes' % absoluteURL(self.person,
+                                                         self.request)

@@ -199,7 +199,7 @@
      name="schooltool.stream.streams" />
 
   <flourish:viewlet
-      name="streams_accordion"
+      name="streams"
       after="groupsinfo"
       for="schooltool.basicperson.interfaces.IBasicPerson"
       manager="schooltool.basicperson.browser.person.IFlourishPersonInfoManager"

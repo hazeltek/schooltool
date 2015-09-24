@@ -1,4 +1,4 @@
-<div i18n:domain="schooltool">
+<div i18n:domain="schooltool" tal:attributes="id view/__name__">
   <h2 i18n:translate="">General Information</h2>
   <div>
     <div class="photo-display" tal:condition="view/has_photo">

@@ -207,4 +207,47 @@
       permission="schooltool.view"
       />
 
+  <flourish:viewlet
+      name="stream-actions-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class=".stream.StreamActionsLinks"
+      title="Actions"
+      permission="schooltool.edit"
+      view=".stream.StreamView"
+      />
+
+  <security:allow
+     interface=".stream.StreamActionsLinks"
+     crowds="managers clerks"
+     permission="schooltool.edit"
+     />
+
+  <flourish:viewlet
+      name="delete.html"
+      title="Delete"
+      class=".stream.StreamDeleteLink"
+      manager=".stream.StreamActionsLinks"
+      permission="schooltool.edit"
+      />
+
+  <flourish:page
+      name="delete.html"
+      for="schooltool.stream.interfaces.IStream"
+      class=".stream.StreamDeleteView"
+      template="templates/confirm_delete_stream.pt"
+      permission="schooltool.edit"
+      />
+
+  <configure package="schooltool.skin.flourish">
+
+    <flourish:page
+        name="delete.html"
+        for="schooltool.stream.interfaces.IStreamContainer"
+        class="schooltool.stream.browser.stream.StreamContainerDeleteView"
+        content_template="templates/container_delete.pt"
+        permission="schooltool.edit"
+        />
+
+  </configure>
+
 </configure>

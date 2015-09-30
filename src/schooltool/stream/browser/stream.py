@@ -19,6 +19,8 @@
 Stream view components
 """
 
+from urllib import urlencode
+
 from zope.cachedescriptors.property import Lazy
 from zope.catalog.interfaces import ICatalog
 from zope.component import adapts
@@ -28,6 +30,7 @@ from zope.container.interfaces import INameChooser
 from zope.interface import implements
 from zope.intid.interfaces import IIntIds
 from zope.i18n.interfaces.locales import ICollator
+from zope.i18n import translate
 from zope.proxy import sameProxiedObjects
 from zope.publisher.browser import BrowserView
 from zope.publisher.interfaces.browser import IBrowserRequest
@@ -657,3 +660,61 @@ class StreamsAccordionViewlet(flourish.viewlet.Viewlet,
                     }
                 sy_info['streams'].append(stream_info)
             self.schoolyears.append(sy_info)
+
+
+class StreamActionsLinks(flourish.page.RefineLinksViewlet):
+
+    pass
+
+
+class StreamDeleteLink(flourish.page.ModalFormLinkViewlet):
+
+    @property
+    def enabled(self):
+        if not flourish.canDelete(self.context):
+            return False
+        return super(StreamDeleteLink, self).enabled
+
+    @property
+    def dialog_title(self):
+        title = _(u'Delete ${stream}',
+                  mapping={'stream': self.context.title})
+        return translate(title, context=self.request)
+
+
+class StreamContainerDeleteView(flourish.containers.ContainerDeleteView):
+
+    def nextURL(self):
+        if 'CONFIRM' in self.request:
+            schoolyear = ISchoolYear(self.context)
+            params = {'schoolyear_id': schoolyear.__name__.encode('utf-8')}
+            url = '%s/streams?%s' % (
+                absoluteURL(ISchoolToolApplication(None), self.request),
+                urlencode(params))
+            return url
+        return flourish.containers.ContainerDeleteView.nextURL(self)
+
+
+class StreamDeleteView(flourish.form.DialogForm, form.EditForm):
+
+    dialog_submit_actions = ('apply',)
+    dialog_close_actions = ('cancel',)
+    label = None
+
+    @button.buttonAndHandler(_("Delete"), name='apply')
+    def handleDelete(self, action):
+        url = '%s/delete.html?delete.%s&CONFIRM' % (
+            absoluteURL(self.context.__parent__, self.request),
+            self.context.__name__.encode('utf-8'))
+        self.request.response.redirect(url)
+        # We never have errors, so just close the dialog.
+        self.ajax_settings['dialog'] = 'close'
+
+    @button.buttonAndHandler(_("Cancel"))
+    def handle_cancel_action(self, action):
+        pass
+
+    def updateActions(self):
+        super(StreamDeleteView, self).updateActions()
+        self.actions['apply'].addClass('button-ok')
+        self.actions['cancel'].addClass('button-cancel')

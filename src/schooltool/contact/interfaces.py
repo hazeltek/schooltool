@@ -29,6 +29,8 @@ from zope.interface import Interface
 from zope.schema import TextLine
 from zope.schema.interfaces import IContainer
 
+from schooltool.basicperson.interfaces import IDemographics
+from schooltool.basicperson.interfaces import IDemographicsFields
 from schooltool.skin import flourish
 from schooltool.common import SchoolToolMessage as _
 from schooltool.app.utils import vocabulary
@@ -140,3 +142,12 @@ class IContactable(Interface):
 class IUniqueFormKey(Interface):
     """Adapt a contact to this interface to obtain a unique form key."""
 
+
+class IContactDemographics(IDemographics):
+
+    pass
+
+
+class IContactDemographicsFields(IDemographicsFields):
+
+    pass

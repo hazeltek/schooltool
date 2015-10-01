@@ -1345,6 +1345,7 @@ src/schooltool/stream/browser/stests/__init__.py
 src/schooltool/stream/browser/stests/stream_sections.txt
 src/schooltool/stream/browser/stests/stream_students.txt
 src/schooltool/stream/browser/stests/test_selenium.py
+src/schooltool/stream/browser/templates/confirm_delete_stream.pt
 src/schooltool/stream/browser/templates/form.pt
 src/schooltool/stream/browser/templates/stream.pt
 src/schooltool/stream/browser/templates/streams_accordion.pt

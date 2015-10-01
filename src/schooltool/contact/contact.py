@@ -36,6 +36,11 @@ from schooltool.app.interfaces import IRelationshipStateContainer
 from schooltool.app.app import InitBase, StartUpBase
 from schooltool.app.catalog import AttributeCatalog
 from schooltool.app.states import StateStartUpBase
+from schooltool.basicperson.demographics import DemographicsFields
+from schooltool.basicperson.demographics import IDemographicsForm
+from schooltool.basicperson.demographics import PersonDemographicsData
+from schooltool.contact.interfaces import IContactDemographicsFields
+from schooltool.contact.interfaces import IContactDemographics
 from schooltool.contact.interfaces import IContactPersonInfo
 from schooltool.contact.interfaces import IContactable
 from schooltool.contact.interfaces import IContact, IContactContained
@@ -54,6 +59,10 @@ from schooltool.course.section import PersonInstructorsCrowd
 from schooltool.app.utils import vocabulary_titled
 
 from schooltool.common import SchoolToolMessage as _
+
+
+CONTACT_DEMOGRAPHICS_FIELDS_KEY = 'schooltool.contact.demographics_fields'
+CONTACT_DEMOGRAPHICS_DATA_KEY = 'schooltool.contact.demographics_data'
 
 
 URIContactRelationship = TemporalURIObject('http://schooltool.org/ns/contact',
@@ -296,3 +305,69 @@ def contactStatesVocabulary(context):
 
 def ContactStatesVocabularyFactory():
     return contactStatesVocabulary
+
+
+class ContactDemographicsFields(DemographicsFields):
+
+    implements(IContactDemographicsFields)
+
+
+@implementer(IContactDemographicsFields)
+@adapter(ISchoolToolApplication)
+def getContactDemographicsFields(app):
+    return app[CONTACT_DEMOGRAPHICS_FIELDS_KEY]
+
+
+class ContactDemographicsDataContainer(BTreeContainer):
+
+    pass
+
+
+class ContactDemographicsData(PersonDemographicsData):
+
+    implements(IContactDemographics)
+
+    def isValidKey(self, key):
+        app = ISchoolToolApplication(None)
+        demographics_fields = IContactDemographicsFields(app)
+        return key in demographics_fields
+
+
+@adapter(IContact)
+@implementer(IContactDemographics)
+def getContactDemographics(contact):
+    app = ISchoolToolApplication(None)
+    data_container = app[CONTACT_DEMOGRAPHICS_DATA_KEY]
+    demographics = data_container.get(contact.__name__, None)
+    if demographics is None:
+        data_container[contact.__name__] = ContactDemographicsData()
+    return data_container[contact.__name__]
+
+
+class ContactDemographicsStartup(StartUpBase):
+
+    def __call__(self):
+        if CONTACT_DEMOGRAPHICS_FIELDS_KEY not in self.app:
+            demographics_fields = ContactDemographicsFields()
+            self.app[CONTACT_DEMOGRAPHICS_FIELDS_KEY] = demographics_fields
+            from schooltool.basicperson.demographics import TextFieldDescription
+            demographics_fields['foo'] = TextFieldDescription('foo', _('Foo'))
+        if CONTACT_DEMOGRAPHICS_DATA_KEY not in self.app:
+            data_container = ContactDemographicsDataContainer()
+            self.app[CONTACT_DEMOGRAPHICS_DATA_KEY] = data_container
+
+
+class ContactDemographicsFormAdapter(object):
+
+    implements(IDemographicsForm)
+    adapts(IContact)
+
+    def __init__(self, context):
+        self.__dict__['context'] = context
+        self.__dict__['demographics'] = IContactDemographics(self.context)
+
+    def __setattr__(self, name, value):
+        self.demographics[name] = value
+
+    def __getattr__(self, name):
+        return self.demographics.get(name, None)

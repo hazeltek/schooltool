@@ -118,4 +118,20 @@
      provides="zope.schema.interfaces.IVocabularyFactory"
      name="schooltool.contact.contact.relationship_states" />
 
+  <adapter factory=".contact.getContactDemographics" />
+  <adapter factory=".contact.ContactDemographicsFormAdapter" />
+  <adapter factory=".contact.getContactDemographicsFields" />
+
+  <class class=".contact.ContactDemographicsFields">
+    <implements interface="schooltool.contact.interfaces.IContactDemographicsFields" />
+    <require
+       permission="schooltool.edit"
+       interface="schooltool.contact.interfaces.IContactDemographicsFields"
+       set_schema="schooltool.contact.interfaces.IContactDemographicsFields" />
+  </class>
+
+  <adapter
+      factory=".contact.ContactDemographicsStartup"
+      name="schooltool.contact.demographics" />
+
 </configure>

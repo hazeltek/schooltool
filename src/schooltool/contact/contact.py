@@ -344,14 +344,21 @@ def getContactDemographics(contact):
     return data_container[contact.__name__]
 
 
+class ContactDemographicsInit(InitBase):
+
+    def __call__(self):
+        demographics_fields = ContactDemographicsFields()
+        self.app[CONTACT_DEMOGRAPHICS_FIELDS_KEY] = demographics_fields
+        data_container = ContactDemographicsDataContainer()
+        self.app[CONTACT_DEMOGRAPHICS_DATA_KEY] = data_container
+
+
 class ContactDemographicsStartup(StartUpBase):
 
     def __call__(self):
         if CONTACT_DEMOGRAPHICS_FIELDS_KEY not in self.app:
             demographics_fields = ContactDemographicsFields()
             self.app[CONTACT_DEMOGRAPHICS_FIELDS_KEY] = demographics_fields
-            from schooltool.basicperson.demographics import TextFieldDescription
-            demographics_fields['foo'] = TextFieldDescription('foo', _('Foo'))
         if CONTACT_DEMOGRAPHICS_DATA_KEY not in self.app:
             data_container = ContactDemographicsDataContainer()
             self.app[CONTACT_DEMOGRAPHICS_DATA_KEY] = data_container

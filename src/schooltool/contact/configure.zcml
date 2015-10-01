@@ -131,6 +131,10 @@
   </class>
 
   <adapter
+      factory=".contact.ContactDemographicsInit"
+      name="schooltool.contact.demographics" />
+
+  <adapter
       factory=".contact.ContactDemographicsStartup"
       name="schooltool.contact.demographics" />
 

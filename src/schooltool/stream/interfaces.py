@@ -22,6 +22,7 @@ Stream interfaces
 from zope.container.interfaces import IContained
 from zope.container.interfaces import IContainer
 from zope.interface import Attribute
+from zope.schema import Bool
 from zope.schema import Text
 from zope.schema import TextLine
 
@@ -43,6 +44,10 @@ class IStream(IContained):
     title = TextLine(title=_('Title'))
 
     description = Text(title=_('Description'), required=False)
+
+    attendance_group = Bool(
+        title=_('Attendance Group'),
+        required=False)
 
     members = Attribute('Relationship with person objects')
 

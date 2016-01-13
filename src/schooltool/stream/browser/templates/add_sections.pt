@@ -1,0 +1,69 @@
+<div i18n:domain="schooltool">
+  <form tal:attributes="action request/URL" method="post">
+    <table>
+      <thead>
+        <tr>
+          <th i18n:translate="">Add?</th>
+          <th i18n:translate="">Course</th>
+          <th i18n:translate="">Instructor</th>
+          <th i18n:translate="">Section titles</th>
+          <th i18n:translate="">Starts in term</th>
+          <th i18n:translate="">Ends in term</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr tal:repeat="course view/courses">
+          <td>
+            <input type="checkbox" tal:attributes="name course/add_selector_id;
+                                                   value course/obj/__name__" />
+          </td>
+          <td tal:content="course/title" />
+          <td>
+            <select tal:attributes="name course/instructor_selector_id">
+              <option i18n:translate=""
+                      tal:attributes="value view/no_value_token">
+                -- no instructor --
+              </option>
+              <tal:loop repeat="instructor view/instructors">
+                <option tal:attributes="value instructor/value"
+                        tal:content="instructor/title" />
+              </tal:loop>
+            </select>
+          </td>
+          <td>
+            <input type="text"
+                   tal:define="selector_id course/title_selector_id"
+                   tal:attributes="name selector_id;
+                                   value request/!selector_id|course/section_title" />
+          </td>
+          <td>
+            <select tal:attributes="name course/term_start_selector_id">
+              <tal:loop repeat="term view/sorted_terms">
+                <option
+                    tal:attributes="value term/__name__;
+                                    selected python:view.term_start_selected(course['obj'], term)"
+                    tal:content="term/title" />
+              </tal:loop>
+            </select>
+          </td>
+          <td>
+            <select tal:attributes="name course/term_end_selector_id">
+              <tal:loop repeat="term view/sorted_terms">
+                <option
+                    tal:attributes="value term/__name__;
+                                    selected python:view.term_end_selected(course['obj'], term)"
+                    tal:content="term/title" />
+              </tal:loop>
+            </select>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="buttons">
+      <input type="submit" name="SUBMIT" value="Submit" class="button-ok"
+             i18n:attributes="value" />
+      <input type="submit" name="CANCEL" value="Cancel" class="button-cancel"
+             i18n:attributes="value" />
+    </div>
+  </form>
+</div>

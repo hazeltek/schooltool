@@ -65,7 +65,7 @@
     <require permission="zope.Public"
              attributes="__name__" />
     <require permission="schooltool.view"
-             attributes="title description members sections __cmp__" />
+             attributes="title description attendance_group members sections __cmp__" />
     <require permission="schooltool.edit"
              set_schema=".interfaces.IStream" />
   </class>

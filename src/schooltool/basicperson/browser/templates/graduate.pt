@@ -7,8 +7,7 @@
           <th i18n:translate="">Last name</th>
           <th i18n:translate="">First name</th>
           <th i18n:translate="">Current Level</th>
-          <th i18n:translate="">Next Level</th>
-          <th i18n:translate="">Promote?</th>
+          <th i18n:translate="">Graduate?</th>
         </tr>
       </thead>
       <tbody>
@@ -20,7 +19,6 @@
             <tal:block content="student/obj/middle_name" />
           </td>
           <td tal:content="student/current_level/title" />
-          <td tal:content="student/next_level/title" />
           <td>
             <input type="checkbox" checked="checked"
                    tal:attributes="name student/selector_id" />

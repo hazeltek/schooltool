@@ -400,7 +400,7 @@ class ImportSchoolYearData(object):
 
     def importGroupMembers(self, sourceGroup, targetGroup):
         for member in sourceGroup.members:
-            targetGroup.members.add(member)
+            targetGroup.members.on(self.newSchoolyear.first).add(member)
 
     def importGroup(self, groupId, shouldImportMembers=False):
         oldGroups = IGroupContainer(self.activeSchoolyear)

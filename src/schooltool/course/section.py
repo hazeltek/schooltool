@@ -448,7 +448,7 @@ def propagateSectionStudentsChange(event):
         collection.on(event.date).relate(person, event.meaning, event.code)
 
 
-def copySection(section, target_term):
+def copySection(section, target_term, date=None):
     """Create a copy of a section in a desired term."""
     section_copy = Section(section.title, section.description)
     sections = interfaces.ISectionContainer(target_term)

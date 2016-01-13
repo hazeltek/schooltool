@@ -250,6 +250,7 @@ src/schooltool/basicperson/browser/templates/f_person_id_cards.pt
 src/schooltool/basicperson/browser/templates/f_person_view_details.pt
 src/schooltool/basicperson/browser/templates/f_person_view_jstree.pt
 src/schooltool/basicperson/browser/templates/field_description_view.pt
+src/schooltool/basicperson/browser/templates/graduate.pt
 src/schooltool/basicperson/browser/templates/groups.pt
 src/schooltool/basicperson/browser/templates/person-csvimport.pt
 src/schooltool/basicperson/browser/templates/person_add.pt
@@ -1345,8 +1346,10 @@ src/schooltool/stream/browser/stests/__init__.py
 src/schooltool/stream/browser/stests/stream_sections.txt
 src/schooltool/stream/browser/stests/stream_students.txt
 src/schooltool/stream/browser/stests/test_selenium.py
+src/schooltool/stream/browser/templates/add_sections.pt
 src/schooltool/stream/browser/templates/confirm_delete_stream.pt
 src/schooltool/stream/browser/templates/form.pt
+src/schooltool/stream/browser/templates/previous_year_streams_export_form.pt
 src/schooltool/stream/browser/templates/stream.pt
 src/schooltool/stream/browser/templates/streams_accordion.pt
 src/schooltool/stream/browser/templates/streams_table_filter.pt

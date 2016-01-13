@@ -1246,6 +1246,33 @@ class ActiveSchoolYearContentMixin(object):
         context_url = absoluteURL(obj, self.request)
         return '%s/%s?%s' % (context_url, view_name, urllib.urlencode(params))
 
+    @Lazy
+    def previousYear(self):
+        sorted_schoolyears = self._schoolyears.sorted_schoolyears
+        for i, schoolyear in enumerate(sorted_schoolyears):
+            if schoolyear == self.schoolyear:
+                index = i - 1
+                if index >= 0:
+                    try:
+                        return sorted_schoolyears[index]
+                    except (IndexError,):
+                        return
+                break
+
+
+    @Lazy
+    def nextYear(self):
+        sorted_schoolyears = self._schoolyears.sorted_schoolyears
+        for i, schoolyear in enumerate(sorted_schoolyears):
+            if schoolyear == self.schoolyear:
+                index = i + 1
+                if index >= 0:
+                    try:
+                        return sorted_schoolyears[index]
+                    except (IndexError,):
+                        return
+                break
+
 
 class ManageItemDoneLink(flourish.viewlet.Viewlet,
                          ActiveSchoolYearContentMixin):

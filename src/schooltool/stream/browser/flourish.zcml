@@ -250,4 +250,65 @@
 
   </configure>
 
+  <flourish:viewlet
+      name="stream-reports-links"
+      after="streams-add-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class="schooltool.report.browser.report.ReportsLinks"
+      title="Reports"
+      view=".stream.StreamsView"
+      permission="schooltool.edit"
+      />
+
+  <report:reportLink
+      name="previous_year_streams_export"
+      class=".stream.PreviousYearStreamExportReportLink"
+      view=".stream.StreamsView"
+      permission="schooltool.edit"
+      group="School"
+      description="This creates a spreadsheet of the previous years streams and enrollments, updated for this year.  You can edit this sheet and then import it from the Import XLS link on the School page."
+      title="Export streams from previous year"
+      file_type="xls"
+      link="request_previous_year_streams_export.html"
+      />
+
+  <flourish:page
+      name="request_previous_year_streams_export.html"
+      for="schooltool.app.interfaces.ISchoolToolApplication"
+      class=".stream.PreviousYearStreamsExportRequestView"
+      permission="schooltool.edit"
+      />
+
+  <flourish:page
+     name="previous_year_streams_export.xls"
+     for="schooltool.app.interfaces.ISchoolToolApplication"
+     layer="schooltool.report.interfaces.IRemoteReportLayer"
+     class=".stream.PreviousYearStreamsExporter"
+     permission="schooltool.edit" />
+
+  <flourish:viewlet
+      name="stream-add-links"
+      before="stream-actions-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class=".stream.StreamAddLinks"
+      title="Add"
+      permission="schooltool.edit"
+      view=".stream.StreamSectionsView"
+      />
+
+  <flourish:viewlet
+      name="add-sections.html"
+      title="Sections"
+      class="schooltool.skin.flourish.page.LinkViewlet"
+      manager=".stream.StreamAddLinks"
+      permission="schooltool.edit"
+      />
+
+  <flourish:page
+      name="add-sections.html"
+      for="schooltool.stream.interfaces.IStream"
+      class=".stream.AddSectionsView"
+      permission="schooltool.edit"
+      />
+
 </configure>

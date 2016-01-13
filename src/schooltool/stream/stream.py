@@ -113,6 +113,7 @@ class Stream(Persistent, Contained):
 
     title = None
     description = None
+    attendance_group = None
 
     members = RelationshipProperty(URIStreamMembers,
                                    URIStream,

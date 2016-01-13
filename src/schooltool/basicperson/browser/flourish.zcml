@@ -1009,4 +1009,20 @@
       permission="schooltool.edit"
       />
 
+  <flourish:viewletManager
+      name="tertiary_navigation"
+      provides="schooltool.skin.flourish.page.ITertiaryNavigationManager"
+      class=".person.PromoteStudentsTertiaryNavigationManager"
+      view=".person.PromoteStudentsViewBase"
+      permission="zope.Public"
+      />
+
+  <flourish:page
+      name="graduate.html"
+      for="schooltool.person.interfaces.IPersonContainer"
+      class=".person.GraduateStudentsView"
+      title="Graduate Students"
+      permission="schooltool.edit"
+      />
+
 </configure>

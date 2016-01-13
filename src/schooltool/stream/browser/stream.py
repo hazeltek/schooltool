@@ -21,6 +21,7 @@ Stream view components
 
 from urllib import urlencode
 
+import xlwt
 from zope.cachedescriptors.property import Lazy
 from zope.catalog.interfaces import ICatalog
 from zope.component import adapts
@@ -45,6 +46,7 @@ from z3c.form import field
 from z3c.form import form
 from z3c.form import widget
 from z3c.form.interfaces import HIDDEN_MODE
+from z3c.form.browser.checkbox import SingleCheckBoxFieldWidget
 
 from schooltool import table
 from schooltool.app.browser.app import ActiveSchoolYearContentMixin
@@ -57,14 +59,24 @@ from schooltool.app.catalog import buildQueryString
 from schooltool.app.interfaces import IRelationshipStateContainer
 from schooltool.app.interfaces import ISchoolToolApplication
 from schooltool.course.section import is_student
+from schooltool.course.section import Section
+from schooltool.course.interfaces import ICourseContainer
+from schooltool.export.export import RequestXLSReportDialog
+from schooltool.export.export import RemoteMegaExporter
+from schooltool.export.export import Header
+from schooltool.export.export import Text
+from schooltool.export.export import Date
+from schooltool.group.interfaces import IGroupContainer
 from schooltool.relationship.temporal import ACTIVE
 from schooltool.relationship.temporal import ACTIVE_CODE
 from schooltool.relationship.temporal import INACTIVE
 from schooltool.relationship.temporal import INACTIVE_CODE
+from schooltool.report.report import ReportLinkViewlet
 from schooltool.basicperson.browser.person import EditPersonTemporalRelationships
 from schooltool.common import SchoolToolMessage as _
 from schooltool.course.browser.section import SectionsTableBase
 from schooltool.course.interfaces import ISectionContainer
+from schooltool.person.interfaces import IPersonFactory
 from schooltool.schoolyear.interfaces import ISchoolYear
 from schooltool.schoolyear.interfaces import ISchoolYearContainer
 from schooltool.skin import flourish
@@ -72,6 +84,7 @@ from schooltool.stream.interfaces import IStream
 from schooltool.stream.interfaces import IStreamContainer
 from schooltool.stream.stream import Stream
 from schooltool.stream.stream import StreamMembers
+from schooltool.task.progress import normalized_progress
 from schooltool.term.interfaces import IDateManager
 from schooltool.term.interfaces import ITerm
 
@@ -149,7 +162,11 @@ class StreamAddView(flourish.form.AddForm):
     label = None
     legend = _('Stream Information')
 
-    fields = field.Fields(IStream).select('title', 'description')
+    fields = field.Fields(IStream).select(
+        'title',
+        'description',
+        'attendance_group')
+    fields['attendance_group'].widgetFactory = SingleCheckBoxFieldWidget
 
     def updateActions(self):
         super(StreamAddView, self).updateActions()
@@ -310,7 +327,10 @@ class StreamView(flourish.form.DisplayForm):
 
     template = flourish.templates.Inherit(flourish.page.Page.template)
     content_template = flourish.templates.File('templates/stream.pt')
-    fields = field.Fields(IStream).select('title', 'description')
+    fields = field.Fields(IStream).select(
+        'title',
+        'description',
+        'attendance_group')
 
     @property
     def schoolyear(self):
@@ -348,7 +368,11 @@ class StreamEditView(flourish.form.Form, form.EditForm):
     template = flourish.templates.Inherit(flourish.page.Page.template)
     label = None
     legend = _('Stream Information')
-    fields = field.Fields(IStream).select('title', 'description')
+    fields = field.Fields(IStream).select(
+        'title',
+        'description',
+        'attendance_group')
+    fields['attendance_group'].widgetFactory = SingleCheckBoxFieldWidget
 
     @property
     def title(self):
@@ -718,3 +742,290 @@ class StreamDeleteView(flourish.form.DialogForm, form.EditForm):
         super(StreamDeleteView, self).updateActions()
         self.actions['apply'].addClass('button-ok')
         self.actions['cancel'].addClass('button-cancel')
+
+
+class PreviousYearStreamExportReportLink(ReportLinkViewlet,
+                                         ActiveSchoolYearContentMixin):
+
+    @property
+    def extra_params(self):
+        return {
+            'schoolyear_id': self.schoolyear.__name__,
+        }
+
+    def render(self, *args, **kw):
+        if self.schoolyear is None or self.previousYear is None:
+            return ''
+        return super(PreviousYearStreamExportReportLink, self).render(
+            *args, **kw)
+
+
+class PreviousYearStreamsExportRequestView(RequestXLSReportDialog):
+
+    report_builder = 'previous_year_streams_export.xls'
+
+    template = flourish.templates.File(
+        'templates/previous_year_streams_export_form.pt')
+
+    def resetForm(self):
+        RequestXLSReportDialog.resetForm(self)
+        self.form_params['schoolyear_id'] = self.request.get('schoolyear_id')
+
+    def updateTaskParams(self, task):
+        task.request_params['schoolyear_id'] = self.form_params['schoolyear_id']
+
+
+class PreviousYearStreamsExporter(RemoteMegaExporter,
+                                  ActiveSchoolYearContentMixin):
+
+    base_filename = 'previous_year_streams'
+    message_title = _('previous year streams')
+
+    def format_stream(self, stream, ws, offset):
+        fields = [lambda i: ("Stream Title", i.title, None),
+                  lambda i: ("ID", i.__name__, None),
+                  lambda i: ("School Year", self.schoolyear.__name__, None),
+                  lambda i: ("Description", i.description, None)]
+
+        offset = self.listFields(stream, fields, ws, offset)
+
+        offset += self.print_table(
+            self.format_membership_block(stream.members, [Header('Members')]),
+            ws, row=offset, col=0)
+
+        return offset
+
+    def export_streams(self, wb):
+        self.task_progress.force('export_streams', active=True)
+        ws = wb.add_sheet("Streams")
+        school_years = [self.previousYear]
+        row = 0
+        for ny, school_year in enumerate(sorted(school_years, key=lambda i: i.last)):
+            streams = IStreamContainer(school_year)
+            for ns, stream in enumerate(sorted(streams.values(), key=lambda i: i.__name__)):
+                row = self.format_stream(stream, ws, row) + 1
+                self.progress('export_streams', normalized_progress(
+                        ny, len(school_years), ns, len(streams)
+                        ))
+        self.finish('export_streams')
+
+    def addImporters(self, progress):
+        progress.add('export_streams', active=False,
+                     title=_('Streams'), progress=0.0)
+
+    def format_membership_block(self, relationship, headers):
+        items = sorted(relationship,
+                       key=lambda item: item.__name__)
+        if not items:
+            return []
+        table = [headers]
+        collator = ICollator(self.request.locale)
+        factory = getUtility(IPersonFactory)
+        sorting_key = lambda x: factory.getSortingKey(x, collator)
+        for item in sorted(items, key=sorting_key):
+            cells = [
+                Text(item.__name__),
+                Text(item.title),
+                Date(self.schoolyear.first),
+                Text(ACTIVE_CODE),
+            ]
+            table.append(cells)
+        table.append([])
+        return table
+
+    def __call__(self):
+        self.makeProgress()
+        self.task_progress.title = _("Exporting school data")
+        self.addImporters(self.task_progress)
+
+        wb = xlwt.Workbook()
+        self.export_streams(wb)
+        self.task_progress.title = _("Export complete")
+        self.task_progress.force('overall', progress=1.0)
+        data = self.render(wb)
+        return data
+
+
+class StreamAddLinks(flourish.page.RefineLinksViewlet):
+
+    pass
+
+
+class AddSectionsLinkViewlet(flourish.page.LinkViewlet):
+
+    @property
+    def enabled(self):
+        return self.has_terms
+
+    @property
+    def has_terms(self):
+        return ISchoolYear(self.context)
+
+
+class AddSectionsView(flourish.page.Page):
+
+    subtitle = _('Add Sections')
+    content_template = flourish.templates.File('templates/add_sections.pt')
+    no_value_token = '--NOVALUE--'
+    container_class = 'container widecontainer'
+
+    @property
+    def title(self):
+        return self.context.title
+
+    @Lazy
+    def schoolyear(self):
+        return ISchoolYear(self.context)
+
+    @Lazy
+    def courses(self):
+        courses = ICourseContainer(self.schoolyear)
+        result = []
+        # XXX: use ICollator
+        for course in sorted(courses.values(), key=lambda course: course.title):
+            result.append({
+                'obj': course,
+                'title': course.title,
+                'section_title': '%s %s' % (self.context.title, course.title),
+                'add_selector_id': self.add_selector_id(course),
+                'instructor_selector_id': self.instructor_selector_id(course),
+                'title_selector_id': self.title_selector_id(course),
+                'term_start_selector_id': self.term_start_selector_id(course),
+                'term_end_selector_id': self.term_end_selector_id(course),
+            })
+        return result
+
+    def add_selector_id(self, course):
+        return 'add.%s' % course.__name__
+
+    def instructor_selector_id(self, course):
+        return 'instructor.%s' % course.__name__
+
+    def title_selector_id(self, course):
+        return 'title.%s' % course.__name__
+
+    def term_start_selector_id(self, course):
+        return 'term_start.%s' % course.__name__
+
+    def term_end_selector_id(self, course):
+        return 'term_end.%s' % course.__name__
+
+    @Lazy
+    def sorted_terms(self):
+        return sorted(self.schoolyear.values(), key=lambda term: term.first)
+
+    @Lazy
+    def term_start(self):
+        return self.sorted_terms[0]
+
+    @Lazy
+    def term_end(self):
+        return self.sorted_terms[-1]
+
+    def redirect(self):
+        url = '%s/sections.html' % absoluteURL(self.context, self.request)
+        self.request.response.redirect(url)
+
+    def update(self):
+        if 'CANCEL' in self.request:
+            self.redirect()
+            return
+        elif 'SUBMIT' in self.request:
+            for course_info in self.courses:
+                add_submitted = self.request.get(
+                    course_info['add_selector_id'])
+                if add_submitted == course_info['obj'].__name__:
+                    self.create_sections(course_info)
+            self.redirect()
+
+    @Lazy
+    def instructors(self):
+        teachers = IGroupContainer(self.schoolyear)['teachers']
+        result = []
+        # XXX: use ICollator
+        # XXX: remove .all()?
+        for teacher in sorted(teachers.members.all(),
+                              key=lambda teacher: teacher.title):
+            result.append({
+                'value': teacher.__name__,
+                'title': teacher.title,
+            })
+        return result
+
+    def term_start_selected(self, course, term):
+        requested = self.request.get(self.term_start_selector_id(course))
+        return ((requested and requested == term.__name__) or
+                term is self.term_start)
+
+    def term_end_selected(self, course, term):
+        requested = self.request.get(self.term_end_selector_id(course))
+        return ((requested and requested == term.__name__) or 
+                term is self.term_end)
+
+    def term_span(self, start, end):
+        result = []
+        for term in self.sorted_terms:
+            if (start.first <= term.first) or (term.last <= end.last):
+                result.append(term)
+        return result
+
+    @Lazy
+    def persons(self):
+        return ISchoolToolApplication(None)['persons']
+
+    def create_sections(self, course_info):
+        course = course_info['obj']
+        requested_instructor = self.request.get(
+            course_info['instructor_selector_id'])
+        requested_term_start = self.request.get(
+            course_info['term_start_selector_id'])
+        instructor = self.persons.get(requested_instructor)
+        term_start = self.schoolyear[requested_term_start]
+        requested_term_end = self.request.get(
+            course_info['term_end_selector_id'])
+        term_end = self.schoolyear[requested_term_end]
+
+        section = Section()
+        sections = ISectionContainer(term_start)
+        name = INameChooser(sections).chooseName('', section)
+        title = self.request.get(course_info['title_selector_id'])
+        if not title:
+            title = u"%s (%s)" % (course.title, name)
+        section.title = title
+        sections[name] = section
+        stream_sections = removeSecurityProxy(self.context).sections
+        stream_sections.add(section)
+        section.courses.add(removeSecurityProxy(course))
+        if instructor is not None:
+            section.instructors.on(term_start.first).add(instructor)
+        # XXX: remove .all()?
+        for student in self.context.members.all():
+            section.members.on(term_start.first).add(
+                removeSecurityProxy(student))
+
+        terms = self.term_span(term_start, term_end)
+        # copy and link section in other selected terms
+        for term in terms[1:]:
+            new_section = copySection(section, term)
+            new_section.previous = section
+            stream_sections.add(new_section)
+            section = new_section
+
+
+def copySection(section, target_term):
+    """Create a copy of a section in a desired term."""
+    section_copy = Section(section.title, section.description)
+    sections = ISectionContainer(target_term)
+    name = section.__name__
+    if name in sections:
+        name = INameChooser(sections).chooseName(name, section_copy)
+    sections[name] = section_copy
+    for course in section.courses:
+        section_copy.courses.add(course)
+    for instructor in section.instructors.on(ITerm(section).first):
+        # XXX: add as pre-enrolled from today
+        section_copy.instructors.on(target_term.first).add(instructor)
+    for member in section.members.on(ITerm(section).first):
+        # XXX: add as pre-enrolled from today
+        section_copy.members.on(target_term.first).add(member)
+    return section_copy

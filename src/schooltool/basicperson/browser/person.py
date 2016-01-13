@@ -67,6 +67,7 @@ from schooltool.app.membership import Membership
 from schooltool.app.states import INACTIVE
 from schooltool.common.inlinept import InlineViewPageTemplate
 from schooltool.common.inlinept import InheritTemplate
+from schooltool.common import parse_date
 from schooltool.course.interfaces import ISection
 from schooltool.course.section import is_student
 from schooltool.basicperson.demographics import LEAVE_SCHOOL_FIELDS
@@ -2009,8 +2010,136 @@ class BasicPersonContainerJSONSearchView(JSONSearchViewBase):
         }
 
 
-class PromoteStudentsView(flourish.page.Page,
-                          ActiveSchoolYearContentMixin):
+class PromoteStudentsViewBase(flourish.page.Page,
+                              ActiveSchoolYearContentMixin):
+
+    def filter(self, current_level, next_level):
+        raise NotImplementedError('Do in subclass')
+
+    @Lazy
+    def students(self):
+        app = ISchoolToolApplication(None)
+        level_container = ILevelContainer(app)
+        level_keys = level_container.keys()
+        students = IGroupContainer(self.schoolyear)['students']
+        result = []
+        for person in students.members:
+            active_levels = person.levels.all().any(ACTIVE)
+            if active_levels:
+                current_level = list(active_levels)[0]
+                current_level_key = level_keys.index(current_level.__name__)
+                next_level = None
+                next_level_key = None
+                if current_level_key < (len(level_keys) - 1):
+                    next_level_key = level_keys[current_level_key + 1]
+                    next_level = level_container[next_level_key]
+                if self.filter(current_level, next_level):
+                    result.append({
+                        'obj': person,
+                        'current_level': current_level,
+                        'next_level': next_level,
+                        'selector_id': self.selector_id(person),
+                    })
+            else:
+                continue
+        # XXX: i18n
+        return sorted(result,
+                      key=lambda i: (
+                          level_keys.index(i['current_level'].__name__),
+                          i['obj'].last_name,
+                          i['obj'].first_name))
+
+    def selector_id(self, person):
+        return 'action-selector-%s' % person.__name__
+
+    def nextURL(self):
+        app = ISchoolToolApplication(None)
+        return '%s/manage?schoolyear_id=%s' % (
+            absoluteURL(app, self.request),
+            self.schoolyear.__name__)
+
+    def update(self):
+        if 'CANCEL' in self.request:
+            self.request.response.redirect(self.nextURL())
+        if 'SUBMIT' in self.request:
+            date = parse_date(self.request.get('date'))
+            for student_data in self.students:
+                if self.request.get(student_data['selector_id']):
+                    self.update_student(date, student_data)
+            self.request.response.redirect(self.nextURL())
+
+
+class PromoteStudentsView(PromoteStudentsViewBase):
+
+    content_template = flourish.templates.File('templates/promote.pt')
+
+    def filter(self, current_level, next_level):
+        return next_level is not None
+
+    def date(self):
+        return self.nextYear.first.strftime('%Y-%m-%d')
+
+    def update_student(self, date, student_data):
+        person = student_data['obj']
+        person.levels.on(date).unrelate(student_data['current_level'])
+        person.levels.on(date).relate(student_data['next_level'])
+
+
+from schooltool.app.states import GRADUATED
+
+class GraduateStudentsView(PromoteStudentsViewBase):
+
+    content_template = flourish.templates.File('templates/graduate.pt')
+
+    def filter(self, current_level, next_level):
+        return next_level is None
+
+    def date(self):
+        return self.schoolyear.last.strftime('%Y-%m-%d')
+
+    def update_student(self, date, student_data):
+        person = student_data['obj']
+        person.levels.on(date).relate(
+            student_data['current_level'], INACTIVE+GRADUATED, 'c')
+
+
+class PromoteStudentsTertiaryNavigationManager(
+        flourish.page.TertiaryNavigationManager,
+        ActiveSchoolYearContentMixin):
+
+    template = InlineViewPageTemplate("""
+        <ul tal:attributes="class view/list_class">
+          <li tal:repeat="item view/items"
+              tal:attributes="class item/class"
+              tal:content="structure item/viewlet">
+          </li>
+        </ul>
+    """)
+
+    @property
+    def items(self):
+        result = []
+        app = ISchoolToolApplication(None)
+        persons = app['persons']
+        promotion_url = '%s/promote.html?schoolyear_id=%s' % (
+            absoluteURL(persons, self.request),
+            self.schoolyear.__name__)
+        graduation_url = '%s/graduate.html?schoolyear_id=%s' % (
+            absoluteURL(persons, self.request),
+            self.schoolyear.__name__)
+        result.append({
+            'class': 'active' if self.view.__name__ == 'promote.html' else None,
+            'viewlet': u'<a href="%s">Promotion</a>' % promotion_url,
+        })
+        result.append({
+            'class': 'active' if self.view.__name__ == 'graduate.html' else None,
+            'viewlet': u'<a href="%s">Graduation</a>' % graduation_url,
+        })
+        return result
+
+
+class PromoteStudentsView_(flourish.page.Page,
+                           ActiveSchoolYearContentMixin):
 
     content_template = ViewPageTemplateFile('templates/promote.pt')
     container_class = 'container widecontainer'
@@ -2134,12 +2263,7 @@ class PromoteStudentsLinkViewlet(flourish.page.LinkViewlet,
 
     @property
     def enabled(self):
-        app = ISchoolToolApplication(None)
-        container = ISchoolYearContainer(app)
-        schoolyears = sorted(container.values(),
-                             key=lambda schoolyear: schoolyear.first)
-        return (self.schoolyear is container.getActiveSchoolYear() and
-                self.schoolyear != schoolyears[-1])
+        return self.nextYear is not None
 
     @property
     def url(self):

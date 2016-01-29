@@ -208,6 +208,16 @@
       />
 
   <flourish:viewlet
+      name="stream-add-links"
+      before="stream-actions-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class=".stream.StreamAddLinks"
+      title="Add"
+      permission="schooltool.edit"
+      view=".stream.StreamView"
+      />
+
+  <flourish:viewlet
       name="stream-actions-links"
       manager="schooltool.skin.flourish.page.IPageRefineManager"
       class=".stream.StreamActionsLinks"
@@ -290,7 +300,7 @@
       name="stream-add-links"
       before="stream-actions-links"
       manager="schooltool.skin.flourish.page.IPageRefineManager"
-      class=".stream.StreamAddLinks"
+      class=".stream.StreamSectionsAddLinks"
       title="Add"
       permission="schooltool.edit"
       view=".stream.StreamSectionsView"
@@ -300,7 +310,7 @@
       name="add-sections.html"
       title="Sections"
       class="schooltool.skin.flourish.page.LinkViewlet"
-      manager=".stream.StreamAddLinks"
+      manager=".stream.StreamSectionsAddLinks"
       permission="schooltool.edit"
       />
 
@@ -308,6 +318,31 @@
       name="add-sections.html"
       for="schooltool.stream.interfaces.IStream"
       class=".stream.AddSectionsView"
+      permission="schooltool.edit"
+      />
+
+  <flourish:viewlet
+      name="streams-actions-links"
+      after="streams-add-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class=".stream.StreamsActionsLinks"
+      title="Actions"
+      permission="schooltool.edit"
+      view=".stream.StreamsView"
+      />
+
+  <flourish:viewlet
+      name="convert-groups"
+      title="Convert groups to streams"
+      class=".stream.ConvertGroupsLinkViewlet"
+      manager=".stream.StreamsActionsLinks"
+      permission="schooltool.edit"
+      />
+
+  <flourish:page
+      name="convert_groups_to_streams.html"
+      for="schooltool.schoolyear.interfaces.ISchoolYear"
+      class=".stream.ConvertGroupsToStreamsView"
       permission="schooltool.edit"
       />
 

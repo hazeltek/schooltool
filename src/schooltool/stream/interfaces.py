@@ -19,9 +19,12 @@
 Stream interfaces
 """
 
+from zope.component.interfaces import IObjectEvent
+from zope.component.interfaces import ObjectEvent
 from zope.container.interfaces import IContained
 from zope.container.interfaces import IContainer
 from zope.interface import Attribute
+from zope.interface import implements
 from zope.schema import Bool
 from zope.schema import Text
 from zope.schema import TextLine
@@ -52,3 +55,13 @@ class IStream(IContained):
     members = Attribute('Relationship with person objects')
 
     sections = Attribute('Relationship with section objects')
+
+
+class IGroupConvertedToStreamEvent(IObjectEvent):
+
+    pass
+
+
+class GroupConvertedToStreamEvent(ObjectEvent):
+
+    implements(IGroupConvertedToStreamEvent)

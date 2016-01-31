@@ -28,6 +28,7 @@ from zope.component import adapts
 from zope.component import getMultiAdapter
 from zope.component import getUtility
 from zope.container.interfaces import INameChooser
+from zope.event import notify
 from zope.interface import implements
 from zope.intid.interfaces import IIntIds
 from zope.i18n.interfaces.locales import ICollator
@@ -67,6 +68,7 @@ from schooltool.export.export import Header
 from schooltool.export.export import Text
 from schooltool.export.export import Date
 from schooltool.group.interfaces import IGroupContainer
+from schooltool.group.group import defaultGroups
 from schooltool.relationship.temporal import ACTIVE
 from schooltool.relationship.temporal import ACTIVE_CODE
 from schooltool.relationship.temporal import INACTIVE
@@ -80,6 +82,7 @@ from schooltool.person.interfaces import IPersonFactory
 from schooltool.schoolyear.interfaces import ISchoolYear
 from schooltool.schoolyear.interfaces import ISchoolYearContainer
 from schooltool.skin import flourish
+from schooltool.stream.interfaces import GroupConvertedToStreamEvent
 from schooltool.stream.interfaces import IStream
 from schooltool.stream.interfaces import IStreamContainer
 from schooltool.stream.stream import Stream
@@ -691,6 +694,11 @@ class StreamActionsLinks(flourish.page.RefineLinksViewlet):
     pass
 
 
+class StreamAddLinks(flourish.page.RefineLinksViewlet):
+
+    pass
+
+
 class StreamDeleteLink(flourish.page.ModalFormLinkViewlet):
 
     @property
@@ -846,7 +854,7 @@ class PreviousYearStreamsExporter(RemoteMegaExporter,
         return data
 
 
-class StreamAddLinks(flourish.page.RefineLinksViewlet):
+class StreamSectionsAddLinks(flourish.page.RefineLinksViewlet):
 
     pass
 
@@ -1029,3 +1037,47 @@ def copySection(section, target_term):
         # XXX: add as pre-enrolled from today
         section_copy.members.on(target_term.first).add(member)
     return section_copy
+
+
+class StreamsActionsLinks(flourish.page.RefineLinksViewlet):
+
+    pass
+
+
+class ConvertGroupsLinkViewlet(flourish.page.LinkViewlet,
+                               ActiveSchoolYearContentMixin):
+
+    @property
+    def url(self):
+        return '%s/convert_groups_to_streams.html' % (
+            absoluteURL(self.schoolyear, self.request))
+
+
+class ConvertGroupsToStreamsView(flourish.page.Page):
+
+    def update(self):
+        groups = IGroupContainer(self.context)
+        for group in groups.values():
+            if (group.__name__ not in defaultGroups and
+                group.__name__ not in self.streams):
+                self.convert_group(group)
+        self.request.response.redirect(self.nextURL)
+
+    def convert_group(self, group):
+        stream = Stream()
+        stream.title = group.title
+        stream.description = group.description
+        self.streams[group.__name__] = stream
+        for member in group.members:
+            stream.members.on(self.context.first).add(member)
+        notify(GroupConvertedToStreamEvent(stream))
+
+    @Lazy
+    def streams(self):
+        return IStreamContainer(self.context)
+
+    @property
+    def nextURL(self):
+        return '%s/streams?schoolyear_id=%s' % (
+            absoluteURL(ISchoolToolApplication(None), self.request),
+            self.context.__name__.encode('utf-8'))

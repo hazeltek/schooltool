@@ -76,6 +76,7 @@ from schooltool.basicperson.interfaces import IDemographicsFields
 from schooltool.basicperson.interfaces import IBasicPerson
 from schooltool.contact.interfaces import IContactable
 from schooltool.group.interfaces import IGroupContainer
+from schooltool.group.interfaces import IGroup
 from schooltool.level.interfaces import ILevelContainer
 from schooltool.person.interfaces import IPerson, IPersonFactory
 from schooltool.person.browser.person import PersonTable, PersonTableFormatter
@@ -1171,6 +1172,16 @@ class BasicPersonTable(PersonTable):
         PersonTable.__init__(self, *args, **kw)
         self.css_classes = {'table': ' data persons-table'}
 
+    @Lazy
+    def today(self):
+        return getUtility(IDateManager).today
+
+    def get_person_level(self, person, formatter):
+        result = []
+        for level in person.levels.on(self.today).any(ACTIVE):
+            result.append(level)
+        return ', '.join([level.title for level in result])
+
     def columns(self):
         cols = getUtility(IPersonFactory).columns()
         username = IndexedLocaleAwareGetterColumn(
@@ -1179,7 +1190,15 @@ class BasicPersonTable(PersonTable):
             title=_(u'Username'),
             getter=lambda i, f: i.__name__,
             subsort=True)
-        return cols + [username]
+        cols.append(username)
+        if (IGroup.providedBy(self.view.context) and
+            self.view.context.__name__ == 'students'):
+            level = zc.table.column.GetterColumn(
+                name='level',
+                title=_('Level'),
+                getter=self.get_person_level)
+            cols.append(level)
+        return cols
 
 
 class PersonListTable(BasicPersonTable):
@@ -2001,8 +2020,22 @@ class BasicPersonContainerJSONSearchView(JSONSearchViewBase):
             return self.catalog.searchResults(**params)
         return []
 
+    @Lazy
+    def today(self):
+        return getUtility(IDateManager).today
+
+    def level(self, item):
+        result = []
+        for level in item.levels.on(self.today).any(ACTIVE):
+            result.append(level)
+        if result:
+            return ', '.join([level.title for level in result])
+
     def encode(self, item):
         label = '%s, %s' % (item.title, item.username)
+        level = self.level(item)
+        if level:
+            label = '%s, %s' % (label, level)
         return {
             'label': label,
             'value': label,

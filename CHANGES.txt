@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+2.10.7 (2016-02-02)
+-------------------
+
+- Displayed level in people search in School view and student group tables
+
+
 2.10.6 (2016-01-31)
 -------------------
 

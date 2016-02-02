@@ -982,6 +982,26 @@ class GroupAwarePersonTable(StatusPersonListTable):
                    prefix=self.__name__,
                    css_classes={'table': 'data'})
 
+    @Lazy
+    def today(self):
+        return getUtility(IDateManager).today
+
+    def get_person_level(self, person, formatter):
+        result = []
+        for level in person.levels.on(self.today).any(ACTIVE):
+            result.append(level)
+        return ', '.join([level.title for level in result])
+
+    def columns(self):
+        default = super(GroupAwarePersonTable, self).columns()
+        if self.view.context.__name__ == 'students':
+            level = zc.table.column.GetterColumn(
+                name='level',
+                title=_('Level'),
+                getter=self.get_person_level)
+            return default + [level]
+        return default
+
 
 class GroupAwarePersonTableFilter(PersonTableFilter):
 

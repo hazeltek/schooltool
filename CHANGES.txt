@@ -2,10 +2,10 @@
 CHANGES
 =======
 
-2.10.8 (unreleased)
+2.10.8 (2016-02-03)
 -------------------
 
-- Nothing changed yet
+- Removed duplicated level column functionality in group members table
 
 
 2.10.7 (2016-02-02)

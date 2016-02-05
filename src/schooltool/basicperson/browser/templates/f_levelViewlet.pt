@@ -12,5 +12,21 @@
              i18n:attributes="alt" />
       </a>
     </h3>
+    <table>
+      <thead>
+        <tr>
+          <th i18n:translate="">Date</th>
+          <th i18n:translate="">Level</th>
+          <th i18n:translate="">State</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr tal:repeat="info view/all_levels">
+          <td tal:content="info/date" />
+          <td tal:content="info/level/title" />
+          <td tal:content="info/title" />
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>

@@ -335,15 +335,15 @@ class PersonView(PersonForm, form.DisplayForm):
 class FlourishPersonView(flourish.page.Page):
     """Person index.html view."""
 
+    @Lazy
+    def active_levels(self):
+        today = getUtility(IDateManager).today
+        return list(self.context.levels.on(today).any(ACTIVE))
+
     @property
     def subtitle(self):
         if is_student(self.context):
-            result = []
-            levels = self.context.levels.all()
-            for level in levels.any(ACTIVE):
-                result.append(level)
-            if result:
-                return ', '.join([level.title for level in result])
+            return ', '.join([level.title for level in self.active_levels])
 
 
 class FlourishPersonInfo(flourish.page.Content):
@@ -1914,11 +1914,11 @@ class LevelAccordionViewlet(Viewlet):
     @property
     def title(self):
         result = _('Grade Level')
-        levels = [level.title
-                  for level in self.context.levels.all().any(ACTIVE)]
-        if levels:
-            result = _('Grade Level: ${level}',
-                       mapping={'level': ', '.join(levels)})
+        view = self.view.view
+        if view.active_levels:
+            levels = ', '.join([level.title
+                                for level in view.active_levels])
+            result = _('Grade Level: ${level}', mapping={'level': levels})
         return result
 
     @property
@@ -1930,6 +1930,21 @@ class LevelAccordionViewlet(Viewlet):
             return self.template(*args, **kw)
         return ''
 
+    def all_levels(self):
+        states = []
+        app = ISchoolToolApplication(None)
+        app_states = IRelationshipStateContainer(app)['student-levels']
+        for link_info in self.context.levels.all().relationships:
+            for date, active, code in link_info.state.all():
+                state = app_states.states.get(code)
+                title = state.title if state is not None else ''
+                states.append({
+                    'level': link_info.target,
+                    'date': date,
+                    'title': title,
+                })
+        return sorted(states, key=lambda d: d['date'])
+            
 
 class PersonEditLevelView(flourish.form.Form,
                           form.EditForm):
@@ -2114,7 +2129,8 @@ class PromoteStudentsView(PromoteStudentsViewBase):
 
     def update_student(self, date, student_data):
         person = student_data['obj']
-        person.levels.on(date).unrelate(student_data['current_level'])
+        person.levels.on(date).relate(
+            student_data['current_level'], INACTIVE+GRADUATED, 'c')
         person.levels.on(date).relate(student_data['next_level'])
 
 

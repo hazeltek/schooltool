@@ -2,10 +2,10 @@
 CHANGES
 =======
 
-2.10.9 (unreleased)
+2.10.9 (2016-02-04)
 -------------------
 
-- Nothing changed yet
+- Fixed promote view and added history table to level accordion
 
 
 2.10.8 (2016-02-03)

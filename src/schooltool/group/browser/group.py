@@ -18,6 +18,7 @@
 """
 group views.
 """
+from urllib import urlencode
 
 from reportlab.lib import units, pagesizes
 
@@ -646,10 +647,10 @@ class FlourishGroupContainerDeleteView(flourish.containers.ContainerDeleteView):
     def nextURL(self):
         if 'CONFIRM' in self.request:
             schoolyear = ISchoolYear(self.context)
-            url = '%s/%s?schoolyear_id=%s' % (
+            params = {'schoolyear_id': schoolyear.__name__.encode('utf-8')}
+            url = '%s/groups?%s' % (
                 absoluteURL(ISchoolToolApplication(None), self.request),
-                'groups',
-                schoolyear.__name__)
+                urlencode(params))
             return url
         return flourish.containers.ContainerDeleteView.nextURL(self)
 
@@ -796,7 +797,7 @@ class FlourishGroupDeleteView(flourish.form.DialogForm, form.EditForm):
     def handleDelete(self, action):
         url = '%s/delete.html?delete.%s&CONFIRM' % (
             absoluteURL(self.context.__parent__, self.request),
-            self.context.__name__)
+            self.context.__name__.encode('utf-8'))
         self.request.response.redirect(url)
         # We never have errors, so just close the dialog.
         self.ajax_settings['dialog'] = 'close'

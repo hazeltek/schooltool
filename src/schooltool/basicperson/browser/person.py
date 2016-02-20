@@ -1166,21 +1166,38 @@ class PersonTitle(ContentProvider):
         return person.title
 
 
-class BasicPersonTable(PersonTable):
-
-    def __init__(self, *args, **kw):
-        PersonTable.__init__(self, *args, **kw)
-        self.css_classes = {'table': ' data persons-table'}
+class LevelColumn(table.column.IndexedGetterColumn):
 
     @Lazy
     def today(self):
         return getUtility(IDateManager).today
 
-    def get_person_level(self, person, formatter):
-        result = []
-        for level in person.levels.on(self.today).any(ACTIVE):
-            result.append(level)
-        return ', '.join([level.title for level in result])
+    def getter(self, item, formatter):
+        if not IBasicPerson.providedBy(item):
+            item = table.column.unindex(item)
+        levels = []
+        for level in item.levels.on(self.today).any(ACTIVE):
+            levels.append(level)
+        if levels:
+            return levels[0]
+
+    def renderCell(self, item, formatter):
+        level = self.getter(item, formatter)
+        if level is not None:
+            return self.cell_formatter(level.title, item, formatter)
+        return ''
+
+    def getSortKey(self, item, formatter):
+        level = self.getter(item, formatter)
+        if level is not None:
+            return level.__parent__.keys().index(level.__name__)
+
+
+class BasicPersonTable(PersonTable):
+
+    def __init__(self, *args, **kw):
+        PersonTable.__init__(self, *args, **kw)
+        self.css_classes = {'table': ' data persons-table'}
 
     def columns(self):
         cols = getUtility(IPersonFactory).columns()
@@ -1193,10 +1210,11 @@ class BasicPersonTable(PersonTable):
         cols.append(username)
         if (IGroup.providedBy(self.view.context) and
             self.view.context.__name__ == 'students'):
-            level = zc.table.column.GetterColumn(
+            level = LevelColumn(
                 name='level',
+                index='level',
                 title=_('Level'),
-                getter=self.get_person_level)
+                subsort=True)
             cols.append(level)
         return cols
 

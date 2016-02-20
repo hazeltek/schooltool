@@ -346,4 +346,55 @@
       permission="schooltool.edit"
       />
 
+  <flourish:page
+      name="streams.html"
+      for="schooltool.basicperson.interfaces.IBasicPerson"
+      class=".stream.PersonStreamsView"
+      subtitle="Streams"
+      permission="schooltool.edit"
+      />
+
+  <flourish:content
+      name="tertiary_navigation"
+      class=".stream.PersonStreamsTertiaryNavigation"
+      view=".stream.PersonStreamsView"
+      permission="zope.Public"
+      />
+
+  <flourish:viewlet
+      name="available_table"
+      class=".stream.PersonStreamsAddRelationshipTable"
+      manager="schooltool.skin.flourish.interfaces.IAJAXParts"
+      view=".stream.PersonStreamsView"
+      permission="schooltool.view"
+      />
+
+
+  <flourish:viewlet
+      name="current_table"
+      class=".stream.PersonStreamsRemoveRelationshipTable"
+      manager="schooltool.skin.flourish.interfaces.IAJAXParts"
+      view=".stream.PersonStreamsView"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="schoolyear"
+      after="filter"
+      view=".stream.PersonStreamsView"
+      manager=".stream.PersonStreamsTable"
+      class=".stream.PersonStreamsTableSchoolYear"
+      render="template"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="action_dialog_script"
+      after="table"
+      manager=".stream.PersonStreamsRemoveRelationshipTable"
+      class=".stream.PersonStreamsRemoveStateActionDialog"
+      view=".stream.PersonStreamsView"
+      permission="schooltool.view"
+      />
+
 </configure>

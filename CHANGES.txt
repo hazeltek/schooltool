@@ -2,10 +2,12 @@
 CHANGES
 =======
 
-2.10.10 (unreleased)
+2.10.10 (2016-02-28)
 --------------------
 
-- Nothing chaged yet
+- Added sortable Level column to students group tables
+- Removed students from current and future students groups after graduating
+- Added streams view for students
 
 
 2.10.9 (2016-02-04)

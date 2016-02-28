@@ -2172,6 +2172,10 @@ class GraduateStudentsView(PromoteStudentsViewBase):
         students = IGroupContainer(self.schoolyear)['students']
         if person in students.members.on(date):
             students.members.on(date).relate(person, INACTIVE+GRADUATED, 'r')
+        if self.nextYear is not None:
+            next_year_students = IGroupContainer(self.nextYear)['students']
+            if person in next_year_students.members:
+                next_year_students.members.relate(person, INACTIVE, 'w')
 
 
 class PromoteStudentsTertiaryNavigationManager(

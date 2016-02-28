@@ -56,6 +56,10 @@ from schooltool.app.browser.app import JSONSearchViewBase
 from schooltool.app.browser.app import RelationshipAddTableMixin
 from schooltool.app.browser.app import RelationshipRemoveTableMixin
 from schooltool.app.browser.states import EditRelationships
+from schooltool.app.browser.states import EditTemporalRelationships
+from schooltool.app.browser.states import TemporalRelationshipAddTableMixin
+from schooltool.app.browser.states import TemporalRelationshipRemoveTableMixin
+from schooltool.app.browser.states import RemoveStateActionDialog
 from schooltool.app.catalog import buildQueryString
 from schooltool.app.interfaces import IRelationshipStateContainer
 from schooltool.app.interfaces import ISchoolToolApplication
@@ -688,6 +692,10 @@ class StreamsAccordionViewlet(flourish.viewlet.Viewlet,
                 sy_info['streams'].append(stream_info)
             self.schoolyears.append(sy_info)
 
+    @property
+    def canModify(self):
+        return flourish.canEdit(self.context)
+
 
 class StreamActionsLinks(flourish.page.RefineLinksViewlet):
 
@@ -1081,3 +1089,210 @@ class ConvertGroupsToStreamsView(flourish.page.Page):
         return '%s/streams?schoolyear_id=%s' % (
             absoluteURL(ISchoolToolApplication(None), self.request),
             self.context.__name__.encode('utf-8'))
+
+
+class PersonStreamsTertiaryNavigation(flourish.page.Content,
+                                      flourish.page.TertiaryNavigationManager,
+                                      ActiveSchoolYearContentMixin):
+
+    template = flourish.templates.Inline("""
+        <ul tal:attributes="class view/list_class"
+            tal:condition="view/items">
+          <li tal:repeat="item view/items"
+              tal:attributes="class item/class">
+              <a tal:attributes="href item/url"
+                 tal:content="item/schoolyear/@@title" />
+          </li>
+        </ul>
+    """)
+
+    @property
+    def items(self):
+        result = []
+        active = self.schoolyear
+        schoolyears = active.__parent__ if active is not None else {}
+        name = self.view.__name__
+        for schoolyear in schoolyears.values():
+            url = '%s/%s?schoolyear_id=%s' % (
+                absoluteURL(self.context, self.request),
+                name,
+                schoolyear.__name__)
+            css_class = schoolyear.first == active.first and 'active' or None
+            result.append({
+                    'class': css_class,
+                    'url': url,
+                    'schoolyear': schoolyear,
+                    })
+        return result
+
+
+class PersonStreamsView(EditTemporalRelationships,
+                        ActiveSchoolYearContentMixin):
+
+    app_states_name = 'section-membership'
+    current_title = _('Current streams')
+    available_title = _('Available streams')
+
+    def getCollection(self):
+        result = []
+        for link_info in self.relationships:
+            stream = removeSecurityProxy(link_info.target)
+            sy = ISchoolYear(stream)
+            if sy != self.schoolyear:
+                continue
+            result.append(stream)
+        return result
+
+    def add(self, item, state=None, code=None, date=None):
+        person = removeSecurityProxy(self.context)
+        collection = self.getItemCollection(removeSecurityProxy(item))
+        active = state.active if state is not None else ACTIVE
+        collection.on(date).relate(person, active, code)
+
+    def remove(self, item, state=None, code=None, date=None):
+        person = removeSecurityProxy(self.context)
+        collection = self.getItemCollection(removeSecurityProxy(item))
+        active = state.active if state is not None else INACTIVE
+        collection.on(date).relate(person, active, code)
+
+    def getSelectedItems(self):
+        return self.getCollection()
+
+    def getAvailableItemsContainer(self):
+        result = {}
+        for stream in IStreamContainer(self.schoolyear).values():
+            result[self.getKey(stream)] = stream
+        return result
+
+    def getKey(self, item):
+        schoolyear = ISchoolYear(item)
+        return "%s.%s" % (schoolyear.__name__, item.__name__)
+
+    def getTargets(self, keys):
+        if not keys:
+            return []
+        result = []
+        container = self.getAvailableItemsContainer()
+        for key in keys:
+            if key in container:
+                result.append(container[key])
+        return result
+
+    @property
+    def relationships(self):
+        return StreamMembers.bind(member=self.context).all().relationships
+
+    def getItemCollection(self, item):
+        return item.members
+
+
+class PersonStreamsTable(table.ajax.Table):
+
+    def sortOn(self):
+        return (('title', False),)
+
+
+class PersonStreamsTableSchoolYear(flourish.viewlet.Viewlet):
+
+    template = flourish.templates.Inline('''
+      <input type="hidden" name="schoolyear_id"
+             tal:define="schoolyear_id view/view/schoolyear/__name__|nothing"
+             tal:condition="schoolyear_id"
+             tal:attributes="value schoolyear_id" />
+    ''')
+
+
+class PersonStreamsAddRelationshipTable(TemporalRelationshipAddTableMixin,
+                                        PersonStreamsTable):
+
+    visible_column_names = ['action', 'title']
+
+    @property
+    def ignoreRequest(self):
+        return not self.fromPublication
+
+    def updateFormatter(self):
+        ommit = self.view.getOmmitedItems()
+        available = self.view.getAvailableItems()
+        columns = self.columns()
+        self.setUp(formatters=[table.table.url_cell_formatter],
+                   columns=columns,
+                   ommit=ommit,
+                   items=available,
+                   table_formatter=self.table_formatter,
+                   batch_size=self.batch_size,
+                   prefix=self.__name__,
+                   css_classes={'table': 'data relationships-table'})
+
+
+class PersonStreamsRemoveRelationshipTable(
+        TemporalRelationshipRemoveTableMixin,
+        PersonStreamsTable):
+
+    visible_column_names = ['action', 'title', 'state']
+
+    def makeTextGetter(self):
+        states = self.view.states
+        if states is None:
+            return None
+        person = removeSecurityProxy(self.context)
+        def text(item, formatter=None):
+            state = self.view.getItemCollection(item).state(person)
+            if state is None:
+                return ''
+            state_today = state.today
+            if state_today is None:
+                return ''
+            active, code = state_today
+            settings = states
+            description = settings.states.get(code)
+            if description is None:
+                return ''
+            return description.title
+        return text
+
+
+class PersonStreamsRemoveStateActionDialog(RemoveStateActionDialog):
+
+    @Lazy
+    def current_states(self):
+        target = self.target
+        if target is None:
+            return []
+        app_states = self.app_states
+        relationships = self.getRelationship(target)
+        states = []
+        person = removeSecurityProxy(self.context)
+        for date, active, code in relationships.state(person) or ():
+            state = app_states.states.get(code)
+            title = state.title if state is not None else ''
+            states.append({
+                'date': date,
+                'active': app_states.system_titles.get(active, active),
+                'code': code,
+                'title': title,
+                })
+        return states
+
+    @property
+    def default_state(self):
+        target = self.target
+        if target is None:
+            return None
+        app_states = self.app_states
+        relationships = self.getRelationship(target)
+        person = removeSecurityProxy(self.context)
+        target_state = relationships.state(person)
+        if target_state is not None:
+            app_state = app_states.getState(target_state.today)
+            if app_state is not None:
+                return app_state
+        for state in app_states.states.values():
+            if state.active:
+                return state
+        if app_states.states:
+            return app_states.states.values()[0]
+        return None
+
+    def getRelationship(self, target):
+        return target.members

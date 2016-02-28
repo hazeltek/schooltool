@@ -1166,21 +1166,38 @@ class PersonTitle(ContentProvider):
         return person.title
 
 
-class BasicPersonTable(PersonTable):
-
-    def __init__(self, *args, **kw):
-        PersonTable.__init__(self, *args, **kw)
-        self.css_classes = {'table': ' data persons-table'}
+class LevelColumn(table.column.IndexedGetterColumn):
 
     @Lazy
     def today(self):
         return getUtility(IDateManager).today
 
-    def get_person_level(self, person, formatter):
-        result = []
-        for level in person.levels.on(self.today).any(ACTIVE):
-            result.append(level)
-        return ', '.join([level.title for level in result])
+    def getter(self, item, formatter):
+        if not IBasicPerson.providedBy(item):
+            item = table.column.unindex(item)
+        levels = []
+        for level in item.levels.on(self.today).any(ACTIVE):
+            levels.append(level)
+        if levels:
+            return levels[0]
+
+    def renderCell(self, item, formatter):
+        level = self.getter(item, formatter)
+        if level is not None:
+            return self.cell_formatter(level.title, item, formatter)
+        return ''
+
+    def getSortKey(self, item, formatter):
+        level = self.getter(item, formatter)
+        if level is not None:
+            return level.__parent__.keys().index(level.__name__)
+
+
+class BasicPersonTable(PersonTable):
+
+    def __init__(self, *args, **kw):
+        PersonTable.__init__(self, *args, **kw)
+        self.css_classes = {'table': ' data persons-table'}
 
     def columns(self):
         cols = getUtility(IPersonFactory).columns()
@@ -1193,10 +1210,11 @@ class BasicPersonTable(PersonTable):
         cols.append(username)
         if (IGroup.providedBy(self.view.context) and
             self.view.context.__name__ == 'students'):
-            level = zc.table.column.GetterColumn(
+            level = LevelColumn(
                 name='level',
+                index='level',
                 title=_('Level'),
-                getter=self.get_person_level)
+                subsort=True)
             cols.append(level)
         return cols
 
@@ -1804,6 +1822,7 @@ class LeaveSchoolView(flourish.form.Form,
                 person.levels.on(leave_date).relate(
                     current_level['level'], INACTIVE, 'i')
             self.request.response.redirect(self.nextURL())
+            # remove people from future years students group, sections and groups (and levels?)
 
     @button.buttonAndHandler(_("Cancel"))
     def handle_cancel_action(self, action):
@@ -2150,6 +2169,13 @@ class GraduateStudentsView(PromoteStudentsViewBase):
         person = student_data['obj']
         person.levels.on(date).relate(
             student_data['current_level'], INACTIVE+GRADUATED, 'c')
+        students = IGroupContainer(self.schoolyear)['students']
+        if person in students.members.on(date):
+            students.members.on(date).relate(person, INACTIVE+GRADUATED, 'r')
+        if self.nextYear is not None:
+            next_year_students = IGroupContainer(self.nextYear)['students']
+            if person in next_year_students.members:
+                next_year_students.members.relate(person, INACTIVE, 'w')
 
 
 class PromoteStudentsTertiaryNavigationManager(
@@ -2185,126 +2211,6 @@ class PromoteStudentsTertiaryNavigationManager(
             'viewlet': u'<a href="%s">Graduation</a>' % graduation_url,
         })
         return result
-
-
-class PromoteStudentsView_(flourish.page.Page,
-                           ActiveSchoolYearContentMixin):
-
-    content_template = ViewPageTemplateFile('templates/promote.pt')
-    container_class = 'container widecontainer'
-
-    @Lazy
-    def next_year(self):
-        app = ISchoolToolApplication(None)
-        container = ISchoolYearContainer(app)
-        return container.getNextSchoolYear()
-
-    @property
-    def current_level(self):
-        result = {}
-        levels = self.context.levels.all().any(ACTIVE)
-        if levels:
-            result['level'] = removeSecurityProxy(list(levels)[0])
-            dt, code, meaning = list(levels.relationships)[0].state.all()[0]
-            result['date'] = dt
-        return result
-
-    def nextURL(self):
-        app = ISchoolToolApplication(None)
-        return '%s/manage?schoolyear_id=%s' % (
-            absoluteURL(app, self.request),
-            self.schoolyear.__name__)
-
-    def update(self):
-        if 'CANCEL' in self.request:
-            self.request.response.redirect(self.nextURL())
-        if 'SUBMIT' in self.request:
-            app = ISchoolToolApplication(None)
-            level_container = ILevelContainer(app)
-            students = IGroupContainer(self.schoolyear)['students']
-            states = IRelationshipStateContainer(app)['student-enrollment']
-            for student_data in self.students:
-                person = student_data['obj']
-                requested_level = self.request.get(
-                    student_data['level_selector_id'])
-                active_levels = person.levels.all().any(ACTIVE)
-                current_level = list(active_levels)[0]
-                if requested_level != current_level.__name__:
-                    if not requested_level:
-                        person.levels.unrelate(current_level)
-                    else:
-                        new_level = level_container.get(requested_level)
-                        if new_level is not None:
-                            person.levels.unrelate(current_level)
-                            person.levels.relate(new_level)
-                requested_enrollment = self.request.get(
-                    student_data['enrollment_selector_id'])
-                student_state = students.members.state(person)
-                dt, code, meaning = student_state.all()[0]
-                if code != requested_enrollment:
-                    new_state = states.states[requested_enrollment]
-                    students.members.relate(person,
-                                            new_state.active,
-                                            new_state.code)
-            self.request.response.redirect(self.nextURL())
-
-    @Lazy
-    def students(self):
-        app = ISchoolToolApplication(None)
-        level_container = ILevelContainer(app)
-        level_keys = level_container.keys()
-        states = IRelationshipStateContainer(app)['student-enrollment']
-        students = IGroupContainer(self.schoolyear)['students']
-        result = []
-        for person in students.members:
-            active_levels = person.levels.all().any(ACTIVE)
-            if active_levels:
-                current_level = list(active_levels)[0]
-                student_state = students.members.state(person)
-                dt, code, meaning = student_state.all()[0]
-                enrollment_states = []
-                for state in states:
-                    enrollment_states.append({
-                        'title': state.title,
-                        'selected': state.code == meaning,
-                        'value': state.code,
-                    })
-                current_level_key = level_keys.index(current_level.__name__)
-                next_level = None
-                next_level_key = None
-                if current_level_key < (len(level_keys) - 1):
-                    next_level_key = level_keys[current_level_key + 1]
-                    next_level = level_container[next_level_key]
-                student_levels = []
-                for level_id, level in level_container.items():
-                    student_levels.append({
-                        'title': level.title,
-                        'selected': level_id == next_level_key,
-                        'value': level_id,
-                    })
-                result.append({
-                    'levels': student_levels,
-                    'enrollment_selector_id': self.enrollment_selector_id(
-                        person),
-                    'level_selector_id': self.level_selector_id(person),
-                    'obj': person,
-                    'level': current_level,
-                    'enrollment_states': enrollment_states,
-                    'next_level': next_level,
-                })
-            else:
-                continue
-        # XXX: i18n
-        return sorted(result,
-                      key=lambda i: (level_keys.index(i['level'].__name__),
-                                     i['obj'].last_name,
-                                     i['obj'].first_name))
-
-    def enrollment_selector_id(self, person):
-        return 'enrollment-selector-%s' % person.__name__
-
-    def level_selector_id(self, person):
-        return 'level-selector-%s' % person.__name__
 
 
 class PromoteStudentsLinkViewlet(flourish.page.LinkViewlet,

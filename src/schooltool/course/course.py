@@ -19,7 +19,10 @@
 Course implementation
 """
 
+from types import TupleType, ListType
+
 from persistent import Persistent
+from persistent.list import PersistentList
 
 from zope.catalog.text import TextIndex
 from zope.index.text.interfaces import ISearchableText
@@ -61,11 +64,59 @@ class CourseContainerContainer(BTreeContainer):
                               IAttributeAnnotatable)
 
 
-class CourseContainer(BTreeContainer):
+class OrderedBTreeContainerMixin(object):
+
+    _order = None
+
+    def __init__(self):
+        BTreeContainer.__init__(self)
+        self._order = PersistentList()
+
+    def __iter__(self):
+        return iter(self.keys())
+
+    def __setitem__(self, key, value):
+        exists = key in self._SampleContainer__data
+        if not exists:
+            self._order.append(key)
+        try:
+            BTreeContainer.__setitem__(self, key, value)
+        except (Exception,) as e:
+            if not exists:
+                self._order.remove(key)
+            raise e
+        return key
+
+    def __delitem__(self, key):
+        BTreeContainer.__delitem__(key)
+        self._order.remove(key)
+
+    def items(self):
+        return [(i, self._SampleContainer__data[i]) for i in self._order]
+
+    def keys(self):
+        return self._order[:]
+
+    def values(self, key=None):
+        return [self._SampleContainer__data[i] for i in self._order]
+
+    def updateOrder(self, order):
+        if not isinstance(order, ListType) and \
+            not isinstance(order, TupleType):
+            raise TypeError('order must be a tuple or a list.')
+
+        if set(order) != set(self._order):
+            raise ValueError("Incompatible key set.")
+
+        self._order = PersistentList()
+        self._order.extend(order)
+
+
+class CourseContainer(OrderedBTreeContainerMixin, BTreeContainer):
     """Container of Courses."""
 
     implements(interfaces.ICourseContainer,
-                              IAttributeAnnotatable)
+               IAttributeAnnotatable)
 
 
 @adapter(ISchoolToolApplication)

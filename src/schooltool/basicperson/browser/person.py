@@ -2228,3 +2228,57 @@ class PromoteStudentsLinkViewlet(flourish.page.LinkViewlet,
             absoluteURL(persons, self.request),
             self.schoolyear.__name__)
 
+
+class EditLevelActionsLinks(flourish.page.RefineLinksViewlet):
+
+    pass
+
+
+class PersonLevelsView(EditTemporalRelationships):
+
+    app_states_name = 'student-levels'
+    dialog_title_template = _("Levels for ${target}")
+
+    current_title = _('Current levels')
+    available_title = _('Available levels')
+
+    def getAvailableItemsContainer(self):
+        app = ISchoolToolApplication(None)
+        return ILevelContainer(app)
+
+    def getCollection(self):
+        return self.context.levels
+
+    def getSelectedItems(self):
+        collection = self.getCollection()
+        result = set()
+        for person in collection.all():
+            result.add(person)
+        return result
+
+    def getTargets(self, keys):
+        if not keys:
+            return []
+        result = []
+        container = self.getAvailableItemsContainer()
+        for key in keys:
+            if key in container:
+                result.append(container[key])
+        return result
+
+
+class LevelsTable(table.ajax.Table):
+
+    pass
+
+
+class PersonLevelsAddRelationshipTable(TemporalRelationshipAddTableMixin,
+                                       LevelsTable):
+
+    pass
+
+
+class PersonLevelsRemoveRelationshipTable(TemporalRelationshipRemoveTableMixin,
+                                          LevelsTable):
+
+    pass

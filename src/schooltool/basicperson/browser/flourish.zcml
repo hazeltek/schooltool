@@ -1019,6 +1019,14 @@
       />
 
   <flourish:viewlet
+      name="action_dialog_script"
+      after="table"
+      manager=".person.PersonLevelsRemoveRelationshipTable"
+      class=".person.PersonLevelsRemoveStateActionDialog"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
       name="person_level"
       after="*"
       for="schooltool.basicperson.interfaces.IBasicPerson"

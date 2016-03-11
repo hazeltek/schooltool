@@ -19,6 +19,8 @@
 Basic person browser views.
 """
 
+from urllib import urlencode
+
 from zope.interface import Interface, implements
 from zope.catalog.interfaces import ICatalog
 from zope.container.interfaces import INameChooser
@@ -55,6 +57,8 @@ from schooltool.app.browser.app import RelationshipViewBase
 from schooltool.app.browser.app import EditRelationships
 from schooltool.app.browser.app import RelationshipAddTableMixin
 from schooltool.app.browser.app import RelationshipRemoveTableMixin
+from schooltool.app.browser.states import use_student_enrollment_states
+from schooltool.app.browser.states import RemoveStateActionDialog
 from schooltool.app.browser.states import TemporalRelationshipAddTableMixin
 from schooltool.app.browser.states import TemporalRelationshipRemoveTableMixin
 from schooltool.app.browser.states import EditTemporalRelationships
@@ -2237,10 +2241,13 @@ class EditLevelActionsLinks(flourish.page.RefineLinksViewlet):
 class PersonLevelsView(EditTemporalRelationships):
 
     app_states_name = 'student-levels'
-    dialog_title_template = _("Levels for ${target}")
+    dialog_title_template = _("States for ${target}")
 
     current_title = _('Current levels')
     available_title = _('Available levels')
+
+    remove_state_target_selector = 'person-levels-remove-state-target'
+    remove_state_date_selector = 'person-levels-remove-state-date'
 
     def getAvailableItemsContainer(self):
         app = ISchoolToolApplication(None)
@@ -2267,6 +2274,21 @@ class PersonLevelsView(EditTemporalRelationships):
         return result
 
 
+    def update(self):
+        remove_target_id = self.request.get(self.remove_state_target_selector)
+        if remove_target_id is not None:
+            levels = ILevelContainer(ISchoolToolApplication(None))
+            level = levels.get(remove_target_id)
+            if level is not None:
+                try:
+                    date = parse_date(self.request.get(self.remove_state_date_selector))
+                except (ValueError,):
+                    date = None
+                if date is not None:
+                    rel = removeSecurityProxy(self.context.levels)
+                    rel.on(date).unrelate(level)
+
+
 class LevelsTable(table.ajax.Table):
 
     pass
@@ -2282,3 +2304,40 @@ class PersonLevelsRemoveRelationshipTable(TemporalRelationshipRemoveTableMixin,
                                           LevelsTable):
 
     pass
+
+
+class PersonLevelsRemoveStateActionDialog(RemoveStateActionDialog):
+
+    template = flourish.templates.File(
+        'templates/person_level_edit_relationship_state.pt')
+
+    @Lazy
+    def current_states(self):
+        target = self.target
+        if target is None:
+            return []
+        app_states = self.app_states
+        container = app_states.__parent__
+        relationships = removeSecurityProxy(self.view.getCollection())
+        if use_student_enrollment_states(target, relationships):
+            app_states = container['student-enrollment']
+        states = []
+        for date, active, code in relationships.state(target) or ():
+            state = app_states.states.get(code)
+            title = state.title if state is not None else ''
+            states.append({
+                'date': date,
+                'active': app_states.system_titles.get(active, active),
+                'code': code,
+                'title': title,
+                'remove_url': self.remove_url(target, date),
+                })
+        return states
+
+
+    def remove_url(self, target, date):
+        args = {
+            self.view.remove_state_target_selector: target.__name__,
+            self.view.remove_state_date_selector: str(date),
+            }
+        return "%s?%s" % (absoluteURL(self.view, self.request), urlencode(args))

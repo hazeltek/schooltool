@@ -1,0 +1,30 @@
+<div i18n:domain="schooltool" name="edit-relationship-state">
+
+<div>
+  <table>
+    <head>
+      <tr>
+        <td i18n:translate="">Status</td>
+        <td i18n:translate="">Date</td>
+        <td i18n:translate="">Meaning</td>
+        <td i18n:translate="">Code</td>
+        <td i18n:translate="">Remove</td>
+      </tr>
+    </head>
+    <body>
+    </body>
+    <tr tal:repeat="state view/current_states">
+      <td tal:content="state/title" />
+      <td tal:content="state/date/@@mediumDate" />
+      <td tal:content="state/active"></td>
+      <td tal:content="state/code" />
+      <td>
+        <a tal:attributes="href state/remove_url">
+          <img tal:attributes="src context/++resource++schooltool.skin.flourish/remove-icon.png" />
+        </a>
+      </td>
+    </tr>
+  </table>
+</div>
+
+</div>

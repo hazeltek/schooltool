@@ -14,7 +14,8 @@
   <class class=".course.CourseContainer">
     <allow interface="zope.container.interfaces.ISimpleReadContainer" />
     <require permission="schooltool.view"
-             attributes="keys values items __iter__ __len__ has_key" />
+             attributes="keys values items __iter__ __len__ has_key
+                         updateOrder" />
     <require permission="schooltool.edit"
              interface="zope.container.interfaces.IWriteContainer" />
   </class>

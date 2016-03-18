@@ -304,6 +304,7 @@ class IndexedTable(IndexedTableFormatter, Table):
         columns = [IIndexedColumn(c) for c in self._columns]
         formatter = self._table_formatter(
             self.source, self.request, self._items,
+            visible_column_names=self.visible_column_names,
             columns=columns,
             batch_start=self.batch.start, batch_size=self.batch.size,
             sort_on=self._sort_on,

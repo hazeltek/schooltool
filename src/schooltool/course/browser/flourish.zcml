@@ -922,4 +922,32 @@
       permission="schooltool.view"
       />
 
+  <flourish:viewlet
+      name="courses-view-actions-links"
+      after="courses-add-links"
+      before="course-import-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class=".course.CoursesActionsLinks"
+      view="schooltool.course.browser.course.FlourishCoursesView"
+      title="Actions"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="reorder.html"
+      title="Reorder"
+      class=".course.CoursesReorderLinkViewlet"
+      manager=".course.CoursesActionsLinks"
+      permission="schooltool.edit"
+      />
+
+  <flourish:page
+     name="reorder.html"
+     for="schooltool.course.interfaces.ICourseContainer"
+     class=".course.CoursesReorderView"
+     content_template="templates/f_courses_reorder.pt"
+     permission="schooltool.edit"
+     subtitle="Reorder"
+     />
+
 </configure>

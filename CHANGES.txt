@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+2.10.11 (2016-03-18)
+--------------------
+
+- Added view to edit person levels and delete relationship states
+- Added reorder functionality for courses
+
+
 2.10.10 (2016-02-28)
 --------------------
 

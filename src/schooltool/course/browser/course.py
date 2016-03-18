@@ -46,6 +46,7 @@ from zope.i18n import translate
 from zope.viewlet.viewlet import ViewletBase
 from z3c.form import field, button, form
 from z3c.form.interfaces import HIDDEN_MODE
+from zc.table.column import GetterColumn
 
 from schooltool.app.catalog import buildQueryString
 from schooltool.app.interfaces import ISchoolToolApplication
@@ -557,14 +558,28 @@ def getCoursesTable(context, request, view, manager):
     return table
 
 
+def get_course_position(course, f):
+    if not ICourse.providedBy(course):
+        course = table.column.unindex(course)
+    return course.__parent__._order.index(course.__name__)
+
+
 class CoursesTableBase(table.ajax.IndexedTable):
 
+    visible_column_names = ['title', 'course_id']
+
     def columns(self):
+        position = GetterColumn(
+            name='position',
+            title=u'Position',
+            getter=get_course_position,
+            subsort=True)
         title = table.column.IndexedLocaleAwareGetterColumn(
             index='title',
             name='title',
             title=_(u'Title'),
             getter=lambda i, f: i.title,
+            cell_formatter=table.table.url_cell_formatter,
             subsort=True)
         course_id = table.column.IndexedLocaleAwareGetterColumn(
             index='course_id',
@@ -572,7 +587,10 @@ class CoursesTableBase(table.ajax.IndexedTable):
             title=_('Course ID'),
             getter=lambda i, f: i.course_id or '',
             subsort=True)
-        return [title, course_id]
+        return [position, title, course_id]
+
+    def sortOn(self):
+        return (('position', False),)
 
 
 class CoursesTable(CoursesTableBase):
@@ -968,3 +986,75 @@ class CoursesJSONSearchView(JSONSearchViewBase,
             'value': label,
             'url': absoluteURL(course, self.request),
         }
+
+
+class CoursesActionsLinks(flourish.page.RefineLinksViewlet):
+
+    pass
+
+
+class CoursesReorderLinkViewlet(flourish.page.LinkViewlet,
+                                ActiveSchoolYearContentMixin):
+
+    @property
+    def url(self):
+        courses = ICourseContainer(self.schoolyear)
+        return '%s/reorder.html' % absoluteURL(courses, self.request)
+
+
+class CoursesReorderView(flourish.page.Page,
+                         ActiveSchoolYearContentMixin):
+
+    @Lazy
+    def schoolyear(self):
+        return ISchoolYear(self.context)
+
+    @property
+    def title(self):
+        return _('Courses for ${schoolyear}',
+                 mapping={'schoolyear': self.schoolyear.title})
+
+    def done_url(self):
+        app = ISchoolToolApplication(None)
+        return self.url_with_schoolyear_id(app, view_name='courses')
+
+    @Lazy
+    def courses(self):
+        result = []
+        for i, course in enumerate(self.context.values()):
+            result.append({
+                'pos': i + 1,
+                '__name__': course.__name__,
+                'title': course.title,
+                'course_id': course.course_id,
+            })
+        return result
+
+    def positions(self):
+        return range(1, len(self.context.values())+1)
+
+    def update(self):
+        if 'DONE' in self.request:
+            url = absoluteURL(self.context, self.request)
+            self.request.response.redirect(url)
+        elif 'form-submitted' in self.request:
+            for course in self.context.values():
+                name = 'delete.%s' % course.__name__
+                if name in self.request:
+                    del self.context[course.__name__]
+                    return
+            old_pos, new_pos = 0, 0
+            for course in self.context.values():
+                old_pos += 1
+                name = course.__name__
+                if 'pos.'+name not in self.request:
+                    continue
+                new_pos = int(self.request['pos.'+name])
+                if new_pos != old_pos:
+                    break
+            old_pos, new_pos = old_pos-1, new_pos-1
+            keys = list(self.context.keys())
+            moving = keys[old_pos]
+            keys.remove(moving)
+            keys.insert(new_pos,moving)
+            self.context.updateOrder(keys)

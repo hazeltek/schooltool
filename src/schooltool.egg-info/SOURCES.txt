@@ -260,6 +260,7 @@ src/schooltool/basicperson/browser/templates/person_container_delete.pt
 src/schooltool/basicperson/browser/templates/person_edit.pt
 src/schooltool/basicperson/browser/templates/person_form.pt
 src/schooltool/basicperson/browser/templates/person_groups.pt
+src/schooltool/basicperson/browser/templates/person_level_edit_relationship_state.pt
 src/schooltool/basicperson/browser/templates/person_view.pt
 src/schooltool/basicperson/browser/templates/promote.pt
 src/schooltool/basicperson/browser/tests/__init__.py
@@ -425,6 +426,7 @@ src/schooltool/course/browser/templates/f_course_filter.pt
 src/schooltool/course/browser/templates/f_course_table_filter.pt
 src/schooltool/course/browser/templates/f_course_view.pt
 src/schooltool/course/browser/templates/f_courses_related.pt
+src/schooltool/course/browser/templates/f_courses_reorder.pt
 src/schooltool/course/browser/templates/f_coursesviewlet.pt
 src/schooltool/course/browser/templates/f_extend_term.pt
 src/schooltool/course/browser/templates/f_link_existing.pt
@@ -589,6 +591,7 @@ src/schooltool/generations/evolve45.py
 src/schooltool/generations/evolve46.py
 src/schooltool/generations/evolve47.py
 src/schooltool/generations/evolve48.py
+src/schooltool/generations/evolve49.py
 src/schooltool/generations/linkcatalogs.py
 src/schooltool/generations/evolve36/__init__.py
 src/schooltool/generations/evolve36/calendar_builders.py

@@ -978,6 +978,55 @@
   </configure>
 
   <flourish:viewlet
+      name="edit-level-actions-links"
+      manager="schooltool.skin.flourish.page.IPageRefineManager"
+      class=".person.EditLevelActionsLinks"
+      title="Actions"
+      permission="schooltool.edit"
+      view=".person.PersonEditLevelView"
+      />
+
+  <flourish:viewlet
+      name="levels.html"
+      title="Edit Levels"
+      class="schooltool.skin.flourish.page.LinkViewlet"
+      manager=".person.EditLevelActionsLinks"
+      permission="schooltool.edit"
+      />
+
+  <flourish:page
+      name="levels.html"
+      for="schooltool.person.interfaces.IPerson"
+      class=".person.PersonLevelsView"
+      permission="schooltool.edit"
+      subtitle="Levels"
+      />
+
+  <flourish:viewlet
+      name="available_table"
+      class=".person.PersonLevelsAddRelationshipTable"
+      manager="schooltool.skin.flourish.interfaces.IAJAXParts"
+      view=".person.PersonLevelsView"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="current_table"
+      class=".person.PersonLevelsRemoveRelationshipTable"
+      manager="schooltool.skin.flourish.interfaces.IAJAXParts"
+      view=".person.PersonLevelsView"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
+      name="action_dialog_script"
+      after="table"
+      manager=".person.PersonLevelsRemoveRelationshipTable"
+      class=".person.PersonLevelsRemoveStateActionDialog"
+      permission="schooltool.view"
+      />
+
+  <flourish:viewlet
       name="person_level"
       after="*"
       for="schooltool.basicperson.interfaces.IBasicPerson"

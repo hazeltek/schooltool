@@ -481,6 +481,7 @@ class SchoolToolMachinery(object):
                                   % fontdirs)
             return
 
+        existing_directories.append('/usr/share/fonts/truetype/dejavu')
         for font_file in pdf.font_map.values():
             font_exists = False
             for fontdir in existing_directories:

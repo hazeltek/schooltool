@@ -68,6 +68,7 @@ font_map = {
     'Ubuntu_Bold': 'Ubuntu-B.ttf',
     'Ubuntu_Italic': 'Ubuntu-RI.ttf',
     'Ubuntu_Bold_Italic': 'Ubuntu-BI.ttf',
+    'DejaVu_Sans': 'DejaVuSans.ttf',
     }
 
 font_directories = ()
@@ -109,6 +110,8 @@ def setUpFonts(directories=()):
     addMapping('Ubuntu_Regular', 0, 1, 'Ubuntu_Italic')
     addMapping('Ubuntu_Regular', 1, 0, 'Ubuntu_Bold')
     addMapping('Ubuntu_Regular', 1, 1, 'Ubuntu_Bold_Italic')
+
+    addMapping('DejaVu_Sans', 0, 0, 'DejaVu_Sans')
 
     global enabled
     enabled = True

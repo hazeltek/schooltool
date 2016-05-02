@@ -29,3 +29,39 @@ filename = os.path.join(dir, 'stesting.zcml')
 stream_selenium_layer = SeleniumLayer(filename,
                                       __name__,
                                       'stream_selenium_layer')
+
+
+def registerSeleniumSetup():
+    try:
+        import selenium
+    except ImportError:
+        return
+    from schooltool.testing import registry
+    import schooltool.testing.selenium
+
+    def addStream(browser, schoolyear, title, **kw):
+        optional = (
+            'description',
+            )
+        browser.query.link('School').click()
+        sel = '//ul[contains(@class, "third-nav")]//a[text()="%s"]' % schoolyear
+        browser.query.xpath(sel).click()
+        sel = '//a[contains(@href, "addStream.html")]'
+        browser.query.xpath(sel).click()
+        browser.query.name('form.widgets.title').type(title)
+        for name in optional:
+            if name in kw:
+                value = kw[name]
+                widget_id = ''.join(['form-widgets-', name])
+                browser.query.id(widget_id).ui.set_value(value)
+        page = browser.query.tag('html')
+        browser.query.button('Submit').click()
+        browser.wait(lambda: page.expired)
+
+    registry.register('SeleniumHelpers',
+        lambda: schooltool.testing.selenium.registerBrowserUI(
+            'stream.add', addStream))
+
+
+registerSeleniumSetup()
+del registerSeleniumSetup

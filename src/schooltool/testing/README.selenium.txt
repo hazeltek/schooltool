@@ -272,6 +272,19 @@ becomes an updating action.
     state: title of the state
     date: YYYY-MM-DD date
 
+Adding streams
+--------------
+
+* browser.ui.stream.add()
+
+  Required parameters:
+    schoolyear: title of the school year
+    title
+  Optional keyword parameters:
+    description
+    attendance_group: boolean
+
+
 Element extensions
 ==================
 

@@ -88,7 +88,7 @@ class OrderedBTreeContainerMixin(object):
         return key
 
     def __delitem__(self, key):
-        BTreeContainer.__delitem__(key)
+        BTreeContainer.__delitem__(self, key)
         self._order.remove(key)
 
     def items(self):

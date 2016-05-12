@@ -2,10 +2,10 @@
 CHANGES
 =======
 
-2.10.13 (unreleased)
+2.10.13 (2016-05-12)
 --------------------
 
-- Nothing changed yet
+- Fixed delete course view (https://bugs.launchpad.net/bugs/1575637)
 
 
 2.10.12 (2016-04-27)

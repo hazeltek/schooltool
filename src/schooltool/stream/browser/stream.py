@@ -603,8 +603,12 @@ class StreamsVocabulary(SimpleVocabulary):
             widget.SequenceWidget.noValueToken,
             _('Select a stream'),
         ))
-        app = ISchoolToolApplication(None)
-        schoolyear = ISchoolYearContainer(app).getActiveSchoolYear()
+        if ('schoolyear' in self.context and
+            ISchoolYear.providedBy(self.context['schoolyear'])):
+            schoolyear = self.context['schoolyear']
+        else:
+            app = ISchoolToolApplication(None)
+            schoolyear = ISchoolYearContainer(app).getActiveSchoolYear()
         container = IStreamContainer(schoolyear)
         for group in sorted(container.values(), key=lambda g: g.title):
             result.append(self.createTerm(

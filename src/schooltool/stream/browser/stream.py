@@ -603,8 +603,12 @@ class StreamsVocabulary(SimpleVocabulary):
             widget.SequenceWidget.noValueToken,
             _('Select a stream'),
         ))
-        app = ISchoolToolApplication(None)
-        schoolyear = ISchoolYearContainer(app).getActiveSchoolYear()
+        if ('schoolyear' in self.context and
+            ISchoolYear.providedBy(self.context['schoolyear'])):
+            schoolyear = self.context['schoolyear']
+        else:
+            app = ISchoolToolApplication(None)
+            schoolyear = ISchoolYearContainer(app).getActiveSchoolYear()
         container = IStreamContainer(schoolyear)
         for group in sorted(container.values(), key=lambda g: g.title):
             result.append(self.createTerm(
@@ -1146,14 +1150,22 @@ class PersonStreamsView(EditTemporalRelationships,
     def add(self, item, state=None, code=None, date=None):
         person = removeSecurityProxy(self.context)
         collection = self.getItemCollection(removeSecurityProxy(item))
-        active = state.active if state is not None else ACTIVE
-        collection.on(date).relate(person, active, code)
+        meaning = state.active if state is not None else ACTIVE
+        collection.on(date).relate(person, meaning, code)
+        sections = removeSecurityProxy(item.sections)
+        for section in sections:
+            if person not in section.members.on(date):
+                section.members.on(date).relate(person, meaning, code)
 
     def remove(self, item, state=None, code=None, date=None):
         person = removeSecurityProxy(self.context)
         collection = self.getItemCollection(removeSecurityProxy(item))
-        active = state.active if state is not None else INACTIVE
-        collection.on(date).relate(person, active, code)
+        meaning = state.active if state is not None else INACTIVE
+        collection.on(date).relate(person, meaning, code)
+        sections = removeSecurityProxy(item.sections)
+        for section in sections:
+            if person in section.members.on(date):
+                section.members.on(date).relate(person, meaning, code)
 
     def getSelectedItems(self):
         return self.getCollection()

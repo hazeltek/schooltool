@@ -2,10 +2,10 @@
 CHANGES
 =======
 
-2.10.14 (unreleased)
+2.10.14 (2016-07-14)
 --------------------
 
-- Nothing changed yet
+- Updated streams vocabulary to work with and without a school year context
 
 
 2.10.13 (2016-05-12)

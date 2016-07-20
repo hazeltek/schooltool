@@ -443,8 +443,7 @@ class StreamStudentsView(EditPersonTemporalRelationships,
         sections = removeSecurityProxy(self.context.sections)
         meaning = state.active if state is not None else ACTIVE
         for section in sections:
-            if item not in section.members.on(date):
-                section.members.on(date).relate(item, meaning, code)
+            section.members.on(date).relate(item, meaning, code)
 
     def remove(self, item, state=None, code=None, date=None):
         super(StreamStudentsView, self).remove(item, state, code, date)
@@ -459,8 +458,7 @@ class StreamStudentsView(EditPersonTemporalRelationships,
                     break
             if section_in_other_stream:
                 continue
-            if item in section.members.on(date):
-                section.members.on(date).relate(item, meaning, code)
+            section.members.on(date).relate(item, meaning, code)
 
 
 class StreamSectionsView(EditRelationships,
@@ -1154,8 +1152,7 @@ class PersonStreamsView(EditTemporalRelationships,
         collection.on(date).relate(person, meaning, code)
         sections = removeSecurityProxy(item.sections)
         for section in sections:
-            if person not in section.members.on(date):
-                section.members.on(date).relate(person, meaning, code)
+            section.members.on(date).relate(person, meaning, code)
 
     def remove(self, item, state=None, code=None, date=None):
         person = removeSecurityProxy(self.context)
@@ -1164,8 +1161,7 @@ class PersonStreamsView(EditTemporalRelationships,
         collection.on(date).relate(person, meaning, code)
         sections = removeSecurityProxy(item.sections)
         for section in sections:
-            if person in section.members.on(date):
-                section.members.on(date).relate(person, meaning, code)
+            section.members.on(date).relate(person, meaning, code)
 
     def getSelectedItems(self):
         return self.getCollection()

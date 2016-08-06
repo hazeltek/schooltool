@@ -86,6 +86,7 @@ from schooltool.person.interfaces import IPerson, IPersonFactory
 from schooltool.person.browser.person import PersonTable, PersonTableFormatter
 from schooltool.person.browser.person import PersonTableFilter
 from schooltool.schoolyear.interfaces import ISchoolYearContainer
+from schooltool.stream.stream import StreamMembers
 from schooltool.relationship.temporal import ACTIVE
 from schooltool.report.report import OldReportTask
 from schooltool.report.browser.report import RequestRemoteReportDialog
@@ -1821,12 +1822,21 @@ class LeaveSchoolView(flourish.form.Form,
                         if leave_date < schoolyear.first:
                             link_info.state.replace({})
                         collection.on(leave_date).relate(person, INACTIVE, code)
+            self.removeStreams(person, leave_date)
             current_level = self.current_level
             if current_level and current_level['level'] is not None:
                 person.levels.on(leave_date).relate(
                     current_level['level'], INACTIVE, 'i')
             self.request.response.redirect(self.nextURL())
             # remove people from future years students group, sections and groups (and levels?)
+
+    def removeStreams(self, person, leave_date):
+        relationships = StreamMembers.bind(member=person).all().relationships
+        for link_info in relationships:
+            target = removeSecurityProxy(link_info.target)
+            if person in target.members.on(leave_date):
+                target.members.on(leave_date).relate(person, INACTIVE, 'i')
+        
 
     @button.buttonAndHandler(_("Cancel"))
     def handle_cancel_action(self, action):

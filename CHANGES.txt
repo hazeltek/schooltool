@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+2.10.15 (2016-08-05)
+--------------------
+
+- Remove student streams when a student is unenrolled
+- Fixed stream-section relationship
+
+
 2.10.14 (2016-07-14)
 --------------------
 

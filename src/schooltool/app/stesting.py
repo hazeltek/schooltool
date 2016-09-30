@@ -79,7 +79,8 @@ def group_double_rows(rows):
     indexes = []
     keep_index = False
     for index, row in enumerate(rows):
-        if 'double-' not in row.get_attribute('class'):
+        if ('double-' not in row.get_attribute('class') or
+            'single-grade-hint' in row.get_attribute('class')):
             indexes.append((index, row))
         else:
             if not keep_index:
@@ -215,8 +216,11 @@ def registerSeleniumSetup():
         grade_row_groups = group_double_rows(browser.driver.execute_script(
             'return $(arguments[0])', sel))
         row = grade_row_groups[row_index][-1]
-        sel = 'td:nth-child(%d)' % (column_index + 1)
-        raw_cell = driver.execute_script('return $(arguments[0]).find(arguments[1])', row, sel)[0]
+        raw_cells = driver.execute_script('return $(arguments[0]).find("td")', row)
+        if 'period-marker' in raw_cells[0].get_attribute('class'):
+            raw_cell = raw_cells[column_index + 1]
+        else:
+            raw_cell = raw_cells[column_index]
         cell = WebElement(raw_cell)
         cell.click()
         sel = '.ui-dialog:visible'

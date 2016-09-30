@@ -820,6 +820,7 @@ class LogoutView(BrowserView):
     def logUser(self):
         person = IPerson(self.request.principal, None)
         if person is not None:
+            person = removeSecurityProxy(person)
             logger = logging.getLogger('accesslog')
             logger.info('User logged out: %s', person.username)
 

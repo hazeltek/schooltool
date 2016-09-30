@@ -2,6 +2,14 @@
 CHANGES
 =======
 
+2.10.16 (2016-09-29)
+--------------------
+
+- Fixed selenium helper for grading worksheets
+- Fixed person add view unit test
+- Fixed logout view unit test
+
+
 2.10.15 (2016-08-05)
 --------------------
 

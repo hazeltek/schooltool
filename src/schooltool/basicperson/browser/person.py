@@ -386,6 +386,7 @@ class PersonAddFormBase(PersonForm, form.AddForm):
 
     _groups = None
     _advisors = None
+    _group_date = None
 
     def update(self):
         self.fields = field.Fields(IPersonAddForm)

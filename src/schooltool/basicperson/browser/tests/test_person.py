@@ -184,6 +184,7 @@ def doctest_PersonAddView():
         >>> request = TestRequest(form={'form.widgets.first_name': u'John',
         ...                             'form.widgets.last_name': u'Doe',
         ...                             'form.widgets.username': u'jdoe',
+        ...                             'form.widgets.gender': u'male',
         ...                             'form.widgets.password': u'secret',
         ...                             'form.widgets.confirm': u'secret',
         ...                             'form.buttons.add': 'Add'})
@@ -206,6 +207,7 @@ def doctest_PersonAddView():
         >>> request = TestRequest(form={'form.widgets.first_name': u'Another John',
         ...                             'form.widgets.last_name': u'Doe',
         ...                             'form.widgets.username': u'jdoe',
+        ...                             'form.widgets.gender': u'male',
         ...                             'form.widgets.password': u'pass',
         ...                             'form.widgets.confirm': u'pass',
         ...                             'form.buttons.add': 'Add'})
@@ -218,6 +220,7 @@ def doctest_PersonAddView():
 
         >>> request = TestRequest(form={'form.widgets.first_name': u'Coo',
         ...                             'form.widgets.last_name': u'Guy',
+        ...                             'form.widgets.gender': u'male',
         ...                             'form.widgets.username': u'coo',
         ...                             'form.widgets.password': u'secret',
         ...                             'form.widgets.confirm': u'plain',
@@ -239,6 +242,7 @@ def doctest_PersonAddView():
 
         >>> request = TestRequest(form={'form.widgets.first_name': u'Gintas',
         ...                             'form.widgets.last_name': u'Mil',
+        ...                             'form.widgets.gender': u'male',
         ...                             'form.widgets.username': u'gintas',
         ...                             'form.widgets.password': u'denied',
         ...                             'form.widgets.confirm': u'denied',

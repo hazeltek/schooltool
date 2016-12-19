@@ -1,3 +1,9 @@
+schooltool (1:2.10.17-0ubuntu1) trusty; urgency=medium
+
+  * New upstream release.
+
+ -- Pedro Peña Pérez <pedro.pena@open-phoenix.com>  Mon, 19 Dec 2016 14:30:31 +0000
+
 schooltool (1:2.10.16-0ubuntu1) trusty; urgency=medium
 
   * New upstream release.

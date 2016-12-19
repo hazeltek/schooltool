@@ -27,6 +27,7 @@ from zope.catalog.interfaces import ICatalog
 from zope.component import adapts
 from zope.component import getMultiAdapter
 from zope.component import getUtility
+from zope.component import queryMultiAdapter
 from zope.container.interfaces import INameChooser
 from zope.event import notify
 from zope.interface import implements
@@ -134,6 +135,10 @@ class ManageStreamsOverview(ContainerSearchContent):
 class StreamsJSONSearchView(JSONSearchViewBase,
                             ActiveSchoolYearContentMixin):
 
+    @Lazy
+    def container(self):
+        return IStreamContainer(self.schoolyear)
+
     @property
     def catalog(self):
         container = IStreamContainer(self.schoolyear)
@@ -141,18 +146,15 @@ class StreamsJSONSearchView(JSONSearchViewBase,
 
     @property
     def items(self):
-        result = set()
-        if self.text_query and self.schoolyear:
-            int_ids = getUtility(IIntIds)
-            schoolyear_id = int_ids.getId(self.schoolyear)
-            schoolyear_query = {'any_of': [schoolyear_id]}
+        if self.text_query:
+            container_id = getUtility(IIntIds).getId(self.container)
+            container_query = {'any_of': [container_id]}
             params = {
                 'text': self.text_query,
-                'schoolyear_id': schoolyear_query,
+                'container_id': container_query,
             }
-            for stream in self.catalog.searchResults(**params):
-                result.add(stream)
-        return result
+            return self.catalog.searchResults(**params)
+        return []
 
     def encode(self, stream):
         label = stream.title
@@ -163,7 +165,7 @@ class StreamsJSONSearchView(JSONSearchViewBase,
         }
 
 
-class StreamAddView(flourish.form.AddForm):
+class StreamAddView(flourish.form.AddForm, ActiveSchoolYearContentMixin):
 
     template = flourish.templates.Inherit(flourish.page.Page.template)
     label = None
@@ -238,6 +240,15 @@ class StreamsView(flourish.page.Page,
     def container(self):
         schoolyear = self.schoolyear
         return IStreamContainer(schoolyear)
+
+
+def getStreamsTable(context, request, view, manager):
+    container = view.container
+    table = queryMultiAdapter(
+        (container, request, view, manager),
+        flourish.interfaces.IViewlet,
+        'table')
+    return table
 
 
 class StreamsTable(table.ajax.IndexedTable):

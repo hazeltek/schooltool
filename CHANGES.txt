@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+2.10.17 (2016-12-19)
+--------------------
+
+- Fix streams view pagination
+- Fix add stream cancel button
+
+
 2.10.16 (2016-09-29)
 --------------------
 

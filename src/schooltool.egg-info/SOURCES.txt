@@ -8,6 +8,7 @@ bootstrap.py
 buildout.cfg
 deploy.cfg
 develop.cfg
+setup.cfg
 setup.py
 version.txt.in
 src/schooltool/__init__.py

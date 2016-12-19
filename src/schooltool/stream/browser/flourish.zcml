@@ -63,6 +63,17 @@
       permission="schooltool.view"
       />
 
+ <zope:adapter
+  for="schooltool.app.interfaces.ISchoolToolApplication
+       schooltool.skin.flourish.interfaces.IFlourishLayer
+       .stream.StreamsView
+       schooltool.skin.flourish.interfaces.IAJAXParts"
+  factory=".stream.getStreamsTable"
+  provides="schooltool.skin.flourish.interfaces.IViewlet"
+  name="table"
+  permission="zope.Public"
+  />
+
   <flourish:viewlet
       name="table"
       for="schooltool.stream.interfaces.IStreamContainer"

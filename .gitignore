@@ -18,3 +18,7 @@
 ./ftest-coverage
 ./docs
 ./buildout.cfg
+
+# git extras
+.bzr
+
